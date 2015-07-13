@@ -11,6 +11,7 @@ class PostgresCopyTest(TestCase):
         self.name_path = os.path.join(self.data_dir, 'names.csv')
         self.pipe_path = os.path.join(self.data_dir, 'pipes.csv')
         self.null_path = os.path.join(self.data_dir, 'nulls.csv')
+        self.backwards_path = os.path.join(self.data_dir, 'backwards.csv')
 
     def tearDown(self):
         MockObject.objects.all().delete()
@@ -70,3 +71,13 @@ class PostgresCopyTest(TestCase):
         self.assertEqual(MockObject.objects.count(), 4)
         self.assertEqual(MockObject.objects.get(name='ben').number, 1)
         self.assertEqual(MockObject.objects.get(name='nullboy').number, None)
+
+    def test_backwards_save(self):
+        c = Copy(
+            MockObject,
+            self.backwards_path,
+            dict(NAME='name', NUMBER='number'),
+        )
+        c.save()
+        self.assertEqual(MockObject.objects.count(), 3)
+        self.assertEqual(MockObject.objects.get(name='ben').number, 1)
