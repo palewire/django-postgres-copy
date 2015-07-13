@@ -33,7 +33,7 @@ You probably need to create the database table like so.
 $ python manage.py migrate
 ```
 
-Create a loader that uses this library to load CSV data. Once place you could
+Create a loader that uses this library to load CSV data. One place you could
 put it is in a Django management command.
 
 ```python
