@@ -20,6 +20,10 @@ class TestCommand(Command):
                 'default': {
                     'NAME': 'test',
                     'ENGINE': 'django.db.backends.postgresql_psycopg2'
+                },
+                'sqlite': {
+                    'NAME': 'sqlite',
+                    'ENGINE': 'django.db.backends.sqlite3'
                 }
             },
             INSTALLED_APPS=("tests",),

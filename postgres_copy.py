@@ -23,6 +23,9 @@ class Copy(object):
         else:
             self.using = router.db_for_write(model)
         self.conn = connections[self.using]
+        print self.conn.vendor
+        if self.conn.vendor != 'postgresql':
+            raise TypeError("Only PostgreSQL backends supported")
         self.backend = self.conn.ops
         # THROW AN ERROR HERE IF THE BACKEND IS NOT PSQL!
         self.delimiter = delimiter
@@ -64,13 +67,11 @@ class Copy(object):
                 raise ValueError("Model does not include %s field" % f_name)
             header2field.append((h, f))
 
-        print header2field
         temp_table_name = "temp_%s" % self.model._meta.db_table
         temp_field_list = ", ".join([
             '"%s" %s' % (x, y.db_type(self.conn))
             for x, y in header2field
         ])
-        print temp_field_list
 
         cursor = self.conn.cursor()
         cursor.execute("DROP TABLE IF EXISTS %s;" % temp_table_name)

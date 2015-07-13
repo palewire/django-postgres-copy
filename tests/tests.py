@@ -1,7 +1,7 @@
 import os
 from models import MockObject
 from postgres_copy import Copy
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
 
 class PostgresCopyTest(TestCase):
@@ -17,6 +17,15 @@ class PostgresCopyTest(TestCase):
     def test_bad_call(self):
         with self.assertRaises(TypeError):
             Copy()
+
+    def test_bad_backend(self):
+        with self.assertRaises(TypeError):
+            Copy(
+                MockObject,
+                self.name_path,
+                dict(NAME='name', NUMBER='number'),
+                using='sqlite'
+            )
 
     def test_simple_save(self):
         c = Copy(
