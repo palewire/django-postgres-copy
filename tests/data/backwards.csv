@@ -1,4 +1,4 @@
-NUMBER,NAME
-1,ben
-2,joe
-3,jane
+NUMBER,NAME,DATE
+1,ben,2012-01-01
+2,joe,2012-01-02
+3,jane,2012-01-03

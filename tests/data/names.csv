@@ -1,4 +1,4 @@
-NAME,NUMBER
-ben,1
-joe,2
-jane,3
+NAME,NUMBER,DATE
+ben,1,2012-01-01
+joe,2,2012-01-02
+jane,3,2012-01-03

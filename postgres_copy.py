@@ -31,7 +31,6 @@ class Copy(object):
         else:
             self.using = router.db_for_write(model)
         self.conn = connections[self.using]
-        print self.conn.vendor
         if self.conn.vendor != 'postgresql':
             raise TypeError("Only PostgreSQL backends supported")
         self.backend = self.conn.ops
@@ -43,7 +42,7 @@ class Copy(object):
         Returns the column headers from the csv as a list.
         """
         with open(self.csv_path, 'r') as infile:
-            csv_reader = csv.DictReader(infile, delimiter=self.delimiter)
+            csv_reader = csv.reader(infile, delimiter=self.delimiter)
             headers = next(csv_reader)
         return headers
 
@@ -92,8 +91,7 @@ class Copy(object):
         )
         cursor.execute(sql)
 
-        sql = """COPY %(db_table)s (%(header_list)s)
-FROM '%(csv_path)s'
+        sql = """COPY %(db_table)s (%(header_list)s) FROM '%(csv_path)s'
 WITH CSV HEADER %(extra_options)s;"""
 
         options = {

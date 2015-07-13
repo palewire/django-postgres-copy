@@ -1,4 +1,5 @@
 import os
+from datetime import date
 from models import MockObject
 from postgres_copy import Copy
 from django.test import TestCase
@@ -25,7 +26,7 @@ class PostgresCopyTest(TestCase):
             Copy(
                 MockObject,
                 self.name_path,
-                dict(NAME='name', NUMBER='number'),
+                dict(NAME='name', NUMBER='number', DATE='dt'),
                 using='sqlite'
             )
 
@@ -33,51 +34,71 @@ class PostgresCopyTest(TestCase):
         c = Copy(
             MockObject,
             self.name_path,
-            dict(NAME='name', NUMBER='number')
+            dict(NAME='name', NUMBER='number', DATE='dt')
         )
         c.save()
         self.assertEqual(MockObject.objects.count(), 3)
         self.assertEqual(MockObject.objects.get(name='ben').number, 1)
+        self.assertEqual(
+            MockObject.objects.get(name='ben').dt,
+            date(2012, 1, 1)
+        )
 
     def test_silent_save(self):
         c = Copy(
             MockObject,
             self.name_path,
-            dict(NAME='name', NUMBER='number'),
+            dict(NAME='name', NUMBER='number', DATE='dt'),
         )
         c.save(silent=True)
         self.assertEqual(MockObject.objects.count(), 3)
         self.assertEqual(MockObject.objects.get(name='ben').number, 1)
+        self.assertEqual(
+            MockObject.objects.get(name='ben').dt,
+            date(2012, 1, 1)
+        )
 
     def test_pipe_save(self):
         c = Copy(
             MockObject,
             self.pipe_path,
-            dict(NAME='name', NUMBER='number'),
+            dict(NAME='name', NUMBER='number', DATE='dt'),
             delimiter="|",
         )
         c.save()
         self.assertEqual(MockObject.objects.count(), 3)
         self.assertEqual(MockObject.objects.get(name='ben').number, 1)
+        self.assertEqual(
+            MockObject.objects.get(name='ben').dt,
+            date(2012, 1, 1)
+        )
 
     def test_null_save(self):
         c = Copy(
             MockObject,
             self.null_path,
-            dict(NAME='name', NUMBER='number'),
+            dict(NAME='name', NUMBER='number', DATE='dt'),
             null='',
         )
         c.save()
         self.assertEqual(MockObject.objects.count(), 4)
         self.assertEqual(MockObject.objects.get(name='ben').number, 1)
         self.assertEqual(MockObject.objects.get(name='nullboy').number, None)
+        self.assertEqual(
+            MockObject.objects.get(name='ben').dt,
+            date(2012, 1, 1)
+        )
 
     def test_backwards_save(self):
         c = Copy(
             MockObject,
             self.backwards_path,
-            dict(NAME='name', NUMBER='number'),
+            dict(NAME='name', NUMBER='number', DATE='dt'),
         )
         c.save()
         self.assertEqual(MockObject.objects.count(), 3)
         self.assertEqual(MockObject.objects.get(name='ben').number, 1)
+        self.assertEqual(
+            MockObject.objects.get(name='ben').dt,
+            date(2012, 1, 1)
+        )
