@@ -54,6 +54,8 @@ class Copy(object):
                 # on their model not included in the CSV that are left empty?
                 raise ValueError("Map does not include %s field" % col.name)
 
+        # CREATE TEMPORARY TABLE HERE
+
         sql = """COPY %(db_table)s (%(header_list)s)
 FROM '%(csv_path)s'
 WITH CSV HEADER %(extra_options)s;"""
@@ -69,6 +71,10 @@ WITH CSV HEADER %(extra_options)s;"""
 
         cursor = self.conn.cursor()
         cursor.execute(sql % options)
+
+        # INSERT DATA FROM TEMPORARY TABLE TO DJANGO MODEL HERE
+
+        # DROP TEMPORARY TABLE HERE
 
         if not silent:
             stream.write(
