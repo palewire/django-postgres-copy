@@ -1,5 +1,6 @@
 import os
 import sys
+import csv
 from django.db import connections, router
 from django.contrib.humanize.templatetags.humanize import intcomma
 
@@ -10,7 +11,7 @@ class Copy(object):
     and loads it into PostgreSQL databases using its
     COPY command.
     """
-    def __init__(self, model, csv_path, mapping, using=None, delimiter=None):
+    def __init__(self, model, csv_path, mapping, using=None, delimiter=','):
         self.model = model
         self.mapping = mapping
         if os.path.exists(csv_path):
@@ -25,6 +26,15 @@ class Copy(object):
         self.backend = self.conn.ops
         # THROW AN ERROR HERE IF THE BACKEND IS NOT PSQL!
         self.delimiter = delimiter
+
+    def get_headers(self):
+        """
+        Returns the column headers from the csv as a list.
+        """
+        with open(self.csv_path, 'r') as infile:
+            csv_reader = csv.DictReader(infile, delimiter=self.delimiter)
+            headers = next(csv_reader)
+        return headers
 
     def save(self, silent=False, stream=sys.stdout):
         """
@@ -42,31 +52,34 @@ class Copy(object):
         if not silent:
             stream.write("Loading CSV to %s\n" % self.model.__name__)
 
-        csv_headers = []
-        for col in self.model._meta.fields:
-            if col.name == 'id' and col.primary_key:
-                # What do we do with Django's automatic primary keys?
-                continue
+        header2field = []
+        for h in self.get_headers():
             try:
-                csv_headers.append(self.mapping[col.name])
+                f_name = self.mapping[h]
             except KeyError:
-                # What do we do if somebody wants to have extra columns
-                # on their model not included in the CSV that are left empty?
-                raise ValueError("Map does not include %s field" % col.name)
+                raise ValueError("Map does not include %s field" % h)
+            try:
+                f = [f for f in self.model._meta.fields if f.name == f_name][0]
+            except IndexError:
+                raise ValueError("Model does not include %s field" % f_name)
+            header2field.append((h, f))
+
+        print header2field
+        temp_table_name = "temp_%s" % self.model._meta.db_table
+        temp_field_list = ", ".join([
+            '"%s" %s' % (x, y.db_type(self.conn))
+            for x, y in header2field
+        ])
+        print temp_field_list
 
         cursor = self.conn.cursor()
-
-        # CREATE TEMPORARY TABLE HERE
-        temp_table_name = "temp_%s" % self.model._meta.db_table
-
         cursor.execute("DROP TABLE IF EXISTS %s;" % temp_table_name)
 
         sql = """CREATE TEMPORARY TABLE %(table_name)s (%(field_list)s);"""
+
         sql = sql % dict(
             table_name=temp_table_name,
-            field_list=",\n".join([
-                '"%s"\ttext' % h for h in self.mapping.keys()
-            ])
+            field_list=temp_field_list,
         )
         cursor.execute(sql)
 
@@ -78,27 +91,25 @@ WITH CSV HEADER %(extra_options)s;"""
             'db_table': temp_table_name,
             'csv_path': self.csv_path,
             'extra_options': '',
-            'header_list': ", ".join(['"%s"' % h for h in csv_headers])
+            'header_list': ", ".join(['"%s"' % x for x, y in header2field])
         }
         if self.delimiter:
             options['extra_options'] += "DELIMITER '%s'" % self.delimiter
 
         cursor.execute(sql % options)
 
-        # INSERT DATA FROM TEMPORARY TABLE TO DJANGO MODEL HERE
         sql = """INSERT INTO %(model_table)s (%(model_fields)s) (
 SELECT %(temp_fields)s
 FROM %(temp_table)s);
 """
         sql = sql % dict(
             model_table=self.model._meta.db_table,
-            model_fields=", ".join(['"%s"' % h for h in csv_headers]),
+            model_fields=", ".join(['"%s"' % y.name for x, y in header2field]),
             temp_table=temp_table_name,
-            temp_fields=", ".join(['"%s"' % h for h in self.mapping.keys()])
+            temp_fields=", ".join(['"%s"' % x for x, y in header2field])
         )
         cursor.execute(sql)
 
-        # DROP TEMPORARY TABLE HERE
         cursor.execute("DROP TABLE IF EXISTS %s;" % temp_table_name)
 
         if not silent:

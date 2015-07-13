@@ -22,7 +22,7 @@ class PostgresCopyTest(TestCase):
         c = Copy(
             MockObject,
             self.name_path,
-            dict(name='name', number='number')
+            dict(NAME='name', NUMBER='number')
         )
         c.save()
         self.assertEqual(MockObject.objects.count(), 3)
@@ -32,7 +32,7 @@ class PostgresCopyTest(TestCase):
         c = Copy(
             MockObject,
             self.name_path,
-            dict(name='name', number='number'),
+            dict(NAME='name', NUMBER='number'),
         )
         c.save(silent=True)
         self.assertEqual(MockObject.objects.count(), 3)
@@ -42,7 +42,7 @@ class PostgresCopyTest(TestCase):
         c = Copy(
             MockObject,
             self.pipe_path,
-            dict(name='name', number='number'),
+            dict(NAME='name', NUMBER='number'),
             delimiter="|",
         )
         c.save()
