@@ -28,6 +28,16 @@ class PostgresCopyTest(TestCase):
         self.assertEqual(MockObject.objects.count(), 3)
         self.assertEqual(MockObject.objects.get(name='ben').number, 1)
 
+    def test_silent_save(self):
+        c = Copy(
+            MockObject,
+            self.name_path,
+            dict(name='name', number='number'),
+        )
+        c.save(silent=True)
+        self.assertEqual(MockObject.objects.count(), 3)
+        self.assertEqual(MockObject.objects.get(name='ben').number, 1)
+
     def test_pipe_save(self):
         c = Copy(
             MockObject,
