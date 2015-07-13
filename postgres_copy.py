@@ -54,14 +54,28 @@ class Copy(object):
                 # on their model not included in the CSV that are left empty?
                 raise ValueError("Map does not include %s field" % col.name)
 
+        cursor = self.conn.cursor()
+
         # CREATE TEMPORARY TABLE HERE
+        temp_table_name = "temp_%s" % self.model._meta.db_table
+
+        cursor.execute("DROP TABLE IF EXISTS %s;" % temp_table_name)
+
+        sql = """CREATE TEMPORARY TABLE %(table_name)s (%(field_list)s);"""
+        sql = sql % dict(
+            table_name=temp_table_name,
+            field_list=",\n".join([
+                '"%s"\ttext' % h for h in self.mapping.keys()
+            ])
+        )
+        cursor.execute(sql)
 
         sql = """COPY %(db_table)s (%(header_list)s)
 FROM '%(csv_path)s'
 WITH CSV HEADER %(extra_options)s;"""
 
         options = {
-            'db_table': self.model._meta.db_table,
+            'db_table': temp_table_name,
             'csv_path': self.csv_path,
             'extra_options': '',
             'header_list': ", ".join(['"%s"' % h for h in csv_headers])
@@ -69,12 +83,23 @@ WITH CSV HEADER %(extra_options)s;"""
         if self.delimiter:
             options['extra_options'] += "DELIMITER '%s'" % self.delimiter
 
-        cursor = self.conn.cursor()
         cursor.execute(sql % options)
 
         # INSERT DATA FROM TEMPORARY TABLE TO DJANGO MODEL HERE
+        sql = """INSERT INTO %(model_table)s (%(model_fields)s) (
+SELECT %(temp_fields)s
+FROM %(temp_table)s);
+"""
+        sql = sql % dict(
+            model_table=self.model._meta.db_table,
+            model_fields=", ".join(['"%s"' % h for h in csv_headers]),
+            temp_table=temp_table_name,
+            temp_fields=", ".join(['"%s"' % h for h in self.mapping.keys()])
+        )
+        cursor.execute(sql)
 
         # DROP TEMPORARY TABLE HERE
+        cursor.execute("DROP TABLE IF EXISTS %s;" % temp_table_name)
 
         if not silent:
             stream.write(
