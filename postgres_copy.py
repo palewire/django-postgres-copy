@@ -11,7 +11,15 @@ class Copy(object):
     and loads it into PostgreSQL databases using its
     COPY command.
     """
-    def __init__(self, model, csv_path, mapping, using=None, delimiter=','):
+    def __init__(
+        self,
+        model,
+        csv_path,
+        mapping,
+        using=None,
+        delimiter=',',
+        null=None
+    ):
         self.model = model
         self.mapping = mapping
         if os.path.exists(csv_path):
@@ -27,8 +35,8 @@ class Copy(object):
         if self.conn.vendor != 'postgresql':
             raise TypeError("Only PostgreSQL backends supported")
         self.backend = self.conn.ops
-        # THROW AN ERROR HERE IF THE BACKEND IS NOT PSQL!
         self.delimiter = delimiter
+        self.null = null
 
     def get_headers(self):
         """
@@ -95,7 +103,9 @@ WITH CSV HEADER %(extra_options)s;"""
             'header_list': ", ".join(['"%s"' % x for x, y in header2field])
         }
         if self.delimiter:
-            options['extra_options'] += "DELIMITER '%s'" % self.delimiter
+            options['extra_options'] += " DELIMITER '%s'" % self.delimiter
+        if self.null:
+            options['extra_options'] += " NULL '%s'" % self.null
 
         cursor.execute(sql % options)
 

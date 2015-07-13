@@ -1,7 +1,7 @@
 import os
 from models import MockObject
 from postgres_copy import Copy
-from django.test import TestCase, override_settings
+from django.test import TestCase
 
 
 class PostgresCopyTest(TestCase):
@@ -10,6 +10,7 @@ class PostgresCopyTest(TestCase):
         self.data_dir = os.path.join(os.path.dirname(__file__), 'data')
         self.name_path = os.path.join(self.data_dir, 'names.csv')
         self.pipe_path = os.path.join(self.data_dir, 'pipes.csv')
+        self.null_path = os.path.join(self.data_dir, 'nulls.csv')
 
     def tearDown(self):
         MockObject.objects.all().delete()
@@ -57,3 +58,15 @@ class PostgresCopyTest(TestCase):
         c.save()
         self.assertEqual(MockObject.objects.count(), 3)
         self.assertEqual(MockObject.objects.get(name='ben').number, 1)
+
+    def test_null_save(self):
+        c = Copy(
+            MockObject,
+            self.null_path,
+            dict(NAME='name', NUMBER='number'),
+            null='',
+        )
+        c.save()
+        self.assertEqual(MockObject.objects.count(), 4)
+        self.assertEqual(MockObject.objects.get(name='ben').number, 1)
+        self.assertEqual(MockObject.objects.get(name='nullboy').number, None)
