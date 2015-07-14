@@ -8,3 +8,6 @@ class MockObject(models.Model):
 
     class Meta:
         app_label = 'tests'
+
+    def copy_name_template(self):
+        return 'upper("%(name)s")'

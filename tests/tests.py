@@ -38,9 +38,9 @@ class PostgresCopyTest(TestCase):
         )
         c.save()
         self.assertEqual(MockObject.objects.count(), 3)
-        self.assertEqual(MockObject.objects.get(name='ben').number, 1)
+        self.assertEqual(MockObject.objects.get(name='BEN').number, 1)
         self.assertEqual(
-            MockObject.objects.get(name='ben').dt,
+            MockObject.objects.get(name='BEN').dt,
             date(2012, 1, 1)
         )
 
@@ -52,9 +52,9 @@ class PostgresCopyTest(TestCase):
         )
         c.save(silent=True)
         self.assertEqual(MockObject.objects.count(), 3)
-        self.assertEqual(MockObject.objects.get(name='ben').number, 1)
+        self.assertEqual(MockObject.objects.get(name='BEN').number, 1)
         self.assertEqual(
-            MockObject.objects.get(name='ben').dt,
+            MockObject.objects.get(name='BEN').dt,
             date(2012, 1, 1)
         )
 
@@ -67,9 +67,9 @@ class PostgresCopyTest(TestCase):
         )
         c.save()
         self.assertEqual(MockObject.objects.count(), 3)
-        self.assertEqual(MockObject.objects.get(name='ben').number, 1)
+        self.assertEqual(MockObject.objects.get(name='BEN').number, 1)
         self.assertEqual(
-            MockObject.objects.get(name='ben').dt,
+            MockObject.objects.get(name='BEN').dt,
             date(2012, 1, 1)
         )
 
@@ -82,10 +82,10 @@ class PostgresCopyTest(TestCase):
         )
         c.save()
         self.assertEqual(MockObject.objects.count(), 4)
-        self.assertEqual(MockObject.objects.get(name='ben').number, 1)
-        self.assertEqual(MockObject.objects.get(name='nullboy').number, None)
+        self.assertEqual(MockObject.objects.get(name='BEN').number, 1)
+        self.assertEqual(MockObject.objects.get(name='NULLBOY').number, None)
         self.assertEqual(
-            MockObject.objects.get(name='ben').dt,
+            MockObject.objects.get(name='BEN').dt,
             date(2012, 1, 1)
         )
 
@@ -97,8 +97,8 @@ class PostgresCopyTest(TestCase):
         )
         c.save()
         self.assertEqual(MockObject.objects.count(), 3)
-        self.assertEqual(MockObject.objects.get(name='ben').number, 1)
+        self.assertEqual(MockObject.objects.get(name='BEN').number, 1)
         self.assertEqual(
-            MockObject.objects.get(name='ben').dt,
+            MockObject.objects.get(name='BEN').dt,
             date(2012, 1, 1)
         )

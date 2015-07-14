@@ -115,11 +115,12 @@ class Copy(object):
         sql = """CREATE TEMPORARY TABLE %(table_name)s (%(field_list)s);"""
         options = dict(
             table_name=self.temp_table_name,
-            field_list=", ".join([
-                '"%s" %s' % (h, f.db_type(self.conn))
-                for h, f in self.header_field_crosswalk
-            ]),
         )
+        field_list = []
+        for header, field in self.header_field_crosswalk:
+            string = '"%s" %s' % (header, field.db_type(self.conn))
+            field_list.append(string)
+        options['field_list'] = ", ".join(field_list)
         return sql % options
 
     def prep_copy(self):
