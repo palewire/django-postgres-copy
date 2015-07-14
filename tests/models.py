@@ -4,7 +4,7 @@ from .fields import MyIntegerField
 
 class MockObject(models.Model):
     name = models.CharField(max_length=500)
-    number = MyIntegerField(null=True)
+    number = MyIntegerField(null=True, db_column='num')
     dt = models.DateField(null=True)
 
     class Meta:
