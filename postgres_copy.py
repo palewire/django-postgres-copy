@@ -112,7 +112,7 @@ class Copy(object):
 
         Returns SQL that can be run.
         """
-        sql = """CREATE TEMPORARY TABLE %(table_name)s (%(field_list)s);"""
+        sql = """CREATE TEMPORARY TABLE "%(table_name)s" (%(field_list)s);"""
         options = dict(
             table_name=self.temp_table_name,
         )
@@ -132,7 +132,7 @@ class Copy(object):
         Returns SQL that can be run.
         """
         sql = """
-            COPY %(db_table)s (%(header_list)s)
+            COPY "%(db_table)s" (%(header_list)s)
             FROM '%(csv_path)s'
             WITH CSV HEADER %(extra_options)s;
         """
@@ -159,9 +159,9 @@ class Copy(object):
         Returns SQL that can be run.
         """
         sql = """
-            INSERT INTO %(model_table)s (%(model_fields)s) (
+            INSERT INTO "%(model_table)s" (%(model_fields)s) (
             SELECT %(temp_fields)s
-            FROM %(temp_table)s);
+            FROM "%(temp_table)s");
         """
         options = dict(
             model_table=self.model._meta.db_table,
