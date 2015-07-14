@@ -119,6 +119,8 @@ class Copy(object):
         field_list = []
         for header, field in self.header_field_crosswalk:
             string = '"%s" %s' % (header, field.db_type(self.conn))
+            if hasattr(field, 'copy_type'):
+                string = '"%s" %s' % (header, field.copy_type)
             field_list.append(string)
         options['field_list'] = ", ".join(field_list)
         return sql % options
@@ -171,11 +173,13 @@ class Copy(object):
         temp_fields = []
         for header, field in self.header_field_crosswalk:
             string = '"%s"' % header
+            if hasattr(field, 'copy_template'):
+                template = field.copy_template()
+                string = template  % dict(name=header)
             template_method = 'copy_%s_template' % field.name
             if hasattr(self.model, template_method):
                 template = getattr(self.model(), template_method)()
                 string = template % dict(name=header)
-                print string
             temp_fields.append(string)
         options['temp_fields'] = ", ".join(temp_fields)
         return sql % options
