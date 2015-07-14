@@ -81,7 +81,7 @@ class PostgresCopyTest(TestCase):
             null='',
         )
         c.save()
-        self.assertEqual(MockObject.objects.count(), 4)
+        self.assertEqual(MockObject.objects.count(), 5)
         self.assertEqual(MockObject.objects.get(name='BEN').number, 1)
         self.assertEqual(MockObject.objects.get(name='NULLBOY').number, None)
         self.assertEqual(
@@ -98,6 +98,20 @@ class PostgresCopyTest(TestCase):
         c.save()
         self.assertEqual(MockObject.objects.count(), 3)
         self.assertEqual(MockObject.objects.get(name='BEN').number, 1)
+        self.assertEqual(
+            MockObject.objects.get(name='BEN').dt,
+            date(2012, 1, 1)
+        )
+
+    def test_field_override_save(self):
+        c = Copy(
+            MockObject,
+            self.null_path,
+            dict(NAME='name', NUMBER='number', DATE='dt'),
+        )
+        c.save()
+        self.assertEqual(MockObject.objects.count(), 5)
+        self.assertEqual(MockObject.objects.get(name='BADBOY').number, None)
         self.assertEqual(
             MockObject.objects.get(name='BEN').dt,
             date(2012, 1, 1)

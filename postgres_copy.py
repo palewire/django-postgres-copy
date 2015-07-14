@@ -174,8 +174,7 @@ class Copy(object):
         for header, field in self.header_field_crosswalk:
             string = '"%s"' % header
             if hasattr(field, 'copy_template'):
-                template = field.copy_template()
-                string = template % dict(name=header)
+                string = field.copy_template % dict(name=header)
             template_method = 'copy_%s_template' % field.name
             if hasattr(self.model, template_method):
                 template = getattr(self.model(), template_method)()

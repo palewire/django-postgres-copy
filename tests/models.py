@@ -1,9 +1,10 @@
 from django.db import models
+from .fields import MyIntegerField
 
 
 class MockObject(models.Model):
     name = models.CharField(max_length=500)
-    number = models.IntegerField(null=True)
+    number = MyIntegerField(null=True)
     dt = models.DateField(null=True)
 
     class Meta:
