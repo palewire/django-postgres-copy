@@ -1,0 +1,3 @@
+[run]
+include =
+    postgres_copy.py
