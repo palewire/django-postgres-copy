@@ -2,5 +2,6 @@
 
 
 test:
+	clear;
 	coverage run setup.py test;
-	coverage report -m 
+	coverage report -m; 
