@@ -167,13 +167,15 @@ class Copy(object):
             model_table=self.model._meta.db_table,
             temp_table=self.temp_table_name,
         )
+
         model_fields = []
         for header, field in self.header_field_crosswalk:
             if field.db_column:
-                model_fields.append(field.db_column)
+                model_fields.append('"%s"' % field.db_column)
             else:
-                model_fields.append(field.name)
+                model_fields.append('"%s"' % field.name)
         options['model_fields'] = ", ".join(model_fields)
+
         temp_fields = []
         for header, field in self.header_field_crosswalk:
             string = '"%s"' % header
