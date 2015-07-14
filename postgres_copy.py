@@ -37,6 +37,21 @@ class Copy(object):
         self.delimiter = delimiter
         self.null = null
 
+        # Connect the headers from the CSV with the fields on the model
+        self.header_field_crosswalk = []
+        for h in self.get_headers():
+            try:
+                f_name = self.mapping[h]
+            except KeyError:
+                raise ValueError("Map does not include %s field" % h)
+            try:
+                f = [f for f in self.model._meta.fields if f.name == f_name][0]
+            except IndexError:
+                raise ValueError("Model does not include %s field" % f_name)
+            self.header_field_crosswalk.append((h, f))
+
+        self.temp_table_name = "temp_%s" % self.model._meta.db_table
+
     def get_headers(self):
         """
         Returns the column headers from the csv as a list.
@@ -45,6 +60,80 @@ class Copy(object):
             csv_reader = csv.reader(infile, delimiter=self.delimiter)
             headers = next(csv_reader)
         return headers
+
+    def prep_drop(self):
+        """
+        Creates a DROP statement that gets rid of the temporary table.
+
+        Return SQL that can be run.
+        """
+        return "DROP TABLE IF EXISTS %s;" % self.temp_table_name
+
+    def prep_create(self):
+        """
+        Creates a CREATE statement that makes a new temporary table.
+
+        Returns SQL that can be run.
+        """
+        sql = """CREATE TEMPORARY TABLE %(table_name)s (%(field_list)s);"""
+        options = dict(
+            table_name=self.temp_table_name,
+            field_list=", ".join([
+                '"%s" %s' % (h, f.db_type(self.conn))
+                for h, f in self.header_field_crosswalk
+            ]),
+        )
+        return sql % options
+
+    def prep_copy(self):
+        """
+        Creates a COPY statement that loads the CSV into a temporary table.
+
+        Returns SQL that can be run.
+        """
+        sql = """
+            COPY %(db_table)s (%(header_list)s)
+            FROM '%(csv_path)s'
+            WITH CSV HEADER %(extra_options)s;
+        """
+        options = {
+            'db_table': self.temp_table_name,
+            'csv_path': self.csv_path,
+            'extra_options': '',
+            'header_list': ", ".join([
+                '"%s"' % h for h, f in self.header_field_crosswalk
+            ])
+        }
+        if self.delimiter:
+            options['extra_options'] += " DELIMITER '%s'" % self.delimiter
+        if self.null:
+            options['extra_options'] += " NULL '%s'" % self.null
+        return sql % options
+
+    def prep_insert(self):
+        """
+        Creates a INSERT statement that reorders and cleans up
+        the fields from the temporary table for insertion into the
+        Django model.
+
+        Returns SQL that can be run.
+        """
+        sql = """
+            INSERT INTO %(model_table)s (%(model_fields)s) (
+            SELECT %(temp_fields)s
+            FROM %(temp_table)s);
+        """
+        options = dict(
+            model_table=self.model._meta.db_table,
+            model_fields=", ".join([
+                '"%s"' % y.name for x, y in self.header_field_crosswalk
+            ]),
+            temp_table=self.temp_table_name,
+            temp_fields=", ".join([
+                '"%s"' % x for x, y in self.header_field_crosswalk
+            ])
+        )
+        return sql % options
 
     def save(self, silent=False, stream=sys.stdout):
         """
@@ -62,64 +151,18 @@ class Copy(object):
         if not silent:
             stream.write("Loading CSV to %s\n" % self.model.__name__)
 
-        header2field = []
-        for h in self.get_headers():
-            try:
-                f_name = self.mapping[h]
-            except KeyError:
-                raise ValueError("Map does not include %s field" % h)
-            try:
-                f = [f for f in self.model._meta.fields if f.name == f_name][0]
-            except IndexError:
-                raise ValueError("Model does not include %s field" % f_name)
-            header2field.append((h, f))
-
-        temp_table_name = "temp_%s" % self.model._meta.db_table
-        temp_field_list = ", ".join([
-            '"%s" %s' % (x, y.db_type(self.conn))
-            for x, y in header2field
-        ])
-
         cursor = self.conn.cursor()
-        cursor.execute("DROP TABLE IF EXISTS %s;" % temp_table_name)
 
-        sql = """CREATE TEMPORARY TABLE %(table_name)s (%(field_list)s);"""
+        drop_sql = self.prep_drop()
+        create_sql = self.prep_create()
+        copy_sql = self.prep_copy()
+        insert_sql = self.prep_insert()
 
-        sql = sql % dict(
-            table_name=temp_table_name,
-            field_list=temp_field_list,
-        )
-        cursor.execute(sql)
-
-        sql = """COPY %(db_table)s (%(header_list)s) FROM '%(csv_path)s'
-WITH CSV HEADER %(extra_options)s;"""
-
-        options = {
-            'db_table': temp_table_name,
-            'csv_path': self.csv_path,
-            'extra_options': '',
-            'header_list': ", ".join(['"%s"' % x for x, y in header2field])
-        }
-        if self.delimiter:
-            options['extra_options'] += " DELIMITER '%s'" % self.delimiter
-        if self.null:
-            options['extra_options'] += " NULL '%s'" % self.null
-
-        cursor.execute(sql % options)
-
-        sql = """INSERT INTO %(model_table)s (%(model_fields)s) (
-SELECT %(temp_fields)s
-FROM %(temp_table)s);
-"""
-        sql = sql % dict(
-            model_table=self.model._meta.db_table,
-            model_fields=", ".join(['"%s"' % y.name for x, y in header2field]),
-            temp_table=temp_table_name,
-            temp_fields=", ".join(['"%s"' % x for x, y in header2field])
-        )
-        cursor.execute(sql)
-
-        cursor.execute("DROP TABLE IF EXISTS %s;" % temp_table_name)
+        cursor.execute(drop_sql)
+        cursor.execute(create_sql)
+        cursor.execute(copy_sql)
+        cursor.execute(insert_sql)
+        cursor.execute(drop_sql)
 
         if not silent:
             stream.write(
