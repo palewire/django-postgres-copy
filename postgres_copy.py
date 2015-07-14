@@ -52,6 +52,43 @@ class Copy(object):
 
         self.temp_table_name = "temp_%s" % self.model._meta.db_table
 
+    def save(self, silent=False, stream=sys.stdout):
+        """
+        Saves the contents of the CSV file to the database.
+
+         silent:
+           By default, non-fatal error notifications are printed to stdout,
+           but this keyword may be set to disable these notifications.
+
+         stream:
+           Status information will be written to this file handle. Defaults to
+           using `sys.stdout`, but any object with a `write` method is
+           supported.
+        """
+        if not silent:
+            stream.write("Loading CSV to %s\n" % self.model.__name__)
+
+        # Connect to the database
+        cursor = self.conn.cursor()
+
+        # Create all of the raw SQL
+        drop_sql = self.prep_drop()
+        create_sql = self.prep_create()
+        copy_sql = self.prep_copy()
+        insert_sql = self.prep_insert()
+
+        # Run all of the raw SQL
+        cursor.execute(drop_sql)
+        cursor.execute(create_sql)
+        cursor.execute(copy_sql)
+        cursor.execute(insert_sql)
+        cursor.execute(drop_sql)
+
+        if not silent:
+            stream.write(
+                "%s records loaded\n" % intcomma(self.model.objects.count())
+            )
+
     def get_headers(self):
         """
         Returns the column headers from the csv as a list.
@@ -141,40 +178,3 @@ class Copy(object):
             temp_fields.append(string)
         options['temp_fields'] = ", ".join(temp_fields)
         return sql % options
-
-    def save(self, silent=False, stream=sys.stdout):
-        """
-        Saves the contents of the CSV file to the database.
-
-         silent:
-           By default, non-fatal error notifications are printed to stdout,
-           but this keyword may be set to disable these notifications.
-
-         stream:
-           Status information will be written to this file handle. Defaults to
-           using `sys.stdout`, but any object with a `write` method is
-           supported.
-        """
-        if not silent:
-            stream.write("Loading CSV to %s\n" % self.model.__name__)
-
-        # Connect to the database
-        cursor = self.conn.cursor()
-
-        # Create all of the raw SQL
-        drop_sql = self.prep_drop()
-        create_sql = self.prep_create()
-        copy_sql = self.prep_copy()
-        insert_sql = self.prep_insert()
-
-        # Run all of the raw SQL
-        cursor.execute(drop_sql)
-        cursor.execute(create_sql)
-        cursor.execute(copy_sql)
-        cursor.execute(insert_sql)
-        cursor.execute(drop_sql)
-
-        if not silent:
-            stream.write(
-                "%s records loaded\n" % intcomma(self.model.objects.count())
-            )
