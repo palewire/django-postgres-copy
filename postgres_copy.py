@@ -175,7 +175,7 @@ class Copy(object):
             string = '"%s"' % header
             if hasattr(field, 'copy_template'):
                 template = field.copy_template()
-                string = template  % dict(name=header)
+                string = template % dict(name=header)
             template_method = 'copy_%s_template' % field.name
             if hasattr(self.model, template_method):
                 template = getattr(self.model(), template_method)()
