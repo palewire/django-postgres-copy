@@ -19,7 +19,7 @@ install:
 script:
  - pep8 postgres_copy
  - pyflakes postgres_copy
- - coverage setup.py test
+ - coverage run setup.py test
 
 after_success:
  - coveralls
