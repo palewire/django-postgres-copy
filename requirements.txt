@@ -5,3 +5,5 @@ psycopg2
 pyflakes
 tox
 python-coveralls
+sphinx
+sphinx-autobuild
