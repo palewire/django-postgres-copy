@@ -46,11 +46,12 @@ class TestCommand(Command):
 
 setup(
     name='django-postgres-copy',
-    version='0.0.1',
+    version='0.0.2',
     description='A set of helpers for baking your Django site out as flat files',
     author='Ben Welsh',
     author_email='ben.welsh@gmail.com',
     url='http://www.github.com/california-civic-data-coalition/django-postgresql-copy/',
     license="MIT",
+    packages=("postgres_copy",),
     cmdclass={'test': TestCommand}
 )
