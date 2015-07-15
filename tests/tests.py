@@ -21,6 +21,15 @@ class PostgresCopyTest(TestCase):
         with self.assertRaises(TypeError):
             Copy()
 
+    def test_bad_csv(self):
+        with self.assertRaises(ValueError):
+            Copy(
+                MockObject,
+                '/foobar.csv',
+                dict(NAME='name', NUMBER='number', DATE='dt'),
+                using='sqlite'
+            )
+
     def test_bad_backend(self):
         with self.assertRaises(TypeError):
             Copy(
@@ -28,6 +37,22 @@ class PostgresCopyTest(TestCase):
                 self.name_path,
                 dict(NAME='name', NUMBER='number', DATE='dt'),
                 using='sqlite'
+            )
+
+    def test_bad_header(self):
+        with self.assertRaises(ValueError):
+            Copy(
+                MockObject,
+                self.name_path,
+                dict(NAME1='name', NUMBER='number', DATE='dt'),
+            )
+
+    def test_bad_field(self):
+        with self.assertRaises(ValueError):
+            Copy(
+                MockObject,
+                self.name_path,
+                dict(NAME='foo', NUMBER='number', DATE='dt'),
             )
 
     def test_simple_save(self):

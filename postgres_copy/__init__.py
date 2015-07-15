@@ -148,7 +148,7 @@ class Copy(object):
         }
         if self.delimiter:
             options['extra_options'] += " DELIMITER '%s'" % self.delimiter
-        if self.null:
+        if self.null is not None:
             options['extra_options'] += " NULL '%s'" % self.null
         if self.encoding:
             options['extra_options'] += " ENCODING '%s'" % self.encoding
