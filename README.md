@@ -2,67 +2,13 @@
 
 Maps a comma-delimited data file to a Django model and loads it into a PostgreSQL database using its built-in COPY command
 
-*This is a work in progress and should not be expected to work.*
+[![Build Status](https://travis-ci.org/california-civic-data-coalition/django-postgres-copy.png?branch=master)](https://travis-ci.org/california-civic-data-coalition/django-postgres-copy)
+[![PyPI version](https://badge.fury.io/py/django-postgres-copy.png)](http://badge.fury.io/py/django-postgres-copy)
+[![Coverage Status](https://coveralls.io/repos/california-civic-data-coalition/django-postgres-copy/badge.png?branch=master)](https://coveralls.io/r/california-civic-data-coalition/django-postgres-copy?branch=master)
+[![Documentation Status](https://readthedocs.org/projects/django-postgres-copy/badge/?version=latest)](https://readthedocs.org/projects/django-postgres-copy/?badge=latest)
 
-## Getting started
-
-Start with a CSV file you'd like to load. Let's start with something simple.
-
-```csv
-NAME,NUMBER,DATE
-ben,1,2012-01-01
-joe,2,2012-01-02
-jane,3,2012-01-03
-```
-
-Create a Django model that corresponds to the data.
-
-```python
-from django.db import models
-
-
-class Person(models.Model):
-    name = models.CharField(max_length=500)
-    number = models.IntegerField(null=True)
-    dt = models.DateField(null=True)
-```
-
-You probably need to create the database table like so.
-
-```bash
-$ python manage.py migrate
-```
-
-Create a loader that uses this library to load CSV data. One place you could
-put it is in a Django management command.
-
-```python
-from postgres_copy import Copy
-from myapp.models import Person
-from django.core.management.base import BaseCommand
-
-
-class Command(BaseCommand):
-
-    def handle(self, *args, **kwargs):
-        c = Copy(
-            # Give it the model
-            Person,
-            # The path to your CSV
-            '/path/to/my/data.csv',
-            # And a dict mapping the CSV headers to model fields
-            dict(NAME='name', NUMBER='number', DATE='dt')
-        )
-        # Then save it.
-        c.save()
-```
-
-Run your loader and that's it.
-
-```bash
-$ python manage.py mymanagementcommand
-Loading CSV to Person
-3 records loaded
-```
-
-That's it!
+* Documentation: [django-postgres-copy.californiacivicdata.org](http://django-postgres-copy.californiacivicdata.org)
+* Issues: [github.com/california-civic-data-coalition/django-postgres-copy/issues](https://github.com/california-civic-data-coalition/django-postgres-copy/issues)
+* Packaging: [pypi.python.org/pypi/django-postgres-copy](https://pypi.python.org/pypi/django-postgres-copy)
+* Testing: [travis-ci.org/california-civic-data-coalition/django-postgres-copy](https://travis-ci.org/california-civic-data-coalition/django-postgres-copy)
+* Coverage: [coveralls.io/r/california-civic-data-coalition/django-postgres-copy](https://coveralls.io/r/california-civic-data-coalition/django-postgres-copy)
