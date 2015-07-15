@@ -12,6 +12,8 @@ class TestCommand(Command):
         pass
 
     def run(self):
+        import django
+        from django.core.management import call_command
         from django.conf import settings
         settings.configure(
             DATABASES={
@@ -26,8 +28,6 @@ class TestCommand(Command):
             },
             INSTALLED_APPS=("tests",),
         )
-        from django.core.management import call_command
-        import django
         django.setup()
         call_command('test', 'tests.tests')
 
