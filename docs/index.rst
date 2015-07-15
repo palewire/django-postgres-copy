@@ -1,6 +1,7 @@
 django-postgres-copy
 ====================
 
+Quickly load comma-delimited data into a Django model using PostgreSQL's COPY command
 
 ## Getting started
 

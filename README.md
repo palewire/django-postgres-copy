@@ -1,6 +1,6 @@
 # django-postgres-copy
 
-Maps a comma-delimited data file to a Django model and loads it into a PostgreSQL database using its built-in COPY command
+Quickly load comma-delimited data into a Django model using PostgreSQL's COPY command
 
 [![Build Status](https://travis-ci.org/california-civic-data-coalition/django-postgres-copy.png?branch=master)](https://travis-ci.org/california-civic-data-coalition/django-postgres-copy)
 [![PyPI version](https://badge.fury.io/py/django-postgres-copy.png)](http://badge.fury.io/py/django-postgres-copy)
