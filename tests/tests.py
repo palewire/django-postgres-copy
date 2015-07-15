@@ -116,3 +116,18 @@ class PostgresCopyTest(TestCase):
             MockObject.objects.get(name='BEN').dt,
             date(2012, 1, 1)
         )
+
+    def test_encoding_save(self):
+        c = Copy(
+            MockObject,
+            self.null_path,
+            dict(NAME='name', NUMBER='number', DATE='dt'),
+            encoding='UTF-8'
+        )
+        c.save()
+        self.assertEqual(MockObject.objects.count(), 5)
+        self.assertEqual(MockObject.objects.get(name='BADBOY').number, None)
+        self.assertEqual(
+            MockObject.objects.get(name='BEN').dt,
+            date(2012, 1, 1)
+        )

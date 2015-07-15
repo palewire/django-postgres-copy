@@ -18,7 +18,8 @@ class Copy(object):
         mapping,
         using=None,
         delimiter=',',
-        null=None
+        null=None,
+        encoding=None,
     ):
         self.model = model
         self.mapping = mapping
@@ -36,6 +37,7 @@ class Copy(object):
         self.backend = self.conn.ops
         self.delimiter = delimiter
         self.null = null
+        self.encoding = encoding
 
         # Connect the headers from the CSV with the fields on the model
         self.header_field_crosswalk = []
@@ -148,6 +150,8 @@ class Copy(object):
             options['extra_options'] += " DELIMITER '%s'" % self.delimiter
         if self.null:
             options['extra_options'] += " NULL '%s'" % self.null
+        if self.encoding:
+            options['extra_options'] += " ENCODING '%s'" % self.encoding
         return sql % options
 
     def prep_insert(self):
