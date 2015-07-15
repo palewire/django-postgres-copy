@@ -1,5 +1,3 @@
-import os
-import tempfile
 from setuptools import setup
 from distutils.core import Command
 
