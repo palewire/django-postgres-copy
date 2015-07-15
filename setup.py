@@ -28,9 +28,7 @@ class TestCommand(Command):
         )
         from django.core.management import call_command
         import django
-        if django.VERSION[:2] >= (1, 7):
-            django.setup()
-
+        django.setup()
         call_command('test', 'tests.tests')
 
 
