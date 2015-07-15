@@ -1,6 +1,6 @@
 import os
 from datetime import date
-from models import MockObject
+from .models import MockObject
 from postgres_copy import Copy
 from django.test import TestCase
 
