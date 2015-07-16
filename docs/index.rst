@@ -189,7 +189,9 @@ Transforming data
 -----------------
 
 By default, the COPY command cannot transform data on-the-fly as it is loaded into
-the database. This library first loads the data into a temporary table
+the database.
+
+This library first loads the data into a temporary table
 before inserting all records into the model table. So it is possible to use PostgreSQL's
 built-in SQL methods to modify values during the insert.
 
@@ -258,7 +260,9 @@ Run your loader and it should finish fine.
 Model-method transformations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-A second approach is to provide a SQL string for how to transform a field during the insert on the model itself. This lets you specific different transformations for different fields of the
+A second approach is to provide a SQL string for how to transform a field during the insert on the model itself.
+
+This lets you specific different transformations for different fields of the
 same type. You must name the method so that the field name is sandwiched between "copy_" and "_template". It must return a string interpolation keyed to "name", where the name of the database
 column will be slotted.
 
