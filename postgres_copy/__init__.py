@@ -122,7 +122,7 @@ class CopyMapping(object):
         field_list = []
         for field, header in self.field_header_crosswalk:
             string = '"%s" %s' % (header, field.db_type(self.conn))
-            if hasattr(field, 'copy_type'):
+            if hasattr(field, 'copy_template'):
                 string = '"%s" %s' % (header, field.copy_type)
             field_list.append(string)
         options['field_list'] = ", ".join(field_list)

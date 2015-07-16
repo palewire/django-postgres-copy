@@ -3,6 +3,7 @@ django-postgres-copy
 
 Quickly load comma-delimited data into a Django model using PostgreSQL's COPY command
 
+
 Why and what for?
 -----------------
 
@@ -42,6 +43,7 @@ utility for importing geospatial data.
     )
     c.save()
 
+
 Installation
 ------------
 
@@ -50,6 +52,7 @@ The package can be installed from the Python Package Index with `pip`.
 .. code-block:: bash
 
     $ pip install django-postgres-copy
+
 
 An example
 ----------
@@ -118,7 +121,7 @@ Like I said, that's it!
 
 
 ``CopyMapping`` API
---------------------
+-------------------
 
 .. class:: CopyMapping(model, csv_path, mapping[, using=None, delimiter=',', null=None, encoding=None])
 
@@ -159,7 +162,8 @@ Keyword Arguments
                        database.
 =====================  =====================================================
 
-``save()`` Keyword Arguments
+
+``save()`` keyword arguments
 ----------------------------
 
 .. method:: CopyMapping.save([silent=False, stream=sys.stdout])
@@ -179,6 +183,98 @@ Keyword Arguments            Description
                              handle.  Defaults to using ``sys.stdout``, but
                              any object with a ``write`` method is supported.
 ===========================  =================================================
+
+
+Transforming data
+-----------------
+
+By default, the COPY command cannot transform data on-the-fly as it is loaded into
+the database. This library first loads the data into a temporary table
+before inserting all records into the model table. So it is possible to use PostgreSQL's
+built in SQL methods to modify values during the the insert.
+
+As an example, imagine a CSV that includes a column of yes and no values that you wanted to store in the database as 1 or 0 in an integer field.
+
+    NAME,VALUE
+    ben,yes
+    joe,no
+
+A model to store the data as you'd prefer might look like this.
+
+.. code-block:: python
+
+    from django.db import models
+
+
+    class Person(models.Model):
+        name = models.CharField(max_length=500)
+        value = models.IntegerField()
+
+But if the CSV was loaded directly into the database, you would receive a data type error when the 'yes' and 'no' strings were inserted into the integer field.
+
+This library offers two ways you can transform the data during the insert.
+
+Custom field transformations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+One approach is to create a custom Django field.
+
+You can set a temporary data type for a column when it is first loaded and provides a SQL string for how to transform it during the insert into the model table. The transformation must include
+a string interpolation keyed to "name", where the name of the database column will be slotted.
+
+.. code-block:: python
+
+  from django.db.models.fields import IntegerField
+
+
+  class MyIntegerField(IntegerField):
+      copy_type = 'text'
+      copy_template = """
+          CASE
+              WHEN "%(name)s" = 'yes' THEN 1
+              WHEN "%(name)s" = 'no' THEN 0
+          END
+      """
+
+Back in the models file that field can be substituted for the default.
+
+.. code-block:: python
+
+    from django.db import models
+    from myapp.fields import MyIntegerField
+
+    class Person(models.Model):
+        name = models.CharField(max_length=500)
+        value = MyIntegerField()
+
+Run your loader and it should finish fine.
+
+Model-method transformations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A second approach is to provide a SQL string for how to transform a field during the insert on the model itself. This lets you specific different transformations for different fields of the
+same type. You must name the method so that the field name is sandwiched between "copy_" and "_template". It must return a string interpolation keyed to "name", where the name of the database
+column will be slotted.
+
+For the example above, the model might be modified to look like this.
+
+.. code-block:: python
+
+    from django.db import models
+
+    class Person(models.Model):
+        name = models.CharField(max_length=500)
+        value = models.IntegerField()
+
+        def copy_value_template(self):
+          return """
+              CASE
+                  WHEN "%(name)s" = 'yes' THEN 1
+                  WHEN "%(name)s" = 'no' THEN 0
+              END
+              """
+
+And that's it.
 
 Open-source resources
 ---------------------

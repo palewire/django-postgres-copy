@@ -13,6 +13,7 @@ class PostgresCopyTest(TestCase):
         self.pipe_path = os.path.join(self.data_dir, 'pipes.csv')
         self.null_path = os.path.join(self.data_dir, 'nulls.csv')
         self.backwards_path = os.path.join(self.data_dir, 'backwards.csv')
+        self.baddates_path = os.path.join(self.data_dir, 'baddates.csv')
 
     def tearDown(self):
         MockObject.objects.all().delete()
