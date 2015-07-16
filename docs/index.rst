@@ -169,9 +169,8 @@ used for controlling output logging, error handling, and for importing
 specific feature ranges.
 
 ===========================  =================================================
-Save Keyword Arguments       Description
+Keyword Arguments            Description
 ===========================  =================================================
-
 ``silent``                   By default, non-fatal error notifications are
                              printed to ``sys.stdout``, but this keyword may
                              be set to disable these notifications.
