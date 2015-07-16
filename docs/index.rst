@@ -38,7 +38,7 @@ utility for importing geospatial data.
     c = CopyMapping(
         MyModel,
         "./data.csv",
-        dict(NAME='name', NUMBER='number')
+        dict(name='NAME', number='NUMBER')
     )
     c.save()
 
@@ -100,8 +100,8 @@ put it is in a Django management command.
                 Person,
                 # The path to your CSV
                 '/path/to/my/data.csv',
-                # And a dict mapping the CSV headers to model fields
-                dict(NAME='name', NUMBER='number', DATE='dt')
+                # And a dict mapping the  model fields to CSV headers
+                dict(name='NAME', number='NUMBER', dt='DATE')
             )
             # Then save it.
             c.save()
