@@ -241,7 +241,7 @@ This example loads in the column as the forgiving `text <http://www.postgresql.o
           END
       """
 
-Back in the models file that field can be substituted for the default.
+Back in the models file the custom field can be substituted for the default.
 
 .. code-block:: python
 
