@@ -1,7 +1,7 @@
 import os
 from datetime import date
 from .models import MockObject
-from postgres_copy import Copy
+from postgres_copy import CopyMapping
 from django.test import TestCase
 
 
@@ -19,11 +19,11 @@ class PostgresCopyTest(TestCase):
 
     def test_bad_call(self):
         with self.assertRaises(TypeError):
-            Copy()
+            CopyMapping()
 
     def test_bad_csv(self):
         with self.assertRaises(ValueError):
-            Copy(
+            CopyMapping(
                 MockObject,
                 '/foobar.csv',
                 dict(name='NAME', number='NUMBER', dt='DATE'),
@@ -32,7 +32,7 @@ class PostgresCopyTest(TestCase):
 
     def test_bad_backend(self):
         with self.assertRaises(TypeError):
-            Copy(
+            CopyMapping(
                 MockObject,
                 self.name_path,
                 dict(name='NAME', number='NUMBER', dt='DATE'),
@@ -41,7 +41,7 @@ class PostgresCopyTest(TestCase):
 
     def test_bad_header(self):
         with self.assertRaises(ValueError):
-            Copy(
+            CopyMapping(
                 MockObject,
                 self.name_path,
                 dict(name='NAME1', number='NUMBER', dt='DATE'),
@@ -49,14 +49,14 @@ class PostgresCopyTest(TestCase):
 
     def test_bad_field(self):
         with self.assertRaises(ValueError):
-            Copy(
+            CopyMapping(
                 MockObject,
                 self.name_path,
                 dict(name1='NAME', number='NUMBER', dt='DATE'),
             )
 
     def test_simple_save(self):
-        c = Copy(
+        c = CopyMapping(
             MockObject,
             self.name_path,
             dict(name='NAME', number='NUMBER', dt='DATE'),
@@ -70,7 +70,7 @@ class PostgresCopyTest(TestCase):
         )
 
     def test_silent_save(self):
-        c = Copy(
+        c = CopyMapping(
             MockObject,
             self.name_path,
             dict(name='NAME', number='NUMBER', dt='DATE'),
@@ -84,7 +84,7 @@ class PostgresCopyTest(TestCase):
         )
 
     def test_pipe_save(self):
-        c = Copy(
+        c = CopyMapping(
             MockObject,
             self.pipe_path,
             dict(name='NAME', number='NUMBER', dt='DATE'),
@@ -99,7 +99,7 @@ class PostgresCopyTest(TestCase):
         )
 
     def test_null_save(self):
-        c = Copy(
+        c = CopyMapping(
             MockObject,
             self.null_path,
             dict(name='NAME', number='NUMBER', dt='DATE'),
@@ -115,7 +115,7 @@ class PostgresCopyTest(TestCase):
         )
 
     def test_backwards_save(self):
-        c = Copy(
+        c = CopyMapping(
             MockObject,
             self.backwards_path,
             dict(name='NAME', number='NUMBER', dt='DATE'),
@@ -129,7 +129,7 @@ class PostgresCopyTest(TestCase):
         )
 
     def test_field_override_save(self):
-        c = Copy(
+        c = CopyMapping(
             MockObject,
             self.null_path,
             dict(name='NAME', number='NUMBER', dt='DATE'),
@@ -143,7 +143,7 @@ class PostgresCopyTest(TestCase):
         )
 
     def test_encoding_save(self):
-        c = Copy(
+        c = CopyMapping(
             MockObject,
             self.null_path,
             dict(name='NAME', number='NUMBER', dt='DATE'),

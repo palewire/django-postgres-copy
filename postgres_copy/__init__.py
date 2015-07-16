@@ -5,7 +5,7 @@ from django.db import connections, router
 from django.contrib.humanize.templatetags.humanize import intcomma
 
 
-class Copy(object):
+class CopyMapping(object):
     """
     Maps comma-delimited data file to a Django model
     and loads it into PostgreSQL databases using its
