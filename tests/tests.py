@@ -26,7 +26,7 @@ class PostgresCopyTest(TestCase):
             Copy(
                 MockObject,
                 '/foobar.csv',
-                dict(NAME='name', NUMBER='number', DATE='dt'),
+                dict(name='NAME', number='NUMBER', dt='DATE'),
                 using='sqlite'
             )
 
@@ -35,7 +35,7 @@ class PostgresCopyTest(TestCase):
             Copy(
                 MockObject,
                 self.name_path,
-                dict(NAME='name', NUMBER='number', DATE='dt'),
+                dict(name='NAME', number='NUMBER', dt='DATE'),
                 using='sqlite'
             )
 
@@ -44,7 +44,7 @@ class PostgresCopyTest(TestCase):
             Copy(
                 MockObject,
                 self.name_path,
-                dict(NAME1='name', NUMBER='number', DATE='dt'),
+                dict(name='NAME1', number='NUMBER', dt='DATE'),
             )
 
     def test_bad_field(self):
@@ -52,14 +52,14 @@ class PostgresCopyTest(TestCase):
             Copy(
                 MockObject,
                 self.name_path,
-                dict(NAME='foo', NUMBER='number', DATE='dt'),
+                dict(name1='NAME', number='NUMBER', dt='DATE'),
             )
 
     def test_simple_save(self):
         c = Copy(
             MockObject,
             self.name_path,
-            dict(NAME='name', NUMBER='number', DATE='dt')
+            dict(name='NAME', number='NUMBER', dt='DATE'),
         )
         c.save()
         self.assertEqual(MockObject.objects.count(), 3)
@@ -73,7 +73,7 @@ class PostgresCopyTest(TestCase):
         c = Copy(
             MockObject,
             self.name_path,
-            dict(NAME='name', NUMBER='number', DATE='dt'),
+            dict(name='NAME', number='NUMBER', dt='DATE'),
         )
         c.save(silent=True)
         self.assertEqual(MockObject.objects.count(), 3)
@@ -87,7 +87,7 @@ class PostgresCopyTest(TestCase):
         c = Copy(
             MockObject,
             self.pipe_path,
-            dict(NAME='name', NUMBER='number', DATE='dt'),
+            dict(name='NAME', number='NUMBER', dt='DATE'),
             delimiter="|",
         )
         c.save()
@@ -102,7 +102,7 @@ class PostgresCopyTest(TestCase):
         c = Copy(
             MockObject,
             self.null_path,
-            dict(NAME='name', NUMBER='number', DATE='dt'),
+            dict(name='NAME', number='NUMBER', dt='DATE'),
             null='',
         )
         c.save()
@@ -118,7 +118,7 @@ class PostgresCopyTest(TestCase):
         c = Copy(
             MockObject,
             self.backwards_path,
-            dict(NAME='name', NUMBER='number', DATE='dt'),
+            dict(name='NAME', number='NUMBER', dt='DATE'),
         )
         c.save()
         self.assertEqual(MockObject.objects.count(), 3)
@@ -132,7 +132,7 @@ class PostgresCopyTest(TestCase):
         c = Copy(
             MockObject,
             self.null_path,
-            dict(NAME='name', NUMBER='number', DATE='dt'),
+            dict(name='NAME', number='NUMBER', dt='DATE'),
         )
         c.save()
         self.assertEqual(MockObject.objects.count(), 5)
@@ -146,7 +146,7 @@ class PostgresCopyTest(TestCase):
         c = Copy(
             MockObject,
             self.null_path,
-            dict(NAME='name', NUMBER='number', DATE='dt'),
+            dict(name='NAME', number='NUMBER', dt='DATE'),
             encoding='UTF-8'
         )
         c.save()

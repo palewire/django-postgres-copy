@@ -40,17 +40,18 @@ class Copy(object):
         self.encoding = encoding
 
         # Connect the headers from the CSV with the fields on the model
-        self.header_field_crosswalk = []
+        self.field_header_crosswalk = []
+        inverse_mapping = {v: k for k, v in self.mapping.items()}
         for h in self.get_headers():
             try:
-                f_name = self.mapping[h]
+                f_name = inverse_mapping[h]
             except KeyError:
                 raise ValueError("Map does not include %s field" % h)
             try:
                 f = [f for f in self.model._meta.fields if f.name == f_name][0]
             except IndexError:
                 raise ValueError("Model does not include %s field" % f_name)
-            self.header_field_crosswalk.append((h, f))
+            self.field_header_crosswalk.append((f, h))
 
         self.temp_table_name = "temp_%s" % self.model._meta.db_table
 
@@ -119,7 +120,7 @@ class Copy(object):
             table_name=self.temp_table_name,
         )
         field_list = []
-        for header, field in self.header_field_crosswalk:
+        for field, header in self.field_header_crosswalk:
             string = '"%s" %s' % (header, field.db_type(self.conn))
             if hasattr(field, 'copy_type'):
                 string = '"%s" %s' % (header, field.copy_type)
@@ -143,7 +144,7 @@ class Copy(object):
             'csv_path': self.csv_path,
             'extra_options': '',
             'header_list': ", ".join([
-                '"%s"' % h for h, f in self.header_field_crosswalk
+                '"%s"' % h for f, h in self.field_header_crosswalk
             ])
         }
         if self.delimiter:
@@ -173,7 +174,7 @@ class Copy(object):
         )
 
         model_fields = []
-        for header, field in self.header_field_crosswalk:
+        for field, header in self.field_header_crosswalk:
             if field.db_column:
                 model_fields.append('"%s"' % field.db_column)
             else:
@@ -181,7 +182,7 @@ class Copy(object):
         options['model_fields'] = ", ".join(model_fields)
 
         temp_fields = []
-        for header, field in self.header_field_crosswalk:
+        for field, header in self.field_header_crosswalk:
             string = '"%s"' % header
             if hasattr(field, 'copy_template'):
                 string = field.copy_template % dict(name=header)

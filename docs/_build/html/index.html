@@ -1,0 +1,218 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>django-postgres-copy &mdash; django-postgres-copy 0.0.3 documentation</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.0.3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="django-postgres-copy 0.0.3 documentation" href="#" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="nav-item nav-item-0"><a href="#">django-postgres-copy 0.0.3 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="django-postgres-copy">
+<h1>django-postgres-copy<a class="headerlink" href="#django-postgres-copy" title="Permalink to this headline">¶</a></h1>
+<p>Quickly load comma-delimited data into a Django model using PostgreSQL&#8217;s COPY command</p>
+<div class="section" id="why-and-what-for">
+<h2>Why and what for?<a class="headerlink" href="#why-and-what-for" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="http://www.californiacivicdata.org/about/">The people</a> who made this library are data journalists.
+We are often munching on new data and stuff CSVs into Django a lot.</p>
+<p>That means we write a load of loaders. You can usually do this pretty quickly by looping through each row
+and saving it to the database using the Django&#8217;s ORM <a class="reference external" href="https://docs.djangoproject.com/en/1.8/ref/models/querysets/#django.db.models.query.QuerySet.create">create method</a>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">csv</span>
+<span class="kn">from</span> <span class="nn">myapp.models</span> <span class="kn">import</span> <span class="n">MyModel</span>
+
+<span class="n">data</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">DictReader</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="s">&quot;./data.csv&quot;</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+    <span class="n">MyModel</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="s">&#39;NAME&#39;</span><span class="p">],</span> <span class="n">number</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="s">&#39;NUMBER&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>But if you have a big CSV, Django will rack up database queries and it can take a long long time to finish.</p>
+<p>Lucky for us, PostgreSQL has a built-in tool called <a class="reference external" href="http://www.postgresql.org/docs/9.4/static/sql-copy.html">COPY</a> that will hammer data into the
+database with one quick query.</p>
+<p>This package tries to make using COPY as easy any other database routine supported by Django. It is
+largely based on the design of the <a class="reference external" href="https://docs.djangoproject.com/en/1.8/ref/contrib/gis/layermapping/">LayerMapping</a>
+utility for importing geospatial data.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">postgres_copy</span> <span class="kn">import</span> <span class="n">Copy</span>
+<span class="kn">from</span> <span class="nn">myapp.models</span> <span class="kn">import</span> <span class="n">MyModel</span>
+
+<span class="n">c</span> <span class="o">=</span> <span class="n">Copy</span><span class="p">(</span>
+    <span class="n">MyModel</span><span class="p">,</span>
+    <span class="s">&quot;./data.csv&quot;</span><span class="p">,</span>
+    <span class="nb">dict</span><span class="p">(</span><span class="n">NAME</span><span class="o">=</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="n">NUMBER</span><span class="o">=</span><span class="s">&#39;number&#39;</span><span class="p">)</span>
+<span class="p">)</span>
+<span class="n">c</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<p>The package can be installed from the Python Package Index with <cite>pip</cite>.</p>
+<div class="highlight-bash"><div class="highlight"><pre><span class="nv">$ </span>pip install django-postgres-copy
+</pre></div>
+</div>
+</div>
+<div class="section" id="a-simple-example">
+<h2>A simple example<a class="headerlink" href="#a-simple-example" title="Permalink to this headline">¶</a></h2>
+<p>It all starts with a CSV file you&#8217;d like to load into your database. This library
+is intended to be used with large files but for here&#8217;s something simple.</p>
+<div class="highlight-text"><div class="highlight"><pre>NAME,NUMBER,DATE
+ben,1,2012-01-01
+joe,2,2012-01-02
+jane,3,2012-01-03
+</pre></div>
+</div>
+<p>A Django model that corresponds to the data might look something like this.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.db</span> <span class="kn">import</span> <span class="n">models</span>
+
+
+<span class="k">class</span> <span class="nc">Person</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
+    <span class="n">number</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">(</span><span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">dt</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">DateField</span><span class="p">(</span><span class="n">null</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If the model hasn&#8217;t been created in your database, that needs to happen.</p>
+<div class="highlight-bash"><div class="highlight"><pre><span class="nv">$ </span>python manage.py migrate
+</pre></div>
+</div>
+<p>Create a loader that uses this library to load CSV data into the model. One place you could
+put it is in a Django management command.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">postgres_copy</span> <span class="kn">import</span> <span class="n">Copy</span>
+<span class="kn">from</span> <span class="nn">myapp.models</span> <span class="kn">import</span> <span class="n">Person</span>
+<span class="kn">from</span> <span class="nn">django.core.management.base</span> <span class="kn">import</span> <span class="n">BaseCommand</span>
+
+
+<span class="k">class</span> <span class="nc">Command</span><span class="p">(</span><span class="n">BaseCommand</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">handle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="n">Copy</span><span class="p">(</span>
+            <span class="c"># Give it the model</span>
+            <span class="n">Person</span><span class="p">,</span>
+            <span class="c"># The path to your CSV</span>
+            <span class="s">&#39;/path/to/my/data.csv&#39;</span><span class="p">,</span>
+            <span class="c"># And a dict mapping the CSV headers to model fields</span>
+            <span class="nb">dict</span><span class="p">(</span><span class="n">NAME</span><span class="o">=</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="n">NUMBER</span><span class="o">=</span><span class="s">&#39;number&#39;</span><span class="p">,</span> <span class="n">DATE</span><span class="o">=</span><span class="s">&#39;dt&#39;</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="c"># Then save it.</span>
+        <span class="n">c</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Run your loader and that&#8217;s it.</p>
+<div class="highlight-bash"><div class="highlight"><pre><span class="nv">$ </span>python manage.py mymanagementcommand
+Loading CSV to Person
+<span class="m">3</span> records loaded
+</pre></div>
+</div>
+<p>Like I said, that&#8217;s it!</p>
+</div>
+<div class="section" id="copy-api">
+<h2><code class="docutils literal"><span class="pre">Copy</span></code> API<a class="headerlink" href="#copy-api" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="Copy">
+<em class="property">class </em><code class="descname">Copy</code><span class="sig-paren">(</span><em>model</em>, <em>csv_path</em>, <em>mapping</em><span class="optional">[</span>, <em>using=None</em>, <em>delimited='</em>, <em>'</em>, <em>null=None</em>, <em>encoding=None</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#Copy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>The following are the arguments and keywords that may be used during
+instantiation of <code class="docutils literal"><span class="pre">copy</span></code> objects.</p>
+</div>
+<div class="section" id="open-source-resources">
+<h2>Open-source resources<a class="headerlink" href="#open-source-resources" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Code: <a class="reference external" href="https://github.com/california-civic-data-coalition/django-postgres-copy">github.com/california-civic-data-coalition/django-postgres-copy</a></li>
+<li>Issues: <a class="reference external" href="https://github.com/california-civic-data-coalition/django-postgres-copy/issues">github.com/california-civic-data-coalition/django-postgres-copy/issues</a></li>
+<li>Packaging: <a class="reference external" href="https://pypi.python.org/pypi/django-postgres-copy">pypi.python.org/pypi/django-postgres-copy</a></li>
+<li>Testing: <a class="reference external" href="https://travis-ci.org/california-civic-data-coalition/django-postgres-copy">travis-ci.org/california-civic-data-coalition/django-postgres-copy</a></li>
+<li>Coverage: <a class="reference external" href="https://coveralls.io/r/california-civic-data-coalition/django-postgres-copy">coveralls.io/r/california-civic-data-coalition/django-postgres-copy</a></li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">django-postgres-copy</a><ul>
+<li><a class="reference internal" href="#why-and-what-for">Why and what for?</a></li>
+<li><a class="reference internal" href="#installation">Installation</a></li>
+<li><a class="reference internal" href="#a-simple-example">A simple example</a></li>
+<li><a class="reference internal" href="#copy-api"><code class="docutils literal"><span class="pre">Copy</span></code> API</a></li>
+<li><a class="reference internal" href="#open-source-resources">Open-source resources</a></li>
+</ul>
+</li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/index.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="nav-item nav-item-0"><a href="#">django-postgres-copy 0.0.3 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2015, Ben Welsh.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
+    </div>
+  </body>
+</html>
