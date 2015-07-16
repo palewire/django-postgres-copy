@@ -191,15 +191,17 @@ Transforming data
 By default, the COPY command cannot transform data on-the-fly as it is loaded into
 the database. This library first loads the data into a temporary table
 before inserting all records into the model table. So it is possible to use PostgreSQL's
-built in SQL methods to modify values during the the insert.
+built-in SQL methods to modify values during the insert.
 
 As an example, imagine a CSV that includes a column of yes and no values that you wanted to store in the database as 1 or 0 in an integer field.
+
+.. code-block:: text
 
     NAME,VALUE
     ben,yes
     joe,no
 
-A model to store the data as you'd prefer might look like this.
+A model to store the data as you'd prefer to might look like this.
 
 .. code-block:: python
 
@@ -212,7 +214,7 @@ A model to store the data as you'd prefer might look like this.
 
 But if the CSV was loaded directly into the database, you would receive a data type error when the 'yes' and 'no' strings were inserted into the integer field.
 
-This library offers two ways you can transform the data during the insert.
+This library offers two ways you can transform that data during the insert.
 
 
 Custom field transformations
@@ -222,6 +224,8 @@ One approach is to create a custom Django field.
 
 You can set a temporary data type for a column when it is first loaded and provides a SQL string for how to transform it during the insert into the model table. The transformation must include
 a string interpolation keyed to "name", where the name of the database column will be slotted.
+
+This example loads in the column as the forgiving `text <http://www.postgresql.org/docs/9.4/static/datatype-character.html>`_ data type and then uses a `CASE statement <http://www.postgresql.org/docs/9.4/static/plpgsql-control-structures.html>`_ to transforms the data using a CASE statement.
 
 .. code-block:: python
 
