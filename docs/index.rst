@@ -219,7 +219,7 @@ But if the CSV file was loaded directly into the database, you would receive a d
 This library offers two ways you can transform that data during the insert.
 
 
-Custom field transformations
+Custom-field transformations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 One approach is to create a custom Django field.
