@@ -32,10 +32,10 @@ utility for importing geospatial data.
 
 .. code-block:: python
 
-    from postgres_copy import Copy
     from myapp.models import MyModel
+    from postgres_copy import CopyMapping
 
-    c = Copy(
+    c = CopyMapping(
         MyModel,
         "./data.csv",
         dict(NAME='name', NUMBER='number')
@@ -51,8 +51,8 @@ The package can be installed from the Python Package Index with `pip`.
 
     $ pip install django-postgres-copy
 
-A simple example
-----------------
+An example
+----------
 
 It all starts with a CSV file you'd like to load into your database. This library
 is intended to be used with large files but for here's something simple.
@@ -87,15 +87,15 @@ put it is in a Django management command.
 
 .. code-block:: python
 
-    from postgres_copy import Copy
     from myapp.models import Person
+    from postgres_copy import CopyMapping
     from django.core.management.base import BaseCommand
 
 
     class Command(BaseCommand):
 
         def handle(self, *args, **kwargs):
-            c = Copy(
+            c = CopyMapping(
                 # Give it the model
                 Person,
                 # The path to your CSV
@@ -117,10 +117,10 @@ Run your loader and that's it.
 Like I said, that's it!
 
 
-``Copy`` API
+``CopyMapping`` API
 --------------------
 
-.. class:: Copy(model, csv_path, mapping[, using=None, delimited=',', null=None, encoding=None])
+.. class:: CopyMapping(model, csv_path, mapping[, using=None, delimiter=',', null=None, encoding=None])
 
 The following are the arguments and keywords that may be used during
 instantiation of ``copy`` objects.
@@ -130,7 +130,7 @@ Argument           Description
 =================  =========================================================
 ``model``          The target model, *not* an instance.
 
-``csv_path``    The path to the delimited data source file
+``csv_path``       The path to the delimited data source file
                    (e.g., a CSV)
 
 ``mapping``        A dictionary: keys are strings corresponding to
@@ -138,6 +138,48 @@ Argument           Description
                    string field names for the CSV header.
 =================  =========================================================
 
+=====================  =====================================================
+Keyword Arguments
+=====================  =====================================================
+``delimiter``          The character that separates values in the data file.
+                       By default  it is ",". This must be a single one-byte
+                       character.
+
+``null``               Specifies the string that represents a null value.
+                       The default is an unquoted empty string. This must
+                       be a single one-byte character.
+
+``encoding``           Specifies the character set encoding of the strings
+                       in the CSV data source.  For example, ``'latin-1'``,
+                       ``'utf-8'``, and ``'cp437'`` are all valid encoding
+                       parameters.
+
+``using``              Sets the database to use when importing data.
+                       Default is None, which will use the ``'default'``
+                       database.
+=====================  =====================================================
+
+``save()`` Keyword Arguments
+----------------------------
+
+.. method:: CopyMapping.save([silent=False, stream=sys.stdout])
+
+The ``save()`` method also accepts keywords.  These keywords are
+used for controlling output logging, error handling, and for importing
+specific feature ranges.
+
+===========================  =================================================
+Save Keyword Arguments       Description
+===========================  =================================================
+
+``silent``                   By default, non-fatal error notifications are
+                             printed to ``sys.stdout``, but this keyword may
+                             be set to disable these notifications.
+
+``stream``                   Status information will be written to this file
+                             handle.  Defaults to using ``sys.stdout``, but
+                             any object with a ``write`` method is supported.
+===========================  =================================================
 
 Open-source resources
 ---------------------

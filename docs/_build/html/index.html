@@ -64,10 +64,10 @@ database with one quick query.</p>
 <p>This package tries to make using COPY as easy any other database routine supported by Django. It is
 largely based on the design of the <a class="reference external" href="https://docs.djangoproject.com/en/1.8/ref/contrib/gis/layermapping/">LayerMapping</a>
 utility for importing geospatial data.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">postgres_copy</span> <span class="kn">import</span> <span class="n">Copy</span>
-<span class="kn">from</span> <span class="nn">myapp.models</span> <span class="kn">import</span> <span class="n">MyModel</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">myapp.models</span> <span class="kn">import</span> <span class="n">MyModel</span>
+<span class="kn">from</span> <span class="nn">postgres_copy</span> <span class="kn">import</span> <span class="n">CopyMapping</span>
 
-<span class="n">c</span> <span class="o">=</span> <span class="n">Copy</span><span class="p">(</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">CopyMapping</span><span class="p">(</span>
     <span class="n">MyModel</span><span class="p">,</span>
     <span class="s">&quot;./data.csv&quot;</span><span class="p">,</span>
     <span class="nb">dict</span><span class="p">(</span><span class="n">NAME</span><span class="o">=</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="n">NUMBER</span><span class="o">=</span><span class="s">&#39;number&#39;</span><span class="p">)</span>
@@ -83,8 +83,8 @@ utility for importing geospatial data.</p>
 </pre></div>
 </div>
 </div>
-<div class="section" id="a-simple-example">
-<h2>A simple example<a class="headerlink" href="#a-simple-example" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="an-example">
+<h2>An example<a class="headerlink" href="#an-example" title="Permalink to this headline">¶</a></h2>
 <p>It all starts with a CSV file you&#8217;d like to load into your database. This library
 is intended to be used with large files but for here&#8217;s something simple.</p>
 <div class="highlight-text"><div class="highlight"><pre>NAME,NUMBER,DATE
@@ -109,15 +109,15 @@ jane,3,2012-01-03
 </div>
 <p>Create a loader that uses this library to load CSV data into the model. One place you could
 put it is in a Django management command.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">postgres_copy</span> <span class="kn">import</span> <span class="n">Copy</span>
-<span class="kn">from</span> <span class="nn">myapp.models</span> <span class="kn">import</span> <span class="n">Person</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">myapp.models</span> <span class="kn">import</span> <span class="n">Person</span>
+<span class="kn">from</span> <span class="nn">postgres_copy</span> <span class="kn">import</span> <span class="n">CopyMapping</span>
 <span class="kn">from</span> <span class="nn">django.core.management.base</span> <span class="kn">import</span> <span class="n">BaseCommand</span>
 
 
 <span class="k">class</span> <span class="nc">Command</span><span class="p">(</span><span class="n">BaseCommand</span><span class="p">):</span>
 
     <span class="k">def</span> <span class="nf">handle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="n">c</span> <span class="o">=</span> <span class="n">Copy</span><span class="p">(</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="n">CopyMapping</span><span class="p">(</span>
             <span class="c"># Give it the model</span>
             <span class="n">Person</span><span class="p">,</span>
             <span class="c"># The path to your CSV</span>
@@ -137,25 +137,104 @@ Loading CSV to Person
 </div>
 <p>Like I said, that&#8217;s it!</p>
 </div>
-<div class="section" id="copy-api">
-<h2><code class="docutils literal"><span class="pre">Copy</span></code> API<a class="headerlink" href="#copy-api" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="copymapping-api">
+<h2><code class="docutils literal"><span class="pre">CopyMapping</span></code> API<a class="headerlink" href="#copymapping-api" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
-<dt id="Copy">
-<em class="property">class </em><code class="descname">Copy</code><span class="sig-paren">(</span><em>model</em>, <em>csv_path</em>, <em>mapping</em><span class="optional">[</span>, <em>using=None</em>, <em>delimited='</em>, <em>'</em>, <em>null=None</em>, <em>encoding=None</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#Copy" title="Permalink to this definition">¶</a></dt>
+<dt id="CopyMapping">
+<em class="property">class </em><code class="descname">CopyMapping</code><span class="sig-paren">(</span><em>model</em>, <em>csv_path</em>, <em>mapping</em><span class="optional">[</span>, <em>using=None</em>, <em>delimiter='</em>, <em>'</em>, <em>null=None</em>, <em>encoding=None</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#CopyMapping" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>The following are the arguments and keywords that may be used during
 instantiation of <code class="docutils literal"><span class="pre">copy</span></code> objects.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="23%" />
+<col width="77%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Argument</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">model</span></code></td>
+<td>The target model, <em>not</em> an instance.</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">csv_path</span></code></td>
+<td>The path to the delimited data source file
+(e.g., a CSV)</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">mapping</span></code></td>
+<td>A dictionary: keys are strings corresponding to
+the model field, and values correspond to
+string field names for the CSV header.</td>
+</tr>
+</tbody>
+</table>
+<table border="1" class="docutils">
+<colgroup>
+<col width="28%" />
+<col width="72%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Keyword Arguments</th>
+<th class="head">&nbsp;</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">delimiter</span></code></td>
+<td>The character that separates values in the data file.
+By default  it is &#8221;,&#8221;. This must be a single one-byte
+character.</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">null</span></code></td>
+<td>Specifies the string that represents a null value.
+The default is an unquoted empty string. This must
+be a single one-byte character.</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">encoding</span></code></td>
+<td>Specifies the character set encoding of the strings
+in the CSV data source.  For example, <code class="docutils literal"><span class="pre">'latin-1'</span></code>,
+<code class="docutils literal"><span class="pre">'utf-8'</span></code>, and <code class="docutils literal"><span class="pre">'cp437'</span></code> are all valid encoding
+parameters.</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">using</span></code></td>
+<td>Sets the database to use when importing data.
+Default is None, which will use the <code class="docutils literal"><span class="pre">'default'</span></code>
+database.</td>
+</tr>
+</tbody>
+</table>
 </div>
-<div class="section" id="open-source-resources">
-<h2>Open-source resources<a class="headerlink" href="#open-source-resources" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li>Code: <a class="reference external" href="https://github.com/california-civic-data-coalition/django-postgres-copy">github.com/california-civic-data-coalition/django-postgres-copy</a></li>
-<li>Issues: <a class="reference external" href="https://github.com/california-civic-data-coalition/django-postgres-copy/issues">github.com/california-civic-data-coalition/django-postgres-copy/issues</a></li>
-<li>Packaging: <a class="reference external" href="https://pypi.python.org/pypi/django-postgres-copy">pypi.python.org/pypi/django-postgres-copy</a></li>
-<li>Testing: <a class="reference external" href="https://travis-ci.org/california-civic-data-coalition/django-postgres-copy">travis-ci.org/california-civic-data-coalition/django-postgres-copy</a></li>
-<li>Coverage: <a class="reference external" href="https://coveralls.io/r/california-civic-data-coalition/django-postgres-copy">coveralls.io/r/california-civic-data-coalition/django-postgres-copy</a></li>
-</ul>
+<div class="section" id="save-keyword-arguments">
+<h2><code class="docutils literal"><span class="pre">save()</span></code> Keyword Arguments<a class="headerlink" href="#save-keyword-arguments" title="Permalink to this headline">¶</a></h2>
+<dl class="method">
+<dt id="CopyMapping.save">
+<code class="descclassname">CopyMapping.</code><code class="descname">save</code><span class="sig-paren">(</span><span class="optional">[</span><em>silent=False</em>, <em>stream=sys.stdout</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#CopyMapping.save" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>The <code class="docutils literal"><span class="pre">save()</span></code> method also accepts keywords.  These keywords are
+used for controlling output logging, error handling, and for importing
+specific feature ranges.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="36%" />
+<col width="64%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>Save Keyword Arguments</td>
+<td>Description</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">silent</span></code>                   By default, non-fatal error notifications are</dt>
+<dd>printed to <code class="docutils literal"><span class="pre">sys.stdout</span></code>, but this keyword may
+be set to disable these notifications.</dd>
+<dt><code class="docutils literal"><span class="pre">stream</span></code>                   Status information will be written to this file</dt>
+<dd>handle.  Defaults to using <code class="docutils literal"><span class="pre">sys.stdout</span></code>, but
+any object with a <code class="docutils literal"><span class="pre">write</span></code> method is supported.</dd>
+</dl>
 </div>
 </div>
 
@@ -170,9 +249,9 @@ instantiation of <code class="docutils literal"><span class="pre">copy</span></c
 <li><a class="reference internal" href="#">django-postgres-copy</a><ul>
 <li><a class="reference internal" href="#why-and-what-for">Why and what for?</a></li>
 <li><a class="reference internal" href="#installation">Installation</a></li>
-<li><a class="reference internal" href="#a-simple-example">A simple example</a></li>
-<li><a class="reference internal" href="#copy-api"><code class="docutils literal"><span class="pre">Copy</span></code> API</a></li>
-<li><a class="reference internal" href="#open-source-resources">Open-source resources</a></li>
+<li><a class="reference internal" href="#an-example">An example</a></li>
+<li><a class="reference internal" href="#copymapping-api"><code class="docutils literal"><span class="pre">CopyMapping</span></code> API</a></li>
+<li><a class="reference internal" href="#save-keyword-arguments"><code class="docutils literal"><span class="pre">save()</span></code> Keyword Arguments</a></li>
 </ul>
 </li>
 </ul>
