@@ -126,7 +126,7 @@ Like I said, that's it!
 .. class:: CopyMapping(model, csv_path, mapping[, using=None, delimiter=',', null=None, encoding=None])
 
 The following are the arguments and keywords that may be used during
-instantiation of ``copy`` objects.
+instantiation of ``CopyMapping`` objects.
 
 =================  =========================================================
 Argument           Description
@@ -214,6 +214,7 @@ But if the CSV was loaded directly into the database, you would receive a data t
 
 This library offers two ways you can transform the data during the insert.
 
+
 Custom field transformations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -248,6 +249,7 @@ Back in the models file that field can be substituted for the default.
         value = MyIntegerField()
 
 Run your loader and it should finish fine.
+
 
 Model-method transformations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
