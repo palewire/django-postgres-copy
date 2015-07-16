@@ -58,7 +58,7 @@ An example
 ----------
 
 It all starts with a CSV file you'd like to load into your database. This library
-is intended to be used with large files but for here's something simple.
+is intended to be used with large files but here's something simple as an example.
 
 .. code-block:: text
 
