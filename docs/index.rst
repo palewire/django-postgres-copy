@@ -21,7 +21,7 @@ and saving it to the database using the Django's ORM `create method <https://doc
     for row in data:
         MyModel.objects.create(name=row['NAME'], number=row['NUMBER'])
 
-But if you have a big CSV, Django will rack up database queries and it can take a long long time to finish.
+But if you have a big CSV, Django will rack up database queries and it can take a long time to finish.
 
 Lucky for us, PostgreSQL has a built-in tool called `COPY <http://www.postgresql.org/docs/9.4/static/sql-copy.html>`_ that will hammer data into the
 database with one quick query.
