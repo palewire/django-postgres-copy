@@ -9,7 +9,7 @@ Why and what for?
 `The people <http://www.californiacivicdata.org/about/>`_ who made this library are data journalists.
 We are often downloading, cleaning and analyzing new data.
 
-That means we write a load of loaders. You can usually do this pretty quickly by looping through each row
+That means we write a load of loaders. You can usually do this by looping through each row
 and saving it to the database using the Django's ORM `create method <https://docs.djangoproject.com/en/1.8/ref/models/querysets/#django.db.models.query.QuerySet.create>`_.
 
 .. code-block:: python
