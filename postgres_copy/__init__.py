@@ -96,7 +96,7 @@ class CopyMapping(object):
         """
         Returns the column headers from the csv as a list.
         """
-        with open(self.csv_path, 'r') as infile:
+        with open(self.csv_path, 'rU') as infile:
             csv_reader = csv.reader(infile, delimiter=self.delimiter)
             headers = next(csv_reader)
         return headers
