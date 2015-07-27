@@ -262,7 +262,7 @@ Model-method transformations
 A second approach is to provide a SQL string for how to transform a field during the insert on the model itself.
 
 This lets you specific different transformations for different fields of the
-same type. You must name the method so that the field name is sandwiched between "copy_" and "_template". It must return a string interpolation keyed to "name", where the name of the database
+same type. You must name the method so that the field name is sandwiched between ``copy_`` and ``_template``. It must return a string interpolation keyed to "name", where the name of the database
 column will be slotted.
 
 For the example above, the model might be modified to look like this.
