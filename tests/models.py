@@ -12,3 +12,4 @@ class MockObject(models.Model):
 
     def copy_name_template(self):
         return 'upper("%(name)s")'
+    copy_name_template.copy_type = 'text'

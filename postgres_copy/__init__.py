@@ -116,16 +116,31 @@ class CopyMapping(object):
         Returns SQL that can be run.
         """
         sql = """CREATE TEMPORARY TABLE "%(table_name)s" (%(field_list)s);"""
-        options = dict(
-            table_name=self.temp_table_name,
-        )
+        options = dict(table_name=self.temp_table_name)
         field_list = []
+
+        # Loop through all the fields and CSV headers together
         for field, header in self.field_header_crosswalk:
             string = '"%s" %s' % (header, field.db_type(self.conn))
+
+            # If the field has an override, use that
             if hasattr(field, 'copy_template'):
                 string = '"%s" %s' % (header, field.copy_type)
+
+            # If the model has a more-specific override, use that
+            template_method = 'copy_%s_template' % field.name
+            if hasattr(self.model, template_method):
+                method = getattr(self.model(), template_method)
+                if hasattr(method, 'copy_type'):
+                    string = '"%s" %s' % (header, method.copy_type)
+
+            # Add the string to the list
             field_list.append(string)
+
+        # Join all the field strings together
         options['field_list'] = ", ".join(field_list)
+
+        # Mash together the SQL and pass it out
         return sql % options
 
     def prep_copy(self):

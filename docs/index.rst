@@ -262,8 +262,14 @@ Model-method transformations
 A second approach is to provide a SQL string for how to transform a field during the insert on the model itself.
 
 This lets you specific different transformations for different fields of the
-same type. You must name the method so that the field name is sandwiched between "copy_" and "_template". It must return a string interpolation keyed to "name", where the name of the database
-column will be slotted.
+same type.
+
+You must name the method so that the field name is sandwiched between "copy_" and "_template".
+
+It must return a string interpolation keyed to "name", where the name of the database column will be slotted.
+
+You can optional give the temporary field a more permissive data type, like text, by setting a
+``copy_type`` attribute on the model.
 
 For the example above, the model might be modified to look like this.
 
@@ -282,6 +288,7 @@ For the example above, the model might be modified to look like this.
                   WHEN "%(name)s" = 'no' THEN 0
               END
               """
+        copy_value_template.copy_type = 'text'
 
 And that's it.
 
