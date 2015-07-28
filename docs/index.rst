@@ -259,17 +259,11 @@ Run your loader and it should finish fine.
 Model-method transformations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-A second approach is to provide a SQL string for how to transform a field during the insert on the model itself.
+A second approach is to provide a SQL string for how to transform a field during the insert on the model itself. This lets you specific different transformations for different fields of the same type.
 
-This lets you specific different transformations for different fields of the
-same type.
+You must name the method so that the field name is sandwiched between ``copy_`` and ``_template``. It must return a string interpolation keyed to "name", where the name of the database column will be slotted.
 
-You must name the method so that the field name is sandwiched between "copy_" and "_template".
-
-It must return a string interpolation keyed to "name", where the name of the database column will be slotted.
-
-You can optional give the temporary field a more permissive data type, like text, by setting a
-``copy_type`` attribute on the model.
+You can optionally give the temporary field a different data type, like the more-permissive ``text`` type, by setting the ``copy_type`` attribute on the model method.
 
 For the example above, the model might be modified to look like this.
 
