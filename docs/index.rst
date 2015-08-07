@@ -169,8 +169,7 @@ Keyword Arguments
 .. method:: CopyMapping.save([silent=False, stream=sys.stdout])
 
 The ``save()`` method also accepts keywords.  These keywords are
-used for controlling output logging, error handling, and for importing
-specific feature ranges.
+used for controlling output logging and error handling.
 
 ===========================  =================================================
 Keyword Arguments            Description
