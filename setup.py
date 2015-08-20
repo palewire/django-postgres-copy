@@ -41,6 +41,9 @@ setup(
     url='http://www.github.com/california-civic-data-coalition/django-postgresql-copy/',
     license="MIT",
     packages=("postgres_copy",),
+    install_requires=(
+        'psycopg2>=2.5',
+    ),
     cmdclass={'test': TestCommand},
     classifiers=[
         'Programming Language :: Python',
