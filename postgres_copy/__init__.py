@@ -83,7 +83,8 @@ class CopyMapping(object):
         # Run all of the raw SQL
         cursor.execute(drop_sql)
         cursor.execute(create_sql)
-        cursor.execute(copy_sql)
+        fp = open(self.csv_path, 'r')
+        cursor.copy_expert(copy_sql, fp)
         cursor.execute(insert_sql)
         cursor.execute(drop_sql)
 
@@ -151,12 +152,11 @@ class CopyMapping(object):
         """
         sql = """
             COPY "%(db_table)s" (%(header_list)s)
-            FROM '%(csv_path)s'
+            FROM STDIN
             WITH CSV HEADER %(extra_options)s;
         """
         options = {
             'db_table': self.temp_table_name,
-            'csv_path': self.csv_path,
             'extra_options': '',
             'header_list': ", ".join([
                 '"%s"' % h for f, h in self.field_header_crosswalk
