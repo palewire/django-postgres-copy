@@ -3,6 +3,7 @@ import sys
 import csv
 from django.db import connections, router
 
+
 class CopyMapping(object):
     """
     Maps comma-delimited data file to a Django model
