@@ -2,8 +2,6 @@ import os
 import sys
 import csv
 from django.db import connections, router
-from django.contrib.humanize.templatetags.humanize import intcomma
-
 
 class CopyMapping(object):
     """
@@ -90,7 +88,7 @@ class CopyMapping(object):
 
         if not silent:
             stream.write(
-                "%s records loaded\n" % intcomma(self.model.objects.count())
+                "%s records loaded\n" % self.model.objects.count()
             )
 
     def get_headers(self):
