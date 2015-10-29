@@ -2,6 +2,7 @@ import os
 import sys
 import csv
 from django.db import connections, router
+from collections import OrderedDict
 
 
 class CopyMapping(object):
@@ -19,6 +20,7 @@ class CopyMapping(object):
         delimiter=',',
         null=None,
         encoding=None,
+        static_columns=None
     ):
         self.model = model
         self.mapping = mapping
@@ -37,6 +39,10 @@ class CopyMapping(object):
         self.delimiter = delimiter
         self.null = null
         self.encoding = encoding
+        if static_columns is not None:
+            self.static_columns = OrderedDict(static_columns)
+        else:
+            self.static_columns = {}
 
         # Connect the headers from the CSV with the fields on the model
         self.field_header_crosswalk = []
@@ -193,6 +199,8 @@ class CopyMapping(object):
                 model_fields.append('"%s"' % field.db_column)
             else:
                 model_fields.append('"%s"' % field.name)
+        for k in self.static_columns.keys():
+            model_fields.append('"%s"' % k)
         options['model_fields'] = ", ".join(model_fields)
 
         temp_fields = []
@@ -205,5 +213,7 @@ class CopyMapping(object):
                 template = getattr(self.model(), template_method)()
                 string = template % dict(name=header)
             temp_fields.append(string)
+        for v in self.static_columns.values():
+            temp_fields.append("'%s'" % v)
         options['temp_fields'] = ", ".join(temp_fields)
         return sql % options
