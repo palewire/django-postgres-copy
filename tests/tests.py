@@ -1,6 +1,6 @@
 import os
 from datetime import date
-from .models import MockObject
+from .models import MockObject, ExtendedMockObject
 from postgres_copy import CopyMapping
 from django.test import TestCase
 
@@ -13,10 +13,10 @@ class PostgresCopyTest(TestCase):
         self.pipe_path = os.path.join(self.data_dir, 'pipes.csv')
         self.null_path = os.path.join(self.data_dir, 'nulls.csv')
         self.backwards_path = os.path.join(self.data_dir, 'backwards.csv')
-        self.baddates_path = os.path.join(self.data_dir, 'baddates.csv')
 
     def tearDown(self):
         MockObject.objects.all().delete()
+        ExtendedMockObject.objects.all().delete()
 
     def test_bad_call(self):
         with self.assertRaises(TypeError):
@@ -157,3 +157,15 @@ class PostgresCopyTest(TestCase):
             MockObject.objects.get(name='BEN').dt,
             date(2012, 1, 1)
         )
+
+    def test_static_values(self):
+        c = CopyMapping(
+            ExtendedMockObject,
+            self.name_path,
+            dict(name='NAME', number='NUMBER', dt='DATE'),
+            encoding='UTF-8',
+            static_columns={'static_val':1,'static_string':'test'}
+        )
+        c.save()
+        self.assertEqual(ExtendedMockObject.objects.filter(static_val = 1).count(), 3)
+        self.assertEqual(ExtendedMockObject.objects.filter(static_string = 'test').count(), 3)
