@@ -160,6 +160,11 @@ Keyword Arguments
 ``using``              Sets the database to use when importing data.
                        Default is None, which will use the ``'default'``
                        database.
+
+``static_column``      A dictionary: keys are strings corresponding to
+                       fields in the ``'model'``that are not in the source
+                       file. values are a (single) value that will be put
+                       into that field for every row in the source file
 =====================  =====================================================
 
 
