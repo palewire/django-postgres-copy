@@ -10,6 +10,7 @@ class PostgresCopyTest(TestCase):
     def setUp(self):
         self.data_dir = os.path.join(os.path.dirname(__file__), 'data')
         self.name_path = os.path.join(self.data_dir, 'names.csv')
+        self.foreign_path = os.path.join(self.data_dir, 'foreignkeys.csv')
         self.pipe_path = os.path.join(self.data_dir, 'pipes.csv')
         self.null_path = os.path.join(self.data_dir, 'nulls.csv')
         self.backwards_path = os.path.join(self.data_dir, 'backwards.csv')
@@ -65,6 +66,21 @@ class PostgresCopyTest(TestCase):
         c.save()
         self.assertEqual(MockObject.objects.count(), 3)
         self.assertEqual(MockObject.objects.get(name='BEN').number, 1)
+        self.assertEqual(
+            MockObject.objects.get(name='BEN').dt,
+            date(2012, 1, 1)
+        )
+
+    def test_save_foreign_key(self):
+        c = CopyMapping(
+            MockObject,
+            self.foreign_path,
+            dict(name='NAME', number='NUMBER', dt='DATE', parent='PARENT')
+        )
+
+        c.save()
+        self.assertEqual(MockObject.objects.count(), 3)
+        self.assertEqual(MockObject.objects.get(name='BEN').parent_id, 4)
         self.assertEqual(
             MockObject.objects.get(name='BEN').dt,
             date(2012, 1, 1)

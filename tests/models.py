@@ -6,6 +6,7 @@ class MockObject(models.Model):
     name = models.CharField(max_length=500)
     number = MyIntegerField(null=True, db_column='num')
     dt = models.DateField(null=True)
+    parent = models.ForeignKey('MockObject', null=True)
 
     class Meta:
         app_label = 'tests'
