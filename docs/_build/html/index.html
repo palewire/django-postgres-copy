@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>django-postgres-copy &mdash; django-postgres-copy 0.0.3 documentation</title>
+    <title>django-postgres-copy &mdash; django-postgres-copy 0.0.5 documentation</title>
     
     <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.0.3',
+        VERSION:     '0.0.5',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="django-postgres-copy 0.0.3 documentation" href="#" /> 
+    <link rel="top" title="django-postgres-copy 0.0.5 documentation" href="#" /> 
   </head>
   <body role="document">
     <div class="related" role="navigation" aria-label="related navigation">
@@ -32,7 +32,7 @@
         <li class="right" style="margin-right: 10px">
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
-        <li class="nav-item nav-item-0"><a href="#">django-postgres-copy 0.0.3 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="#">django-postgres-copy 0.0.5 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -47,18 +47,18 @@
 <div class="section" id="why-and-what-for">
 <h2>Why and what for?<a class="headerlink" href="#why-and-what-for" title="Permalink to this headline">¶</a></h2>
 <p><a class="reference external" href="http://www.californiacivicdata.org/about/">The people</a> who made this library are data journalists.
-We are often munching on new data and stuff CSVs into Django a lot.</p>
-<p>That means we write a load of loaders. You can usually do this pretty quickly by looping through each row
+We are often downloading, cleaning and analyzing new data.</p>
+<p>That means we write a load of loaders. You can usually do this by looping through each row
 and saving it to the database using the Django&#8217;s ORM <a class="reference external" href="https://docs.djangoproject.com/en/1.8/ref/models/querysets/#django.db.models.query.QuerySet.create">create method</a>.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">csv</span>
 <span class="kn">from</span> <span class="nn">myapp.models</span> <span class="kn">import</span> <span class="n">MyModel</span>
 
-<span class="n">data</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">DictReader</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="s">&quot;./data.csv&quot;</span><span class="p">))</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">DictReader</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="s2">&quot;./data.csv&quot;</span><span class="p">))</span>
 <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
-    <span class="n">MyModel</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="s">&#39;NAME&#39;</span><span class="p">],</span> <span class="n">number</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="s">&#39;NUMBER&#39;</span><span class="p">])</span>
+    <span class="n">MyModel</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;NAME&#39;</span><span class="p">],</span> <span class="n">number</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;NUMBER&#39;</span><span class="p">])</span>
 </pre></div>
 </div>
-<p>But if you have a big CSV, Django will rack up database queries and it can take a long long time to finish.</p>
+<p>But if you have a big CSV, Django will rack up database queries and it can take a long time to finish.</p>
 <p>Lucky for us, PostgreSQL has a built-in tool called <a class="reference external" href="http://www.postgresql.org/docs/9.4/static/sql-copy.html">COPY</a> that will hammer data into the
 database with one quick query.</p>
 <p>This package tries to make using COPY as easy any other database routine supported by Django. It is
@@ -69,8 +69,8 @@ utility for importing geospatial data.</p>
 
 <span class="n">c</span> <span class="o">=</span> <span class="n">CopyMapping</span><span class="p">(</span>
     <span class="n">MyModel</span><span class="p">,</span>
-    <span class="s">&quot;./data.csv&quot;</span><span class="p">,</span>
-    <span class="nb">dict</span><span class="p">(</span><span class="n">NAME</span><span class="o">=</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="n">NUMBER</span><span class="o">=</span><span class="s">&#39;number&#39;</span><span class="p">)</span>
+    <span class="s2">&quot;./data.csv&quot;</span><span class="p">,</span>
+    <span class="nb">dict</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;NAME&#39;</span><span class="p">,</span> <span class="n">number</span><span class="o">=</span><span class="s1">&#39;NUMBER&#39;</span><span class="p">)</span>
 <span class="p">)</span>
 <span class="n">c</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
 </pre></div>
@@ -79,14 +79,14 @@ utility for importing geospatial data.</p>
 <div class="section" id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
 <p>The package can be installed from the Python Package Index with <cite>pip</cite>.</p>
-<div class="highlight-bash"><div class="highlight"><pre><span class="nv">$ </span>pip install django-postgres-copy
+<div class="highlight-bash"><div class="highlight"><pre>$ pip install django-postgres-copy
 </pre></div>
 </div>
 </div>
 <div class="section" id="an-example">
 <h2>An example<a class="headerlink" href="#an-example" title="Permalink to this headline">¶</a></h2>
 <p>It all starts with a CSV file you&#8217;d like to load into your database. This library
-is intended to be used with large files but for here&#8217;s something simple.</p>
+is intended to be used with large files but here&#8217;s something simple as an example.</p>
 <div class="highlight-text"><div class="highlight"><pre>NAME,NUMBER,DATE
 ben,1,2012-01-01
 joe,2,2012-01-02
@@ -104,7 +104,7 @@ jane,3,2012-01-03
 </pre></div>
 </div>
 <p>If the model hasn&#8217;t been created in your database, that needs to happen.</p>
-<div class="highlight-bash"><div class="highlight"><pre><span class="nv">$ </span>python manage.py migrate
+<div class="highlight-bash"><div class="highlight"><pre>$ python manage.py migrate
 </pre></div>
 </div>
 <p>Create a loader that uses this library to load CSV data into the model. One place you could
@@ -118,19 +118,19 @@ put it is in a Django management command.</p>
 
     <span class="k">def</span> <span class="nf">handle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">c</span> <span class="o">=</span> <span class="n">CopyMapping</span><span class="p">(</span>
-            <span class="c"># Give it the model</span>
+            <span class="c1"># Give it the model</span>
             <span class="n">Person</span><span class="p">,</span>
-            <span class="c"># The path to your CSV</span>
-            <span class="s">&#39;/path/to/my/data.csv&#39;</span><span class="p">,</span>
-            <span class="c"># And a dict mapping the CSV headers to model fields</span>
-            <span class="nb">dict</span><span class="p">(</span><span class="n">NAME</span><span class="o">=</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="n">NUMBER</span><span class="o">=</span><span class="s">&#39;number&#39;</span><span class="p">,</span> <span class="n">DATE</span><span class="o">=</span><span class="s">&#39;dt&#39;</span><span class="p">)</span>
+            <span class="c1"># The path to your CSV</span>
+            <span class="s1">&#39;/path/to/my/data.csv&#39;</span><span class="p">,</span>
+            <span class="c1"># And a dict mapping the  model fields to CSV headers</span>
+            <span class="nb">dict</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;NAME&#39;</span><span class="p">,</span> <span class="n">number</span><span class="o">=</span><span class="s1">&#39;NUMBER&#39;</span><span class="p">,</span> <span class="n">dt</span><span class="o">=</span><span class="s1">&#39;DATE&#39;</span><span class="p">)</span>
         <span class="p">)</span>
-        <span class="c"># Then save it.</span>
+        <span class="c1"># Then save it.</span>
         <span class="n">c</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
 </pre></div>
 </div>
 <p>Run your loader and that&#8217;s it.</p>
-<div class="highlight-bash"><div class="highlight"><pre><span class="nv">$ </span>python manage.py mymanagementcommand
+<div class="highlight-bash"><div class="highlight"><pre>$ python manage.py mymanagementcommand
 Loading CSV to Person
 <span class="m">3</span> records loaded
 </pre></div>
@@ -145,7 +145,7 @@ Loading CSV to Person
 <dd></dd></dl>
 
 <p>The following are the arguments and keywords that may be used during
-instantiation of <code class="docutils literal"><span class="pre">copy</span></code> objects.</p>
+instantiation of <code class="docutils literal"><span class="pre">CopyMapping</span></code> objects.</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="23%" />
@@ -203,38 +203,176 @@ parameters.</td>
 Default is None, which will use the <code class="docutils literal"><span class="pre">'default'</span></code>
 database.</td>
 </tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">static_mapping</span></code></td>
+<td>Set model attributes not in the CSV the same
+for every row in the database by providing a dictionary
+with the name of the columns as keys and the static
+inputs as values.</td>
+</tr>
 </tbody>
 </table>
 </div>
 <div class="section" id="save-keyword-arguments">
-<h2><code class="docutils literal"><span class="pre">save()</span></code> Keyword Arguments<a class="headerlink" href="#save-keyword-arguments" title="Permalink to this headline">¶</a></h2>
+<h2><code class="docutils literal"><span class="pre">save()</span></code> keyword arguments<a class="headerlink" href="#save-keyword-arguments" title="Permalink to this headline">¶</a></h2>
 <dl class="method">
 <dt id="CopyMapping.save">
 <code class="descclassname">CopyMapping.</code><code class="descname">save</code><span class="sig-paren">(</span><span class="optional">[</span><em>silent=False</em>, <em>stream=sys.stdout</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#CopyMapping.save" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <p>The <code class="docutils literal"><span class="pre">save()</span></code> method also accepts keywords.  These keywords are
-used for controlling output logging, error handling, and for importing
-specific feature ranges.</p>
+used for controlling output logging and error handling.</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="36%" />
 <col width="64%" />
 </colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Keyword Arguments</th>
+<th class="head">Description</th>
+</tr>
+</thead>
 <tbody valign="top">
-<tr class="row-odd"><td>Save Keyword Arguments</td>
-<td>Description</td>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">silent</span></code></td>
+<td>By default, non-fatal error notifications are
+printed to <code class="docutils literal"><span class="pre">sys.stdout</span></code>, but this keyword may
+be set to disable these notifications.</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">stream</span></code></td>
+<td>Status information will be written to this file
+handle.  Defaults to using <code class="docutils literal"><span class="pre">sys.stdout</span></code>, but
+any object with a <code class="docutils literal"><span class="pre">write</span></code> method is supported.</td>
 </tr>
 </tbody>
 </table>
-<dl class="docutils">
-<dt><code class="docutils literal"><span class="pre">silent</span></code>                   By default, non-fatal error notifications are</dt>
-<dd>printed to <code class="docutils literal"><span class="pre">sys.stdout</span></code>, but this keyword may
-be set to disable these notifications.</dd>
-<dt><code class="docutils literal"><span class="pre">stream</span></code>                   Status information will be written to this file</dt>
-<dd>handle.  Defaults to using <code class="docutils literal"><span class="pre">sys.stdout</span></code>, but
-any object with a <code class="docutils literal"><span class="pre">write</span></code> method is supported.</dd>
-</dl>
+</div>
+<div class="section" id="transforming-data">
+<h2>Transforming data<a class="headerlink" href="#transforming-data" title="Permalink to this headline">¶</a></h2>
+<p>By default, the COPY command cannot transform data on-the-fly as it is loaded into
+the database.</p>
+<p>This library first loads the data into a temporary table
+before inserting all records into the model table. So it is possible to use PostgreSQL&#8217;s
+built-in SQL methods to modify values during the insert.</p>
+<p>As an example, imagine a CSV that includes a column of yes and no values that you wanted to store in the database as 1 or 0 in an integer field.</p>
+<div class="highlight-text"><div class="highlight"><pre>NAME,VALUE
+ben,yes
+joe,no
+</pre></div>
+</div>
+<p>A model to store the data as you&#8217;d prefer to might look like this.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.db</span> <span class="kn">import</span> <span class="n">models</span>
+
+
+<span class="k">class</span> <span class="nc">Person</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
+    <span class="n">value</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>But if the CSV file was loaded directly into the database, you would receive a data type error when the &#8216;yes&#8217; and &#8216;no&#8217; strings were inserted into the integer field.</p>
+<p>This library offers two ways you can transform that data during the insert.</p>
+<div class="section" id="custom-field-transformations">
+<h3>Custom-field transformations<a class="headerlink" href="#custom-field-transformations" title="Permalink to this headline">¶</a></h3>
+<p>One approach is to create a custom Django field.</p>
+<p>You can set a temporary data type for a column when it is first loaded, and then provide a SQL string for how to transform it during the insert into the model table. The transformation must include a string interpolation keyed to &#8220;name&#8221;, where the name of the database column will be slotted.</p>
+<p>This example loads in the column as the forgiving <a class="reference external" href="http://www.postgresql.org/docs/9.4/static/datatype-character.html">text</a> data type and then uses a <a class="reference external" href="http://www.postgresql.org/docs/9.4/static/plpgsql-control-structures.html">CASE statement</a> to transforms the data using a CASE statement.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.db.models.fields</span> <span class="kn">import</span> <span class="n">IntegerField</span>
+
+
+<span class="k">class</span> <span class="nc">MyIntegerField</span><span class="p">(</span><span class="n">IntegerField</span><span class="p">):</span>
+    <span class="n">copy_type</span> <span class="o">=</span> <span class="s1">&#39;text&#39;</span>
+    <span class="n">copy_template</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">        CASE</span>
+<span class="s2">            WHEN &quot;</span><span class="si">%(name)s</span><span class="s2">&quot; = &#39;yes&#39; THEN 1</span>
+<span class="s2">            WHEN &quot;</span><span class="si">%(name)s</span><span class="s2">&quot; = &#39;no&#39; THEN 0</span>
+<span class="s2">        END</span>
+<span class="s2">    &quot;&quot;&quot;</span>
+</pre></div>
+</div>
+<p>Back in the models file the custom field can be substituted for the default.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.db</span> <span class="kn">import</span> <span class="n">models</span>
+<span class="kn">from</span> <span class="nn">myapp.fields</span> <span class="kn">import</span> <span class="n">MyIntegerField</span>
+
+<span class="k">class</span> <span class="nc">Person</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
+    <span class="n">value</span> <span class="o">=</span> <span class="n">MyIntegerField</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Run your loader and it should finish fine.</p>
+</div>
+<div class="section" id="model-method-transformations">
+<h3>Model-method transformations<a class="headerlink" href="#model-method-transformations" title="Permalink to this headline">¶</a></h3>
+<p>A second approach is to provide a SQL string for how to transform a field during the insert on the model itself. This lets you specific different transformations for different fields of the same type.</p>
+<p>You must name the method so that the field name is sandwiched between <code class="docutils literal"><span class="pre">copy_</span></code> and <code class="docutils literal"><span class="pre">_template</span></code>. It must return a string interpolation keyed to &#8220;name&#8221;, where the name of the database column will be slotted.</p>
+<p>You can optionally give the temporary field a different data type, like the more-permissive <code class="docutils literal"><span class="pre">text</span></code> type, by setting the <code class="docutils literal"><span class="pre">copy_type</span></code> attribute on the model method.</p>
+<p>For the example above, the model might be modified to look like this.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.db</span> <span class="kn">import</span> <span class="n">models</span>
+
+<span class="k">class</span> <span class="nc">Person</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
+    <span class="n">value</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">copy_value_template</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="k">return</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">          CASE</span>
+<span class="s2">              WHEN &quot;</span><span class="si">%(name)s</span><span class="s2">&quot; = &#39;yes&#39; THEN 1</span>
+<span class="s2">              WHEN &quot;</span><span class="si">%(name)s</span><span class="s2">&quot; = &#39;no&#39; THEN 0</span>
+<span class="s2">          END</span>
+<span class="s2">          &quot;&quot;&quot;</span>
+    <span class="n">copy_value_template</span><span class="o">.</span><span class="n">copy_type</span> <span class="o">=</span> <span class="s1">&#39;text&#39;</span>
+</pre></div>
+</div>
+<p>And that&#8217;s it.</p>
+</div>
+</div>
+<div class="section" id="inserting-static-values">
+<h2>Inserting static values<a class="headerlink" href="#inserting-static-values" title="Permalink to this headline">¶</a></h2>
+<p>If your model has columns that are not in the CSV, you can set static values
+for what is inserted using the <code class="docutils literal"><span class="pre">static_mapping</span></code> keyword argument. It will
+insert the provided values into every row in the database.</p>
+<p>An example could be if you want to include the name of the source CSV file
+along with each row.</p>
+<p>Your model might looks like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">django.db</span> <span class="kn">import</span> <span class="n">models</span>
+
+<span class="k">class</span> <span class="nc">Person</span><span class="p">(</span><span class="n">models</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
+    <span class="n">number</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">IntegerField</span><span class="p">()</span>
+<span class="hll">    <span class="n">source_csv</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CharField</span><span class="p">(</span><span class="n">max_length</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
+</span></pre></div>
+</div>
+<p>And your loader like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">myapp.models</span> <span class="kn">import</span> <span class="n">Person</span>
+<span class="kn">from</span> <span class="nn">postgres_copy</span> <span class="kn">import</span> <span class="n">CopyMapping</span>
+<span class="kn">from</span> <span class="nn">django.core.management.base</span> <span class="kn">import</span> <span class="n">BaseCommand</span>
+
+
+<span class="k">class</span> <span class="nc">Command</span><span class="p">(</span><span class="n">BaseCommand</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">handle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="n">CopyMapping</span><span class="p">(</span>
+            <span class="c1"># Give it the model</span>
+            <span class="n">Person</span><span class="p">,</span>
+            <span class="c1"># The path to your CSV</span>
+            <span class="s1">&#39;/path/to/my/data.csv&#39;</span><span class="p">,</span>
+            <span class="c1"># And a dict mapping the  model fields to CSV headers</span>
+            <span class="nb">dict</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;NAME&#39;</span><span class="p">,</span> <span class="n">number</span><span class="o">=</span><span class="s1">&#39;NUMBER&#39;</span><span class="p">),</span>
+<span class="hll">            <span class="n">static_mapping</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class="hll">                <span class="s1">&#39;source_csv&#39;</span><span class="p">:</span> <span class="s1">&#39;data.csv&#39;</span>
+</span><span class="hll">            <span class="p">}</span>
+</span>        <span class="p">)</span>
+        <span class="c1"># Then save it.</span>
+        <span class="n">c</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="open-source-resources">
+<h2>Open-source resources<a class="headerlink" href="#open-source-resources" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Code: <a class="reference external" href="https://github.com/california-civic-data-coalition/django-postgres-copy">github.com/california-civic-data-coalition/django-postgres-copy</a></li>
+<li>Issues: <a class="reference external" href="https://github.com/california-civic-data-coalition/django-postgres-copy/issues">github.com/california-civic-data-coalition/django-postgres-copy/issues</a></li>
+<li>Packaging: <a class="reference external" href="https://pypi.python.org/pypi/django-postgres-copy">pypi.python.org/pypi/django-postgres-copy</a></li>
+<li>Testing: <a class="reference external" href="https://travis-ci.org/california-civic-data-coalition/django-postgres-copy">travis-ci.org/california-civic-data-coalition/django-postgres-copy</a></li>
+<li>Coverage: <a class="reference external" href="https://coveralls.io/r/california-civic-data-coalition/django-postgres-copy">coveralls.io/r/california-civic-data-coalition/django-postgres-copy</a></li>
+</ul>
 </div>
 </div>
 
@@ -251,7 +389,14 @@ any object with a <code class="docutils literal"><span class="pre">write</span><
 <li><a class="reference internal" href="#installation">Installation</a></li>
 <li><a class="reference internal" href="#an-example">An example</a></li>
 <li><a class="reference internal" href="#copymapping-api"><code class="docutils literal"><span class="pre">CopyMapping</span></code> API</a></li>
-<li><a class="reference internal" href="#save-keyword-arguments"><code class="docutils literal"><span class="pre">save()</span></code> Keyword Arguments</a></li>
+<li><a class="reference internal" href="#save-keyword-arguments"><code class="docutils literal"><span class="pre">save()</span></code> keyword arguments</a></li>
+<li><a class="reference internal" href="#transforming-data">Transforming data</a><ul>
+<li><a class="reference internal" href="#custom-field-transformations">Custom-field transformations</a></li>
+<li><a class="reference internal" href="#model-method-transformations">Model-method transformations</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#inserting-static-values">Inserting static values</a></li>
+<li><a class="reference internal" href="#open-source-resources">Open-source resources</a></li>
 </ul>
 </li>
 </ul>
@@ -286,12 +431,12 @@ any object with a <code class="docutils literal"><span class="pre">write</span><
         <li class="right" style="margin-right: 10px">
           <a href="genindex.html" title="General Index"
              >index</a></li>
-        <li class="nav-item nav-item-0"><a href="#">django-postgres-copy 0.0.3 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="#">django-postgres-copy 0.0.5 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
         &copy; Copyright 2015, Ben Welsh.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.5.
     </div>
   </body>
 </html>
