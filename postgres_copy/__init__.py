@@ -202,13 +202,13 @@ class CopyMapping(object):
         )
 
         model_fields = []
+
         for field, header in self.field_header_crosswalk:
-            if field.db_column:
-                model_fields.append('"%s"' % field.db_column)
-            else:
-                model_fields.append('"%s"' % field.name)
+            model_fields.append('"%s"' % field.get_attname_column()[1])
+
         for k in self.static_mapping.keys():
             model_fields.append('"%s"' % k)
+
         options['model_fields'] = ", ".join(model_fields)
 
         temp_fields = []
