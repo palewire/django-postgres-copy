@@ -54,7 +54,7 @@ class CopyMapping(object):
             except KeyError:
                 raise ValueError("Map does not include %s field" % h)
             try:
-                [f for f in self.model._meta.fields if f.name == f_name][0]
+                f = [f for f in self.model._meta.fields if f.name == f_name][0]
             except IndexError:
                 raise ValueError("Model does not include %s field" % f_name)
             self.field_header_crosswalk.append((f, h))
@@ -62,7 +62,7 @@ class CopyMapping(object):
         # Validate that the static mapping columns exist
         for f_name in self.static_mapping.keys():
             try:
-                [f for f in self.model._meta.fields if f.name == f_name][0]
+                [s for s in self.model._meta.fields if s.name == f_name][0]
             except IndexError:
                 raise ValueError("Model does not include %s field" % f_name)
 
