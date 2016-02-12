@@ -164,8 +164,25 @@ class PostgresCopyTest(TestCase):
             self.name_path,
             dict(name='NAME', number='NUMBER', dt='DATE'),
             encoding='UTF-8',
-            static_columns={'static_val':1,'static_string':'test'}
+            static_mapping={'static_val':1,'static_string':'test'}
         )
         c.save()
-        self.assertEqual(ExtendedMockObject.objects.filter(static_val = 1).count(), 3)
-        self.assertEqual(ExtendedMockObject.objects.filter(static_string = 'test').count(), 3)
+        self.assertEqual(
+            ExtendedMockObject.objects.filter(static_val = 1).count(),
+            3
+        )
+        self.assertEqual(
+            ExtendedMockObject.objects.filter(static_string = 'test').count(),
+            3
+        )
+
+    def test_bad_static_values(self):
+        with self.assertRaises(ValueError):
+            c = CopyMapping(
+                ExtendedMockObject,
+                self.name_path,
+                dict(name='NAME', number='NUMBER', dt='DATE'),
+                encoding='UTF-8',
+                static_mapping={'static_bad':1,}
+            )
+            c.save()

@@ -161,10 +161,10 @@ Keyword Arguments
                        Default is None, which will use the ``'default'``
                        database.
 
-``static_column``      A dictionary: keys are strings corresponding to
-                       fields in the ``'model'`` that are not in the source
-                       file. values are a (single) value that will be put
-                       into that field for every row in the source file
+``static_mapping``     Set model attributes not in the CSV the same
+                       for every row in the database by providing a dictionary
+                       with the name of the columns as keys and the static
+                       inputs as values.
 =====================  =====================================================
 
 
@@ -289,6 +289,56 @@ For the example above, the model might be modified to look like this.
         copy_value_template.copy_type = 'text'
 
 And that's it.
+
+
+Inserting static values
+-----------------------
+
+If your model has columns that are not in the CSV, you can set static values
+for what is inserted using the ``static_mapping`` keyword argument. It will
+insert the provided values into every row in the database.
+
+An example could be if you want to include the name of the source CSV file
+along with each row.
+
+Your model might look like this:
+
+.. code-block:: python
+    :emphasize-lines: 6
+
+    from django.db import models
+
+    class Person(models.Model):
+        name = models.CharField(max_length=500)
+        number = models.IntegerField()
+        source_csv = models.CharField(max_length=500)
+
+And your loader would look like this:
+
+.. code-block:: python
+    :emphasize-lines: 16-18
+
+    from myapp.models import Person
+    from postgres_copy import CopyMapping
+    from django.core.management.base import BaseCommand
+
+
+    class Command(BaseCommand):
+
+        def handle(self, *args, **kwargs):
+            c = CopyMapping(
+                # Give it the model
+                Person,
+                # The path to your CSV
+                '/path/to/my/data.csv',
+                # And a dict mapping the  model fields to CSV headers
+                dict(name='NAME', number='NUMBER'),
+                static_mapping = {
+                    'source_csv': 'data.csv'
+                }
+            )
+            # Then save it.
+            c.save()
 
 Open-source resources
 ---------------------

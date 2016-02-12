@@ -19,6 +19,7 @@ class TestCommand(Command):
             DATABASES={
                 'default': {
                     'NAME': 'test',
+                    'USER': 'postgres',
                     'ENGINE': 'django.db.backends.postgresql_psycopg2'
                 },
                 'sqlite': {
