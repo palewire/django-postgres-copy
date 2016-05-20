@@ -1,6 +1,7 @@
 import os
 import sys
 import csv
+import six
 from django.db import connections, router
 from django.contrib.humanize.templatetags.humanize import intcomma
 from collections import OrderedDict
@@ -15,7 +16,7 @@ class CopyMapping(object):
     def __init__(
         self,
         model,
-        csv_path,
+        csv_file,
         mapping,
         using=None,
         delimiter=',',
@@ -25,10 +26,13 @@ class CopyMapping(object):
     ):
         self.model = model
         self.mapping = mapping
-        if os.path.exists(csv_path):
-            self.csv_path = csv_path
+        if isinstance(csv_file, six.string_types):
+            if os.path.exists(csv_file):
+                self.csv_file = open(csv_file, 'r')
+            else:
+                raise ValueError("csv_file does not exist")
         else:
-            raise ValueError("csv_path does not exist")
+            self.csv_file = csv_file
         if using is not None:
             self.using = using
         else:
@@ -96,7 +100,8 @@ class CopyMapping(object):
         # Run all of the raw SQL
         cursor.execute(drop_sql)
         cursor.execute(create_sql)
-        fp = open(self.csv_path, 'r')
+        fp = self.csv_file
+        fp.seek(0)
         cursor.copy_expert(copy_sql, fp)
         cursor.execute(insert_sql)
         cursor.execute(drop_sql)
@@ -110,9 +115,8 @@ class CopyMapping(object):
         """
         Returns the column headers from the csv as a list.
         """
-        with open(self.csv_path, 'rU') as infile:
-            csv_reader = csv.reader(infile, delimiter=self.delimiter)
-            headers = next(csv_reader)
+        csv_reader = csv.reader(self.csv_file, delimiter=self.delimiter)
+        headers = next(csv_reader)
         return headers
 
     def prep_drop(self):

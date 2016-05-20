@@ -217,3 +217,20 @@ class PostgresCopyTest(TestCase):
             MockObject.objects.get(name='BEN').dt,
             date(2012, 1, 1)
         )
+
+
+class PostgresCopyFromFileObjectTest(PostgresCopyTest):
+    def setUp(self):
+        super(PostgresCopyFromFileObjectTest, self).setUp()
+        self.name_path = open(self.name_path, 'r')
+        self.foreign_path = open(self.foreign_path, 'r')
+        self.pipe_path = open(self.pipe_path, 'r')
+        self.null_path = open(self.null_path, 'r')
+        self.backwards_path = open(self.backwards_path, 'r')
+
+    def tearDown(self):
+        self.name_path.close()
+        self.foreign_path.close()
+        self.pipe_path.close()
+        self.null_path.close()
+        self.backwards_path.close()
