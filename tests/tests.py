@@ -14,6 +14,7 @@ class PostgresCopyTest(TestCase):
         self.pipe_path = os.path.join(self.data_dir, 'pipes.csv')
         self.null_path = os.path.join(self.data_dir, 'nulls.csv')
         self.backwards_path = os.path.join(self.data_dir, 'backwards.csv')
+        self.mapping_path = os.path.join(self.data_dir, 'mappings.csv')
 
     def tearDown(self):
         MockObject.objects.all().delete()
@@ -215,6 +216,35 @@ class PostgresCopyTest(TestCase):
         self.assertEqual(MockObject.objects.get(name='BEN').parent_id, 4)
         self.assertEqual(
             MockObject.objects.get(name='BEN').dt,
+            date(2012, 1, 1)
+        )
+
+    def test_field_value_mapping(self):
+        c = CopyMapping(
+            MockObject,
+            self.mapping_path,
+            dict(name='NAME', number='NUMBER', dt='DATE'),
+            field_value_mapping={
+                'name': {
+                    'ben': 'Master Ben',
+                    'joe': 'Padawan Joe',
+                    'jane': 'Jedi Jane'
+                },
+                'number': {
+                    'seven': 7,
+                    'three': 3,
+                    'five': 5
+                }
+            }
+        )
+        c.save()
+        self.assertEqual(MockObject.objects.count(), 3)
+        self.assertEqual(
+            list(MockObject.objects.order_by('name').values_list('name', 'number')),
+            [('Jedi Jane', 5), ('Master Ben', 7), ('Padawan Joe', 3)]
+        )
+        self.assertEqual(
+            MockObject.objects.get(name='Master Ben').dt,
             date(2012, 1, 1)
         )
 

@@ -22,7 +22,8 @@ class CopyMapping(object):
         delimiter=',',
         null=None,
         encoding=None,
-        static_mapping=None
+        static_mapping=None,
+        field_value_mapping=None
     ):
         self.model = model
         self.mapping = mapping
@@ -48,6 +49,7 @@ class CopyMapping(object):
             self.static_mapping = OrderedDict(static_mapping)
         else:
             self.static_mapping = {}
+        self.field_value_mapping = field_value_mapping or {}
 
         # Connect the headers from the CSV with the fields on the model
         self.field_header_crosswalk = []
@@ -118,6 +120,20 @@ class CopyMapping(object):
         csv_reader = csv.reader(self.csv_file, delimiter=self.delimiter)
         headers = next(csv_reader)
         return headers
+
+    def sql_value(self, v):
+        if isinstance(v, six.string_types):
+            return "'{}'".format(v)
+        return v
+
+    def get_value_mapping_sql(self, header, mapping):
+        sql = '''\nCASE {cases} END'''
+        cases = (
+            "WHEN \"{header}\" = {src} THEN {dst}".
+            format(header=header, src=self.sql_value(k), dst=self.sql_value(v))
+            for k, v in six.iteritems(mapping)
+        )
+        return sql.format(cases='\n'.join(cases))
 
     def prep_drop(self):
         """
@@ -218,12 +234,16 @@ class CopyMapping(object):
         temp_fields = []
         for field, header in self.field_header_crosswalk:
             string = '"%s"' % header
-            if hasattr(field, 'copy_template'):
-                string = field.copy_template % dict(name=header)
             template_method = 'copy_%s_template' % field.name
-            if hasattr(self.model, template_method):
+            # If a value mapping is provided, use that
+            value_mapping = self.field_value_mapping.get(field.name)
+            if value_mapping:
+                string = self.get_value_mapping_sql(header, value_mapping)
+            elif hasattr(self.model, template_method):
                 template = getattr(self.model(), template_method)()
                 string = template % dict(name=header)
+            elif hasattr(field, 'copy_template'):
+                string = field.copy_template % dict(name=header)
             temp_fields.append(string)
         for v in self.static_mapping.values():
             temp_fields.append("'%s'" % v)
