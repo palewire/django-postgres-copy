@@ -1,6 +1,6 @@
 import os
 from datetime import date
-from .models import MockObject, ExtendedMockObject
+from .models import MockObject, ExtendedMockObject, BasicMockObject
 from postgres_copy import CopyMapping
 from django.test import TestCase
 
@@ -246,6 +246,32 @@ class PostgresCopyTest(TestCase):
         self.assertEqual(
             MockObject.objects.get(name='Master Ben').dt,
             date(2012, 1, 1)
+        )
+
+    def test_field_value_mapping_and_types(self):
+        c = CopyMapping(
+            BasicMockObject,
+            self.mapping_path,
+            dict(name='NAME', number='NUMBER', dt='DATE'),
+            field_value_mapping={
+                'name': {
+                    'ben': 'Master Ben',
+                    'joe': 'Padawan Joe',
+                    'jane': 'Jedi Jane'
+                },
+                'number': {
+                    'seven': 7,
+                    'three': 3,
+                    'five': 5
+                }
+            },
+            field_copy_types={'NUMBER': 'text'}
+        )
+        c.save()
+        self.assertEqual(BasicMockObject.objects.count(), 3)
+        self.assertEqual(
+            list(BasicMockObject.objects.order_by('name').values_list('name', 'number')),
+            [('Jedi Jane', 5), ('Master Ben', 7), ('Padawan Joe', 3)]
         )
 
 

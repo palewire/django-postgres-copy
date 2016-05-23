@@ -23,7 +23,8 @@ class CopyMapping(object):
         null=None,
         encoding=None,
         static_mapping=None,
-        field_value_mapping=None
+        field_value_mapping=None,
+        field_copy_types=None
     ):
         self.model = model
         self.mapping = mapping
@@ -50,6 +51,7 @@ class CopyMapping(object):
         else:
             self.static_mapping = {}
         self.field_value_mapping = field_value_mapping or {}
+        self.field_copy_types = field_copy_types or {}
 
         # Connect the headers from the CSV with the fields on the model
         self.field_header_crosswalk = []
@@ -156,17 +158,20 @@ class CopyMapping(object):
         # Loop through all the fields and CSV headers together
         for field, header in self.field_header_crosswalk:
             string = '"%s" %s' % (header, field.db_type(self.conn))
-
-            # If the field has an override, use that
-            if hasattr(field, 'copy_template'):
-                string = '"%s" %s' % (header, field.copy_type)
-
-            # If the model has a more-specific override, use that
             template_method = 'copy_%s_template' % field.name
-            if hasattr(self.model, template_method):
+
+            # if field_copy_types is given, use that
+            copy_type = self.field_copy_types.get(header)
+            if copy_type:
+                string = '"%s" %s' % (header, copy_type)
+            # If the model has a more-specific override, use that
+            elif hasattr(self.model, template_method):
                 method = getattr(self.model(), template_method)
                 if hasattr(method, 'copy_type'):
                     string = '"%s" %s' % (header, method.copy_type)
+            # If the field has an override, use that
+            elif hasattr(field, 'copy_template'):
+                string = '"%s" %s' % (header, field.copy_type)
 
             # Add the string to the list
             field_list.append(string)
