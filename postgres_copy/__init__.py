@@ -24,7 +24,8 @@ class CopyMapping(object):
         encoding=None,
         static_mapping=None,
         field_value_mapping=None,
-        field_copy_types=None
+        field_copy_types=None,
+        ignore_non_mapped_headers=False
     ):
         self.model = model
         self.mapping = mapping
@@ -54,12 +55,17 @@ class CopyMapping(object):
         self.field_copy_types = field_copy_types or {}
 
         # Connect the headers from the CSV with the fields on the model
+        self.headers = []
         self.field_header_crosswalk = []
         inverse_mapping = {v: k for k, v in self.mapping.items()}
         for h in self.get_headers():
+            self.headers.append(h)
             try:
                 f_name = inverse_mapping[h]
             except KeyError:
+                if ignore_non_mapped_headers:
+                    self.field_header_crosswalk.append((None, h))
+                    continue
                 raise ValueError("Map does not include %s field" % h)
             try:
                 f = [f for f in self.model._meta.fields if f.name == f_name][0]
@@ -155,23 +161,26 @@ class CopyMapping(object):
         options = dict(table_name=self.temp_table_name)
         field_list = []
 
+        default_copy_type = 'text'
+
         # Loop through all the fields and CSV headers together
         for field, header in self.field_header_crosswalk:
-            string = '"%s" %s' % (header, field.db_type(self.conn))
-            template_method = 'copy_%s_template' % field.name
-
-            # if field_copy_types is given, use that
+            # in order or priority, set copy_type according to
+            # 1) field_copy_types[header]
+            # 2) field.copy_type
+            # 3) model.copy_FIELD_template.method
+            # 4) default_copy_type
             copy_type = self.field_copy_types.get(header)
-            if copy_type:
-                string = '"%s" %s' % (header, copy_type)
-            # If the model has a more-specific override, use that
-            elif hasattr(self.model, template_method):
-                method = getattr(self.model(), template_method)
-                if hasattr(method, 'copy_type'):
-                    string = '"%s" %s' % (header, method.copy_type)
-            # If the field has an override, use that
-            elif hasattr(field, 'copy_template'):
-                string = '"%s" %s' % (header, field.copy_type)
+            if field and not copy_type:
+                template_method = 'copy_%s_template' % field.name
+                method = getattr(self.model(), template_method, None)
+                if hasattr(field, 'copy_type'):
+                    copy_type = getattr(field, 'copy_type')
+                elif hasattr(method, 'copy_type'):
+                    copy_type = method.copy_type
+                else:
+                    copy_type = field.db_type(self.conn)
+            string = '"%s" %s' % (header, copy_type or default_copy_type)
 
             # Add the string to the list
             field_list.append(string)
@@ -229,15 +238,19 @@ class CopyMapping(object):
         model_fields = []
 
         for field, header in self.field_header_crosswalk:
-            model_fields.append('"%s"' % field.get_attname_column()[1])
+            if field:
+                model_fields.append('"%s"' % field.get_attname_column()[1])
 
         for k in self.static_mapping.keys():
-            model_fields.append('"%s"' % k)
+            db_column = self.model._meta.get_field(k).get_attname_column()[1]
+            model_fields.append('"%s"' % db_column)
 
         options['model_fields'] = ", ".join(model_fields)
 
         temp_fields = []
         for field, header in self.field_header_crosswalk:
+            if not field:
+                continue
             string = '"%s"' % header
             template_method = 'copy_%s_template' % field.name
             # If a value mapping is provided, use that

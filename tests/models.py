@@ -35,6 +35,7 @@ class BasicMockObject(models.Model):
     name = models.CharField(max_length=500)
     number = models.IntegerField(null=True, db_column='num')
     dt = models.DateField(null=True)
+    parent = models.ForeignKey('self', null=True)
 
     class Meta:
         app_label = 'tests'

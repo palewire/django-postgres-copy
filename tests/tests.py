@@ -15,6 +15,7 @@ class PostgresCopyTest(TestCase):
         self.null_path = os.path.join(self.data_dir, 'nulls.csv')
         self.backwards_path = os.path.join(self.data_dir, 'backwards.csv')
         self.mapping_path = os.path.join(self.data_dir, 'mappings.csv')
+        self.fk_mapping_path = os.path.join(self.data_dir, 'fk_mappings.csv')
 
     def tearDown(self):
         MockObject.objects.all().delete()
@@ -273,6 +274,66 @@ class PostgresCopyTest(TestCase):
             list(BasicMockObject.objects.order_by('name').values_list('name', 'number')),
             [('Jedi Jane', 5), ('Master Ben', 7), ('Padawan Joe', 3)]
         )
+        self.assertEqual(
+            BasicMockObject.objects.get(name='Master Ben').dt,
+            date(2012, 1, 1)
+        )
+
+    def test_foreignkey_mapping(self):
+        c = CopyMapping(
+            BasicMockObject,
+            self.name_path,
+            dict(name='NAME', number='NUMBER', dt='DATE')
+        )
+        c.save()
+        self.assertEqual(BasicMockObject.objects.count(), 3)
+
+        c = CopyMapping(
+            BasicMockObject,
+            self.fk_mapping_path,
+            dict(name='NAME', number='NUMBER', dt='DATE', parent='PARENT'),
+            field_value_mapping={
+                'parent': {
+                    'ben': BasicMockObject.objects.get(name='ben').pk,
+                    'joe': BasicMockObject.objects.get(name='joe').pk,
+                    'jane': BasicMockObject.objects.get(name='jane').pk
+                },
+            },
+            field_copy_types={'PARENT': 'text'}
+        )
+        c.save()
+        self.assertEqual(BasicMockObject.objects.count(), 6)
+        self.assertEqual(
+            list(BasicMockObject.objects.order_by('name').
+                 values_list('name', 'parent__name')),
+            [('ben', None), ('ben junior', 'ben'), ('jane', None),
+             ('jane junior', 'jane'), ('joe', None), ('joe junior', 'joe')]
+        )
+
+    def test_static_mapping_ignore_non_mapped_headers(self):
+        c = CopyMapping(
+            BasicMockObject,
+            self.name_path,
+            dict(name='NAME', number='NUMBER', dt='DATE'),
+        )
+        c.save()
+        self.assertEqual(BasicMockObject.objects.count(), 3)
+
+        c = CopyMapping(
+            BasicMockObject,
+            self.fk_mapping_path,
+            dict(name='NAME', number='NUMBER', dt='DATE'),
+            static_mapping={'parent': BasicMockObject.objects.get(name='ben').pk},
+            ignore_non_mapped_headers=True
+        )
+        c.save()
+        self.assertEqual(BasicMockObject.objects.count(), 6)
+        self.assertEqual(
+            list(BasicMockObject.objects.order_by('name').
+                 values_list('name', 'parent__name')),
+            [('ben', None), ('ben junior', 'ben'), ('jane', None),
+             ('jane junior', 'ben'), ('joe', None), ('joe junior', 'ben')]
+        )
 
 
 class PostgresCopyFromFileObjectTest(PostgresCopyTest):
@@ -283,6 +344,8 @@ class PostgresCopyFromFileObjectTest(PostgresCopyTest):
         self.pipe_path = open(self.pipe_path, 'r')
         self.null_path = open(self.null_path, 'r')
         self.backwards_path = open(self.backwards_path, 'r')
+        self.mapping_path = open(self.mapping_path, 'r')
+        self.fk_mapping_path = open(self.fk_mapping_path, 'r')
 
     def tearDown(self):
         self.name_path.close()
@@ -290,3 +353,5 @@ class PostgresCopyFromFileObjectTest(PostgresCopyTest):
         self.pipe_path.close()
         self.null_path.close()
         self.backwards_path.close()
+        self.mapping_path.close()
+        self.fk_mapping_path.close()
