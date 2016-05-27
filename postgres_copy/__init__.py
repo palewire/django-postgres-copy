@@ -170,17 +170,19 @@ class CopyMapping(object):
             # 2) field.copy_type
             # 3) model.copy_FIELD_template.method
             # 4) default_copy_type
-            copy_type = self.field_copy_types.get(header)
-            if field and not copy_type:
+            copy_type = default_copy_type
+            if field:
                 template_method = 'copy_%s_template' % field.name
                 method = getattr(self.model(), template_method, None)
-                if hasattr(field, 'copy_type'):
+                if self.field_copy_types.get(field.name):
+                    copy_type = self.field_copy_types[field.name]
+                elif hasattr(field, 'copy_type'):
                     copy_type = getattr(field, 'copy_type')
                 elif hasattr(method, 'copy_type'):
                     copy_type = method.copy_type
                 else:
                     copy_type = field.db_type(self.conn)
-            string = '"%s" %s' % (header, copy_type or default_copy_type)
+            string = '"%s" %s' % (header, copy_type)
 
             # Add the string to the list
             field_list.append(string)

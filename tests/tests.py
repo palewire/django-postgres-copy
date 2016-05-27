@@ -266,7 +266,7 @@ class PostgresCopyTest(TestCase):
                     'five': 5
                 }
             },
-            field_copy_types={'NUMBER': 'text'}
+            field_copy_types={'number': 'text'}
         )
         c.save()
         self.assertEqual(BasicMockObject.objects.count(), 3)
@@ -299,7 +299,7 @@ class PostgresCopyTest(TestCase):
                     'jane': BasicMockObject.objects.get(name='jane').pk
                 },
             },
-            field_copy_types={'PARENT': 'text'}
+            field_copy_types={'parent': 'text'}
         )
         c.save()
         self.assertEqual(BasicMockObject.objects.count(), 6)
