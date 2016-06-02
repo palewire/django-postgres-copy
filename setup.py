@@ -19,6 +19,7 @@ class TestCommand(Command):
             DATABASES={
                 'default': {
                     'NAME': 'test',
+                    'USER': 'postgres',
                     'ENGINE': 'django.db.backends.postgresql_psycopg2'
                 },
                 'sqlite': {
@@ -35,7 +36,8 @@ class TestCommand(Command):
 setup(
     name='django-postgres-copy',
     version='0.0.8',
-    description='Quickly load comma-delimited data into a Django model using PostgreSQL\'s COPY command',
+    description="Quickly load comma-delimited data into a Django model \
+using PostgreSQL's COPY command",
     author='Ben Welsh',
     author_email='ben.welsh@gmail.com',
     url='http://www.github.com/california-civic-data-coalition/django-postgresql-copy/',
@@ -44,9 +46,13 @@ setup(
     install_requires=(),
     cmdclass={'test': TestCommand},
     classifiers=[
+        'Development Status :: 5 - Production/Stable',
         'Programming Language :: Python',
         'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.3',
-        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+        'Framework :: Django',
+        'Framework :: Django :: 1.8',
+        'Framework :: Django :: 1.9',
+        'License :: OSI Approved :: MIT License',
     ],
 )
