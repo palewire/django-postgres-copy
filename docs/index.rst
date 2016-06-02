@@ -53,6 +53,8 @@ The package can be installed from the Python Package Index with `pip`.
 
     $ pip install django-postgres-copy
 
+You will of course have to have Django, PostgreSQL and an adapter between the
+two (like psycopg2) already installed to put this library to use. 
 
 An example
 ----------
