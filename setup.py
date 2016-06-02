@@ -34,16 +34,14 @@ class TestCommand(Command):
 
 setup(
     name='django-postgres-copy',
-    version='0.0.6',
+    version='0.0.8',
     description='Quickly load comma-delimited data into a Django model using PostgreSQL\'s COPY command',
     author='Ben Welsh',
     author_email='ben.welsh@gmail.com',
     url='http://www.github.com/california-civic-data-coalition/django-postgresql-copy/',
     license="MIT",
     packages=("postgres_copy",),
-    install_requires=(
-        'psycopg2>=2.5',
-    ),
+    install_requires=(),
     cmdclass={'test': TestCommand},
     classifiers=[
         'Programming Language :: Python',
