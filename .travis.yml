@@ -7,7 +7,8 @@ python:
 
 env:
  - DJANGO_VERSION=1.8.9
- - DJANGO_VERSION=1.9.2
+ - DJANGO_VERSION=1.9.7
+ - DJANGO_VERSION=1.10a1
 
 install:
  - pip install -r requirements.txt
