@@ -25,10 +25,12 @@ class CopyMapping(object):
         static_mapping=None,
         field_value_mapping=None,
         field_copy_types=None,
-        ignore_non_mapped_headers=False
+        ignore_non_mapped_headers=False,
+        not_null_fields=[]
     ):
         self.model = model
         self.mapping = mapping
+        self.not_null_fields = not_null_fields
         if isinstance(csv_file, six.string_types):
             if os.path.exists(csv_file):
                 self.csv_file = open(csv_file, 'r')
@@ -217,6 +219,9 @@ class CopyMapping(object):
             options['extra_options'] += " NULL '%s'" % self.null
         if self.encoding:
             options['extra_options'] += " ENCODING '%s'" % self.encoding
+        if len(self.not_null_fields) > 0:
+            quoted_fields = ['"{}"'.format(field) for field in self.not_null_fields]
+            options['extra_options'] += " FORCE NOT NULL {}".format(', '.join(quoted_fields))
         return sql % options
 
     def prep_insert(self):
