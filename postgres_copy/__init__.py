@@ -1,6 +1,7 @@
 import os
 import sys
 import csv
+import six
 from django.db import connections, router
 from django.contrib.humanize.templatetags.humanize import intcomma
 from collections import OrderedDict
@@ -15,20 +16,28 @@ class CopyMapping(object):
     def __init__(
         self,
         model,
-        csv_path,
+        csv_file,
         mapping,
         using=None,
         delimiter=',',
         null=None,
         encoding=None,
-        static_mapping=None
+        static_mapping=None,
+        field_value_mapping=None,
+        field_copy_types=None,
+        ignore_non_mapped_headers=False,
+        not_null_fields=[]
     ):
         self.model = model
         self.mapping = mapping
-        if os.path.exists(csv_path):
-            self.csv_path = csv_path
+        self.not_null_fields = not_null_fields
+        if isinstance(csv_file, six.string_types):
+            if os.path.exists(csv_file):
+                self.csv_file = open(csv_file, 'r')
+            else:
+                raise ValueError("csv_file does not exist")
         else:
-            raise ValueError("csv_path does not exist")
+            self.csv_file = csv_file
         if using is not None:
             self.using = using
         else:
@@ -44,14 +53,21 @@ class CopyMapping(object):
             self.static_mapping = OrderedDict(static_mapping)
         else:
             self.static_mapping = {}
+        self.field_value_mapping = field_value_mapping or {}
+        self.field_copy_types = field_copy_types or {}
 
         # Connect the headers from the CSV with the fields on the model
+        self.headers = []
         self.field_header_crosswalk = []
         inverse_mapping = {v: k for k, v in self.mapping.items()}
         for h in self.get_headers():
+            self.headers.append(h)
             try:
                 f_name = inverse_mapping[h]
             except KeyError:
+                if ignore_non_mapped_headers:
+                    self.field_header_crosswalk.append((None, h))
+                    continue
                 raise ValueError("Map does not include %s field" % h)
             try:
                 f = [f for f in self.model._meta.fields if f.name == f_name][0]
@@ -96,7 +112,8 @@ class CopyMapping(object):
         # Run all of the raw SQL
         cursor.execute(drop_sql)
         cursor.execute(create_sql)
-        fp = open(self.csv_path, 'r')
+        fp = self.csv_file
+        fp.seek(0)
         cursor.copy_expert(copy_sql, fp)
         cursor.execute(insert_sql)
         cursor.execute(drop_sql)
@@ -110,10 +127,23 @@ class CopyMapping(object):
         """
         Returns the column headers from the csv as a list.
         """
-        with open(self.csv_path, 'rU') as infile:
-            csv_reader = csv.reader(infile, delimiter=self.delimiter)
-            headers = next(csv_reader)
+        csv_reader = csv.reader(self.csv_file, delimiter=self.delimiter)
+        headers = next(csv_reader)
         return headers
+
+    def sql_value(self, v):
+        if isinstance(v, six.string_types):
+            return "'{}'".format(v)
+        return v
+
+    def get_value_mapping_sql(self, header, mapping):
+        sql = '''\nCASE {cases} END'''
+        cases = (
+            "WHEN \"{header}\" = {src} THEN {dst}".
+            format(header=header, src=self.sql_value(k), dst=self.sql_value(v))
+            for k, v in six.iteritems(mapping)
+        )
+        return sql.format(cases='\n'.join(cases))
 
     def prep_drop(self):
         """
@@ -133,20 +163,28 @@ class CopyMapping(object):
         options = dict(table_name=self.temp_table_name)
         field_list = []
 
+        default_copy_type = 'text'
+
         # Loop through all the fields and CSV headers together
         for field, header in self.field_header_crosswalk:
-            string = '"%s" %s' % (header, field.db_type(self.conn))
-
-            # If the field has an override, use that
-            if hasattr(field, 'copy_template'):
-                string = '"%s" %s' % (header, field.copy_type)
-
-            # If the model has a more-specific override, use that
-            template_method = 'copy_%s_template' % field.name
-            if hasattr(self.model, template_method):
-                method = getattr(self.model(), template_method)
-                if hasattr(method, 'copy_type'):
-                    string = '"%s" %s' % (header, method.copy_type)
+            # in order or priority, set copy_type according to
+            # 1) field_copy_types[header]
+            # 2) field.copy_type
+            # 3) model.copy_FIELD_template.method
+            # 4) default_copy_type
+            copy_type = default_copy_type
+            if field:
+                template_method = 'copy_%s_template' % field.name
+                method = getattr(self.model(), template_method, None)
+                if self.field_copy_types.get(field.name):
+                    copy_type = self.field_copy_types[field.name]
+                elif hasattr(field, 'copy_type'):
+                    copy_type = getattr(field, 'copy_type')
+                elif hasattr(method, 'copy_type'):
+                    copy_type = method.copy_type
+                else:
+                    copy_type = field.db_type(self.conn)
+            string = '"%s" %s' % (header, copy_type)
 
             # Add the string to the list
             field_list.append(string)
@@ -181,6 +219,9 @@ class CopyMapping(object):
             options['extra_options'] += " NULL '%s'" % self.null
         if self.encoding:
             options['extra_options'] += " ENCODING '%s'" % self.encoding
+        if len(self.not_null_fields) > 0:
+            quoted_fields = ['"{}"'.format(field) for field in self.not_null_fields]
+            options['extra_options'] += " FORCE NOT NULL {}".format(', '.join(quoted_fields))
         return sql % options
 
     def prep_insert(self):
@@ -204,22 +245,30 @@ class CopyMapping(object):
         model_fields = []
 
         for field, header in self.field_header_crosswalk:
-            model_fields.append('"%s"' % field.get_attname_column()[1])
+            if field:
+                model_fields.append('"%s"' % field.get_attname_column()[1])
 
         for k in self.static_mapping.keys():
-            model_fields.append('"%s"' % k)
+            db_column = self.model._meta.get_field(k).get_attname_column()[1]
+            model_fields.append('"%s"' % db_column)
 
         options['model_fields'] = ", ".join(model_fields)
 
         temp_fields = []
         for field, header in self.field_header_crosswalk:
+            if not field:
+                continue
             string = '"%s"' % header
-            if hasattr(field, 'copy_template'):
-                string = field.copy_template % dict(name=header)
             template_method = 'copy_%s_template' % field.name
-            if hasattr(self.model, template_method):
+            # If a value mapping is provided, use that
+            value_mapping = self.field_value_mapping.get(field.name)
+            if value_mapping:
+                string = self.get_value_mapping_sql(header, value_mapping)
+            elif hasattr(self.model, template_method):
                 template = getattr(self.model(), template_method)()
                 string = template % dict(name=header)
+            elif hasattr(field, 'copy_template'):
+                string = field.copy_template % dict(name=header)
             temp_fields.append(string)
         for v in self.static_mapping.values():
             temp_fields.append("'%s'" % v)
