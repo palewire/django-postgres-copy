@@ -62,7 +62,8 @@ class CopyMapping(object):
                 raise ValueError("Map does not include %s field" % h)
             try:
                 if f_name not in [ih.lower() for ih in self.ignore_headers]:
-                    f = [f for f in self.model._meta.fields if f.name == f_name][0]
+                    f = [f for f in self.model._meta.fields
+                         if f.name == f_name][0]
             except IndexError:
                 raise ValueError("Model does not include %s field" % f_name)
             self.field_header_crosswalk.append((f, h))
