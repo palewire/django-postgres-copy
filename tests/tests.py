@@ -1,6 +1,6 @@
 import os
 from datetime import date
-from .models import MockObject, ExtendedMockObject
+from .models import MockObject, ExtendedMockObject, LimitedMockObject
 from postgres_copy import CopyMapping
 from django.test import TestCase
 
@@ -18,6 +18,7 @@ class PostgresCopyTest(TestCase):
     def tearDown(self):
         MockObject.objects.all().delete()
         ExtendedMockObject.objects.all().delete()
+        LimitedMockObject.objects.all().delete()
 
     def test_bad_call(self):
         with self.assertRaises(TypeError):
@@ -57,6 +58,17 @@ class PostgresCopyTest(TestCase):
                 dict(name1='NAME', number='NUMBER', dt='DATE'),
             )
 
+    def test_limited_fields(self):
+        try:
+            CopyMapping(
+                LimitedMockObject,
+                self.name_path,
+                dict(name='NAME', dt='DATE'),
+                ignore_headers=['NUMBER']
+            )
+        except ValueError:
+            self.fail("Failed trying to ignore fields")
+
     def test_simple_save(self):
         c = CopyMapping(
             MockObject,
@@ -68,6 +80,20 @@ class PostgresCopyTest(TestCase):
         self.assertEqual(MockObject.objects.get(name='BEN').number, 1)
         self.assertEqual(
             MockObject.objects.get(name='BEN').dt,
+            date(2012, 1, 1)
+        )
+
+    def test_limited_save(self):
+        c = CopyMapping(
+            LimitedMockObject,
+            self.name_path,
+            dict(name='NAME', dt='DATE'),
+            ignore_headers=['NUMBER']
+        )
+        c.save()
+        self.assertEqual(LimitedMockObject.objects.count(), 3)
+        self.assertEqual(
+            LimitedMockObject.objects.get(name='BEN').dt,
             date(2012, 1, 1)
         )
 

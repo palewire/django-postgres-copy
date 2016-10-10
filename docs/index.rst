@@ -167,6 +167,10 @@ Keyword Arguments
                        for every row in the database by providing a dictionary
                        with the name of the columns as keys and the static
                        inputs as values.
+
+``ignore_headers``     A list of headers from your csv that don't have
+                       equivalent fields in your model. These columns will
+                       be ignored.
 =====================  =====================================================
 
 

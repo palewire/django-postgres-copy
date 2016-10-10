@@ -17,6 +17,7 @@ class CopyMapping(object):
         model,
         csv_path,
         mapping,
+        ignore_headers=None,
         using=None,
         delimiter=',',
         null=None,
@@ -36,6 +37,10 @@ class CopyMapping(object):
         self.conn = connections[self.using]
         if self.conn.vendor != 'postgresql':
             raise TypeError("Only PostgreSQL backends supported")
+        if ignore_headers is None:
+            self.ignore_headers = []
+        else:
+            self.ignore_headers = ignore_headers
         self.backend = self.conn.ops
         self.delimiter = delimiter
         self.null = null
@@ -48,13 +53,16 @@ class CopyMapping(object):
         # Connect the headers from the CSV with the fields on the model
         self.field_header_crosswalk = []
         inverse_mapping = {v: k for k, v in self.mapping.items()}
+        for ignore in self.ignore_headers:
+            inverse_mapping[ignore] = ignore.lower()
         for h in self.get_headers():
             try:
                 f_name = inverse_mapping[h]
             except KeyError:
                 raise ValueError("Map does not include %s field" % h)
             try:
-                f = [f for f in self.model._meta.fields if f.name == f_name][0]
+                if f_name not in [ih.lower() for ih in self.ignore_headers]:
+                    f = [f for f in self.model._meta.fields if f.name == f_name][0]
             except IndexError:
                 raise ValueError("Model does not include %s field" % f_name)
             self.field_header_crosswalk.append((f, h))
@@ -103,7 +111,7 @@ class CopyMapping(object):
 
         if not silent:
             stream.write(
-                "%s records loaded\n" % intcomma(self.model.objects.count())
+                "%s records loaded\n" % self.model.objects.count()
             )
 
     def get_headers(self):
@@ -188,7 +196,6 @@ class CopyMapping(object):
         Creates a INSERT statement that reorders and cleans up
         the fields from the temporary table for insertion into the
         Django model.
-
         Returns SQL that can be run.
         """
         sql = """
@@ -204,6 +211,8 @@ class CopyMapping(object):
         model_fields = []
 
         for field, header in self.field_header_crosswalk:
+            if header in self.ignore_headers:
+                continue
             model_fields.append('"%s"' % field.get_attname_column()[1])
 
         for k in self.static_mapping.keys():
@@ -213,6 +222,8 @@ class CopyMapping(object):
 
         temp_fields = []
         for field, header in self.field_header_crosswalk:
+            if header in self.ignore_headers:
+                continue
             string = '"%s"' % header
             if hasattr(field, 'copy_template'):
                 string = field.copy_template % dict(name=header)
