@@ -165,6 +165,10 @@ Keyword Arguments
                        fields in the ``'model'``that are not in the source
                        file. values are a (single) value that will be put
                        into that field for every row in the source file
+
+``ignore_headers``     A list of headers from your csv that don't have
+                       equivalent fields in your model. These columns will
+                       be ignored.
 =====================  =====================================================
 
 
