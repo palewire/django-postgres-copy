@@ -3,13 +3,14 @@ django-postgres-copy
 
 Quickly load comma-delimited data into a Django model using PostgreSQL's COPY command
 
+
 Why and what for?
 -----------------
 
 `The people <http://www.californiacivicdata.org/about/>`_ who made this library are data journalists.
-We are often munching on new data and stuff CSVs into Django a lot.
+We are often downloading, cleaning and analyzing new data.
 
-That means we write a load of loaders. You can usually do this pretty quickly by looping through each row
+That means we write a load of loaders. You can usually do this by looping through each row
 and saving it to the database using the Django's ORM `create method <https://docs.djangoproject.com/en/1.8/ref/models/querysets/#django.db.models.query.QuerySet.create>`_.
 
 .. code-block:: python
@@ -21,7 +22,7 @@ and saving it to the database using the Django's ORM `create method <https://doc
     for row in data:
         MyModel.objects.create(name=row['NAME'], number=row['NUMBER'])
 
-But if you have a big CSV, Django will rack up database queries and it can take a long long time to finish.
+But if you have a big CSV, Django will rack up database queries and it can take a long time to finish.
 
 Lucky for us, PostgreSQL has a built-in tool called `COPY <http://www.postgresql.org/docs/9.4/static/sql-copy.html>`_ that will hammer data into the
 database with one quick query.
@@ -38,9 +39,10 @@ utility for importing geospatial data.
     c = CopyMapping(
         MyModel,
         "./data.csv",
-        dict(NAME='name', NUMBER='number')
+        dict(name='NAME', number='NUMBER')
     )
     c.save()
+
 
 Installation
 ------------
@@ -51,11 +53,12 @@ The package can be installed from the Python Package Index with `pip`.
 
     $ pip install django-postgres-copy
 
+
 An example
 ----------
 
 It all starts with a CSV file you'd like to load into your database. This library
-is intended to be used with large files but for here's something simple.
+is intended to be used with large files but here's something simple as an example.
 
 .. code-block:: text
 
@@ -100,8 +103,8 @@ put it is in a Django management command.
                 Person,
                 # The path to your CSV
                 '/path/to/my/data.csv',
-                # And a dict mapping the CSV headers to model fields
-                dict(NAME='name', NUMBER='number', DATE='dt')
+                # And a dict mapping the  model fields to CSV headers
+                dict(name='NAME', number='NUMBER', dt='DATE')
             )
             # Then save it.
             c.save()
@@ -118,12 +121,12 @@ Like I said, that's it!
 
 
 ``CopyMapping`` API
---------------------
+-------------------
 
 .. class:: CopyMapping(model, csv_path, mapping[, using=None, delimiter=',', null=None, encoding=None])
 
 The following are the arguments and keywords that may be used during
-instantiation of ``copy`` objects.
+instantiation of ``CopyMapping`` objects.
 
 =================  =========================================================
 Argument           Description
@@ -157,21 +160,25 @@ Keyword Arguments
 ``using``              Sets the database to use when importing data.
                        Default is None, which will use the ``'default'``
                        database.
+
+``static_mapping``     Set model attributes not in the CSV the same
+                       for every row in the database by providing a dictionary
+                       with the name of the columns as keys and the static
+                       inputs as values.
 =====================  =====================================================
 
-``save()`` Keyword Arguments
+
+``save()`` keyword arguments
 ----------------------------
 
 .. method:: CopyMapping.save([silent=False, stream=sys.stdout])
 
 The ``save()`` method also accepts keywords.  These keywords are
-used for controlling output logging, error handling, and for importing
-specific feature ranges.
+used for controlling output logging and error handling.
 
 ===========================  =================================================
-Save Keyword Arguments       Description
+Keyword Arguments            Description
 ===========================  =================================================
-
 ``silent``                   By default, non-fatal error notifications are
                              printed to ``sys.stdout``, but this keyword may
                              be set to disable these notifications.
@@ -180,6 +187,158 @@ Save Keyword Arguments       Description
                              handle.  Defaults to using ``sys.stdout``, but
                              any object with a ``write`` method is supported.
 ===========================  =================================================
+
+
+Transforming data
+-----------------
+
+By default, the COPY command cannot transform data on-the-fly as it is loaded into
+the database.
+
+This library first loads the data into a temporary table
+before inserting all records into the model table. So it is possible to use PostgreSQL's
+built-in SQL methods to modify values during the insert.
+
+As an example, imagine a CSV that includes a column of yes and no values that you wanted to store in the database as 1 or 0 in an integer field.
+
+.. code-block:: text
+
+    NAME,VALUE
+    ben,yes
+    joe,no
+
+A model to store the data as you'd prefer to might look like this.
+
+.. code-block:: python
+
+    from django.db import models
+
+
+    class Person(models.Model):
+        name = models.CharField(max_length=500)
+        value = models.IntegerField()
+
+But if the CSV file was loaded directly into the database, you would receive a data type error when the 'yes' and 'no' strings were inserted into the integer field.
+
+This library offers two ways you can transform that data during the insert.
+
+
+Custom-field transformations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+One approach is to create a custom Django field.
+
+You can set a temporary data type for a column when it is first loaded, and then provide a SQL string for how to transform it during the insert into the model table. The transformation must include a string interpolation keyed to "name", where the name of the database column will be slotted.
+
+This example loads in the column as the forgiving `text <http://www.postgresql.org/docs/9.4/static/datatype-character.html>`_ data type and then uses a `CASE statement <http://www.postgresql.org/docs/9.4/static/plpgsql-control-structures.html>`_ to transforms the data using a CASE statement.
+
+.. code-block:: python
+
+  from django.db.models.fields import IntegerField
+
+
+  class MyIntegerField(IntegerField):
+      copy_type = 'text'
+      copy_template = """
+          CASE
+              WHEN "%(name)s" = 'yes' THEN 1
+              WHEN "%(name)s" = 'no' THEN 0
+          END
+      """
+
+Back in the models file the custom field can be substituted for the default.
+
+.. code-block:: python
+
+    from django.db import models
+    from myapp.fields import MyIntegerField
+
+    class Person(models.Model):
+        name = models.CharField(max_length=500)
+        value = MyIntegerField()
+
+Run your loader and it should finish fine.
+
+
+Model-method transformations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A second approach is to provide a SQL string for how to transform a field during the insert on the model itself. This lets you specific different transformations for different fields of the same type.
+
+You must name the method so that the field name is sandwiched between ``copy_`` and ``_template``. It must return a string interpolation keyed to "name", where the name of the database column will be slotted.
+
+You can optionally give the temporary field a different data type, like the more-permissive ``text`` type, by setting the ``copy_type`` attribute on the model method.
+
+For the example above, the model might be modified to look like this.
+
+.. code-block:: python
+
+    from django.db import models
+
+    class Person(models.Model):
+        name = models.CharField(max_length=500)
+        value = models.IntegerField()
+
+        def copy_value_template(self):
+          return """
+              CASE
+                  WHEN "%(name)s" = 'yes' THEN 1
+                  WHEN "%(name)s" = 'no' THEN 0
+              END
+              """
+        copy_value_template.copy_type = 'text'
+
+And that's it.
+
+
+Inserting static values
+-----------------------
+
+If your model has columns that are not in the CSV, you can set static values
+for what is inserted using the ``static_mapping`` keyword argument. It will
+insert the provided values into every row in the database.
+
+An example could be if you want to include the name of the source CSV file
+along with each row.
+
+Your model might looks like this:
+
+.. code-block:: python
+    :emphasize-lines: 6
+
+    from django.db import models
+
+    class Person(models.Model):
+        name = models.CharField(max_length=500)
+        number = models.IntegerField()
+        source_csv = models.CharField(max_length=500)
+
+And your loader like this:
+
+.. code-block:: python
+    :emphasize-lines: 16-18
+
+    from myapp.models import Person
+    from postgres_copy import CopyMapping
+    from django.core.management.base import BaseCommand
+
+
+    class Command(BaseCommand):
+
+        def handle(self, *args, **kwargs):
+            c = CopyMapping(
+                # Give it the model
+                Person,
+                # The path to your CSV
+                '/path/to/my/data.csv',
+                # And a dict mapping the  model fields to CSV headers
+                dict(name='NAME', number='NUMBER'),
+                static_mapping = {
+                    'source_csv': 'data.csv'
+                }
+            )
+            # Then save it.
+            c.save()
 
 Open-source resources
 ---------------------

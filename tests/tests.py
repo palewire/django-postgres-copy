@@ -10,6 +10,7 @@ class PostgresCopyTest(TestCase):
     def setUp(self):
         self.data_dir = os.path.join(os.path.dirname(__file__), 'data')
         self.name_path = os.path.join(self.data_dir, 'names.csv')
+        self.foreign_path = os.path.join(self.data_dir, 'foreignkeys.csv')
         self.pipe_path = os.path.join(self.data_dir, 'pipes.csv')
         self.null_path = os.path.join(self.data_dir, 'nulls.csv')
         self.backwards_path = os.path.join(self.data_dir, 'backwards.csv')
@@ -93,6 +94,21 @@ class PostgresCopyTest(TestCase):
         self.assertEqual(LimitedMockObject.objects.count(), 3)
         self.assertEqual(
             LimitedMockObject.objects.get(name='BEN').dt,
+            date(2012, 1, 1)
+        )
+
+    def test_save_foreign_key(self):
+        c = CopyMapping(
+            MockObject,
+            self.foreign_path,
+            dict(name='NAME', number='NUMBER', dt='DATE', parent='PARENT')
+        )
+
+        c.save()
+        self.assertEqual(MockObject.objects.count(), 3)
+        self.assertEqual(MockObject.objects.get(name='BEN').parent_id, 4)
+        self.assertEqual(
+            MockObject.objects.get(name='BEN').dt,
             date(2012, 1, 1)
         )
 
@@ -190,8 +206,40 @@ class PostgresCopyTest(TestCase):
             self.name_path,
             dict(name='NAME', number='NUMBER', dt='DATE'),
             encoding='UTF-8',
-            static_columns={'static_val':1,'static_string':'test'}
+            static_mapping={'static_val':1,'static_string':'test'}
         )
         c.save()
-        self.assertEqual(ExtendedMockObject.objects.filter(static_val = 1).count(), 3)
-        self.assertEqual(ExtendedMockObject.objects.filter(static_string = 'test').count(), 3)
+        self.assertEqual(
+            ExtendedMockObject.objects.filter(static_val = 1).count(),
+            3
+        )
+        self.assertEqual(
+            ExtendedMockObject.objects.filter(static_string = 'test').count(),
+            3
+        )
+
+    def test_bad_static_values(self):
+        with self.assertRaises(ValueError):
+            c = CopyMapping(
+                ExtendedMockObject,
+                self.name_path,
+                dict(name='NAME', number='NUMBER', dt='DATE'),
+                encoding='UTF-8',
+                static_mapping={'static_bad':1,}
+            )
+            c.save()
+
+    def test_save_foreign_key(self):
+        c = CopyMapping(
+            MockObject,
+            self.foreign_path,
+            dict(name='NAME', number='NUMBER', dt='DATE', parent='PARENT')
+        )
+
+        c.save()
+        self.assertEqual(MockObject.objects.count(), 3)
+        self.assertEqual(MockObject.objects.get(name='BEN').parent_id, 4)
+        self.assertEqual(
+            MockObject.objects.get(name='BEN').dt,
+            date(2012, 1, 1)
+        )
