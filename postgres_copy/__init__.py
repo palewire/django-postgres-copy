@@ -21,7 +21,8 @@ class CopyMapping(object):
         delimiter=',',
         null=None,
         encoding=None,
-        static_mapping=None
+        static_mapping=None,
+        overloaded_mapping=None
     ):
         self.model = model
         self.mapping = mapping
@@ -44,6 +45,10 @@ class CopyMapping(object):
             self.static_mapping = OrderedDict(static_mapping)
         else:
             self.static_mapping = {}
+        if overloaded_mapping is not None:
+            self.overloaded_mapping = overloaded_mapping
+        else:
+            self.overloaded_mapping = {}
 
         # Connect the headers from the CSV with the fields on the model
         self.field_header_crosswalk = []
@@ -58,14 +63,21 @@ class CopyMapping(object):
             except IndexError:
                 raise ValueError("Model does not include %s field" % f_name)
             self.field_header_crosswalk.append((f, h))
-
         # Validate that the static mapping columns exist
         for f_name in self.static_mapping.keys():
             try:
                 [s for s in self.model._meta.fields if s.name == f_name][0]
             except IndexError:
                 raise ValueError("Model does not include %s field" % f_name)
-
+        # Validate Overloaded headers and fields
+        for k, v in self.overloaded_mapping.items():
+            if v not in inverse_mapping.keys():
+                raise ValueError("Overloaded %s field is not in mapping" % k)
+            try:
+                f = [f for f in self.model._meta.fields if f.name == k][0]
+            except IndexError:
+                raise ValueError("Model does not include overload %s field"
+                                 % v)
         self.temp_table_name = "temp_%s" % self.model._meta.db_table
 
     def save(self, silent=False, stream=sys.stdout):
@@ -209,6 +221,9 @@ class CopyMapping(object):
         for k in self.static_mapping.keys():
             model_fields.append('"%s"' % k)
 
+        for k in self.overloaded_mapping.keys():
+            model_fields.append('"%s"' % k)
+
         options['model_fields'] = ", ".join(model_fields)
 
         temp_fields = []
@@ -224,4 +239,16 @@ class CopyMapping(object):
         for v in self.static_mapping.values():
             temp_fields.append("'%s'" % v)
         options['temp_fields'] = ", ".join(temp_fields)
+
+        for k, v in self.overloaded_mapping.items():
+            string = '"%s"' % v
+            if hasattr(k, 'copy_template'):
+                string = field.copy_template % dict(name=v)
+            template_method = 'copy_%s_template' % field.name
+            if hasattr(self.model, template_method):
+                template = getattr(self.model(), template_method)()
+                string = template % dict(name=v)
+            temp_fields.append(string)
+        options['temp_fields'] = ", ".join(temp_fields)
+
         return sql % options
