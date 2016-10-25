@@ -71,8 +71,6 @@ class CopyMapping(object):
                 raise ValueError("Model does not include %s field" % f_name)
         # Validate Overloaded headers and fields
         for k, v in self.overloaded_mapping.items():
-            if v not in inverse_mapping.keys():
-                raise ValueError("Overloaded %s field is not in mapping" % k)
             try:
                 [o for o in self.model._meta.fields if o.name == k][0]
             except IndexError:

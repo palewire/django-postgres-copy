@@ -237,16 +237,7 @@ class PostgresCopyTest(TestCase):
         omo = OverloadMockObject.objects.first()
         self.assertEqual(omo.name.lower(), omo.lower_name)
 
-    def test_bad_non_overload(self):
-        with self.assertRaises(ValueError):
-            c = CopyMapping(
-                OverloadMockObject,
-                self.name_path,
-                dict(name='NAME', dt='DATE'),
-                static_mapping=dict(number=12),
-                overloaded_mapping=dict(number='NUMBER')
-            )
-
+    def test_missing_overload_field(self):
         with self.assertRaises(ValueError):
             c = CopyMapping(
                 OverloadMockObject,
@@ -254,4 +245,3 @@ class PostgresCopyTest(TestCase):
                 dict(name='NAME', number='NUMBER', dt='DATE'),
                 overloaded_mapping=dict(missing='NAME')
             )
-
