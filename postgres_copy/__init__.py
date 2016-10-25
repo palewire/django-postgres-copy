@@ -72,17 +72,15 @@ class CopyMapping(object):
             except IndexError:
                 raise ValueError("Model does not include %s field" % f_name)
         # Validate Overloaded headers and fields
-        clear_overload_keys = []
+        self.overloaded_crosswalk = []
         for k, v in self.overloaded_mapping.items():
             try:
                 o = [o for o in self.model._meta.fields if o.name == k][0]
-                self.overloaded_mapping[o] = v
-                clear_overload_keys.append(k)
+                self.overloaded_crosswalk.append((o, v))
             except IndexError:
                 raise ValueError("Model does not include overload %s field"
                                  % v)
-        for key in clear_overload_keys:
-            del self.overloaded_mapping[key]
+
         self.temp_table_name = "temp_%s" % self.model._meta.db_table
 
     def save(self, silent=False, stream=sys.stdout):
@@ -226,8 +224,8 @@ class CopyMapping(object):
         for k in self.static_mapping.keys():
             model_fields.append('"%s"' % k)
 
-        for k in self.overloaded_mapping.keys():
-            model_fields.append('"%s"' % k.get_attname_column()[1])
+        for field, value in self.overloaded_crosswalk:
+            model_fields.append('"%s"' % field.get_attname_column()[1])
 
         options['model_fields'] = ", ".join(model_fields)
 
@@ -240,9 +238,9 @@ class CopyMapping(object):
         for v in self.static_mapping.values():
             temp_fields.append("'%s'" % v)
 
-        for k, v in self.overloaded_mapping.items():
+        for field, value in self.overloaded_crosswalk:
             temp_fields.append(self._generate_insert_temp_fields(
-                k, v)
+                field, value)
             )
         options['temp_fields'] = ", ".join(temp_fields)
 
