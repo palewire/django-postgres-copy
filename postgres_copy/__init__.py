@@ -1,9 +1,10 @@
+import csv
 import os
 import sys
-import csv
-from django.db import connections, router
-from django.contrib.humanize.templatetags.humanize import intcomma
 from collections import OrderedDict
+
+from django.contrib.humanize.templatetags.humanize import intcomma
+from django.db import connections, router
 
 
 class CopyMapping(object):
@@ -12,17 +13,18 @@ class CopyMapping(object):
     and loads it into PostgreSQL databases using its
     COPY command.
     """
+
     def __init__(
-        self,
-        model,
-        csv_path,
-        mapping,
-        using=None,
-        delimiter=',',
-        null=None,
-        encoding=None,
-        static_mapping=None,
-        overloaded_mapping=None
+            self,
+            model,
+            csv_path,
+            mapping,
+            using=None,
+            delimiter=',',
+            null=None,
+            encoding=None,
+            static_mapping=None,
+            overloaded_mapping=None
     ):
         self.model = model
         self.mapping = mapping
@@ -70,12 +72,17 @@ class CopyMapping(object):
             except IndexError:
                 raise ValueError("Model does not include %s field" % f_name)
         # Validate Overloaded headers and fields
+        clear_overload_keys = []
         for k, v in self.overloaded_mapping.items():
             try:
-                [o for o in self.model._meta.fields if o.name == k][0]
+                o = [o for o in self.model._meta.fields if o.name == k][0]
+                self.overloaded_mapping[o] = v
+                clear_overload_keys.append(k)
             except IndexError:
                 raise ValueError("Model does not include overload %s field"
                                  % v)
+        for key in clear_overload_keys:
+            del self.overloaded_mapping[key]
         self.temp_table_name = "temp_%s" % self.model._meta.db_table
 
     def save(self, silent=False, stream=sys.stdout):
@@ -182,8 +189,8 @@ class CopyMapping(object):
             'db_table': self.temp_table_name,
             'extra_options': '',
             'header_list': ", ".join([
-                '"%s"' % h for f, h in self.field_header_crosswalk
-            ])
+                                         '"%s"' % h for f, h in self.field_header_crosswalk
+                                         ])
         }
         if self.delimiter:
             options['extra_options'] += " DELIMITER '%s'" % self.delimiter
@@ -220,33 +227,33 @@ class CopyMapping(object):
             model_fields.append('"%s"' % k)
 
         for k in self.overloaded_mapping.keys():
-            model_fields.append('"%s"' % k)
+            model_fields.append('"%s"' % k.get_attname_column()[1])
 
         options['model_fields'] = ", ".join(model_fields)
 
         temp_fields = []
         for field, header in self.field_header_crosswalk:
-            string = '"%s"' % header
-            if hasattr(field, 'copy_template'):
-                string = field.copy_template % dict(name=header)
-            template_method = 'copy_%s_template' % field.name
-            if hasattr(self.model, template_method):
-                template = getattr(self.model(), template_method)()
-                string = template % dict(name=header)
-            temp_fields.append(string)
+            temp_fields.append(self._generate_insert_temp_fields(
+                field, header)
+            )
+
         for v in self.static_mapping.values():
             temp_fields.append("'%s'" % v)
-        options['temp_fields'] = ", ".join(temp_fields)
 
         for k, v in self.overloaded_mapping.items():
-            string = '"%s"' % v
-            if hasattr(k, 'copy_template'):
-                string = field.copy_template % dict(name=v)
-            template_method = 'copy_%s_template' % field.name
-            if hasattr(self.model, template_method):
-                template = getattr(self.model(), template_method)()
-                string = template % dict(name=v)
-            temp_fields.append(string)
+            temp_fields.append(self._generate_insert_temp_fields(
+                k, v)
+            )
         options['temp_fields'] = ", ".join(temp_fields)
 
         return sql % options
+
+    def _generate_insert_temp_fields(self, concrete, column):
+        string = '"%s"' % column
+        if hasattr(concrete, 'copy_template'):
+            string = concrete.copy_template % dict(name=column)
+        template_method = 'copy_%s_template' % concrete.name
+        if hasattr(self.model, template_method):
+            template = getattr(self.model(), template_method)()
+            string = template % dict(name=column)
+        return string
