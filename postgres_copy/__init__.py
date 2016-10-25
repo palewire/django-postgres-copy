@@ -74,7 +74,7 @@ class CopyMapping(object):
             if v not in inverse_mapping.keys():
                 raise ValueError("Overloaded %s field is not in mapping" % k)
             try:
-                f = [f for f in self.model._meta.fields if f.name == k][0]
+                o = [o for o in self.model._meta.fields if o.name == k][0]
             except IndexError:
                 raise ValueError("Model does not include overload %s field"
                                  % v)
