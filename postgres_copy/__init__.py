@@ -1,9 +1,10 @@
+import csv
 import os
 import sys
-import csv
-from django.db import connections, router
-from django.contrib.humanize.templatetags.humanize import intcomma
 from collections import OrderedDict
+
+from django.contrib.humanize.templatetags.humanize import intcomma
+from django.db import connections, router
 
 
 class CopyMapping(object):
@@ -12,6 +13,7 @@ class CopyMapping(object):
     and loads it into PostgreSQL databases using its
     COPY command.
     """
+
     def __init__(
         self,
         model,
@@ -22,7 +24,8 @@ class CopyMapping(object):
         delimiter=',',
         null=None,
         encoding=None,
-        static_mapping=None
+        static_mapping=None,
+        overloaded_mapping=None
     ):
         self.model = model
         self.mapping = mapping
@@ -49,6 +52,10 @@ class CopyMapping(object):
             self.static_mapping = OrderedDict(static_mapping)
         else:
             self.static_mapping = {}
+        if overloaded_mapping is not None:
+            self.overloaded_mapping = overloaded_mapping
+        else:
+            self.overloaded_mapping = {}
 
         # Connect the headers from the CSV with the fields on the model
         self.field_header_crosswalk = []
@@ -67,13 +74,21 @@ class CopyMapping(object):
             except IndexError:
                 raise ValueError("Model does not include %s field" % f_name)
             self.field_header_crosswalk.append((f, h))
-
         # Validate that the static mapping columns exist
         for f_name in self.static_mapping.keys():
             try:
                 [s for s in self.model._meta.fields if s.name == f_name][0]
             except IndexError:
                 raise ValueError("Model does not include %s field" % f_name)
+        # Validate Overloaded headers and fields
+        self.overloaded_crosswalk = []
+        for k, v in self.overloaded_mapping.items():
+            try:
+                o = [o for o in self.model._meta.fields if o.name == k][0]
+                self.overloaded_crosswalk.append((o, v))
+            except IndexError:
+                raise ValueError("Model does not include overload %s field"
+                                 % v)
 
         self.temp_table_name = "temp_%s" % self.model._meta.db_table
 
@@ -182,7 +197,7 @@ class CopyMapping(object):
             'extra_options': '',
             'header_list': ", ".join([
                 '"%s"' % h for f, h in self.field_header_crosswalk
-            ])
+             ])
         }
         if self.delimiter:
             options['extra_options'] += " DELIMITER '%s'" % self.delimiter
@@ -220,21 +235,36 @@ class CopyMapping(object):
         for k in self.static_mapping.keys():
             model_fields.append('"%s"' % k)
 
+        for field, value in self.overloaded_crosswalk:
+            model_fields.append('"%s"' % field.get_attname_column()[1])
+
         options['model_fields'] = ", ".join(model_fields)
 
         temp_fields = []
         for field, header in self.field_header_crosswalk:
             if header in self.ignore_headers:
                 continue
-            string = '"%s"' % header
-            if hasattr(field, 'copy_template'):
-                string = field.copy_template % dict(name=header)
-            template_method = 'copy_%s_template' % field.name
-            if hasattr(self.model, template_method):
-                template = getattr(self.model(), template_method)()
-                string = template % dict(name=header)
-            temp_fields.append(string)
+            temp_fields.append(self._generate_insert_temp_fields(
+                field, header)
+            )
+
         for v in self.static_mapping.values():
             temp_fields.append("'%s'" % v)
+
+        for field, value in self.overloaded_crosswalk:
+            temp_fields.append(self._generate_insert_temp_fields(
+                field, value)
+            )
         options['temp_fields'] = ", ".join(temp_fields)
+
         return sql % options
+
+    def _generate_insert_temp_fields(self, concrete, column):
+        string = '"%s"' % column
+        if hasattr(concrete, 'copy_template'):
+            string = concrete.copy_template % dict(name=column)
+        template_method = 'copy_%s_template' % concrete.name
+        if hasattr(self.model, template_method):
+            template = getattr(self.model(), template_method)()
+            string = template % dict(name=column)
+        return string

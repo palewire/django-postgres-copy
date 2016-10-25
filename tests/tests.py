@@ -1,6 +1,7 @@
 import os
 from datetime import date
-from .models import MockObject, ExtendedMockObject, LimitedMockObject
+from .models import MockObject, ExtendedMockObject, LimitedMockObject,\
+    OverloadMockObject
 from postgres_copy import CopyMapping
 from django.test import TestCase
 
@@ -19,6 +20,7 @@ class PostgresCopyTest(TestCase):
         MockObject.objects.all().delete()
         ExtendedMockObject.objects.all().delete()
         LimitedMockObject.objects.all().delete()
+        OverloadMockObject.objects.all().delete()
 
     def test_bad_call(self):
         with self.assertRaises(TypeError):
@@ -243,3 +245,30 @@ class PostgresCopyTest(TestCase):
             MockObject.objects.get(name='BEN').dt,
             date(2012, 1, 1)
         )
+
+    def test_overload_save(self):
+        c = CopyMapping(
+            OverloadMockObject,
+            self.name_path,
+            dict(name='NAME', number='NUMBER', dt='DATE'),
+            overloaded_mapping=dict(lower_name='NAME')
+        )
+        c.save()
+        self.assertEqual(OverloadMockObject.objects.count(), 3)
+        self.assertEqual(OverloadMockObject.objects.get(name='BEN').number, 1)
+        self.assertEqual(OverloadMockObject.objects.get(lower_name='ben').number, 1)
+        self.assertEqual(
+            OverloadMockObject.objects.get(name='BEN').dt,
+            date(2012, 1, 1)
+        )
+        omo = OverloadMockObject.objects.first()
+        self.assertEqual(omo.name.lower(), omo.lower_name)
+
+    def test_missing_overload_field(self):
+        with self.assertRaises(ValueError):
+            c = CopyMapping(
+                OverloadMockObject,
+                self.name_path,
+                dict(name='NAME', number='NUMBER', dt='DATE'),
+                overloaded_mapping=dict(missing='NAME')
+            )

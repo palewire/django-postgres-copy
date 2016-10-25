@@ -143,35 +143,40 @@ Argument           Description
                    string field names for the CSV header.
 =================  =========================================================
 
-=====================  =====================================================
+=======================  =====================================================
 Keyword Arguments
-=====================  =====================================================
-``delimiter``          The character that separates values in the data file.
-                       By default  it is ",". This must be a single one-byte
-                       character.
+=======================  =====================================================
+``delimiter``            The character that separates values in the data file.
+                         By default  it is ",". This must be a single one-byte
+                         character.
 
-``null``               Specifies the string that represents a null value.
-                       The default is an unquoted empty string. This must
-                       be a single one-byte character.
+``null``                 Specifies the string that represents a null value.
+                         The default is an unquoted empty string. This must
+                         be a single one-byte character.
 
-``encoding``           Specifies the character set encoding of the strings
-                       in the CSV data source.  For example, ``'latin-1'``,
-                       ``'utf-8'``, and ``'cp437'`` are all valid encoding
-                       parameters.
+``encoding``             Specifies the character set encoding of the strings
+                         in the CSV data source.  For example, ``'latin-1'``,
+                         ``'utf-8'``, and ``'cp437'`` are all valid encoding
+                         parameters.
 
-``using``              Sets the database to use when importing data.
-                       Default is None, which will use the ``'default'``
-                       database.
+``using``                Sets the database to use when importing data.
+                         Default is None, which will use the ``'default'``
+                         database.
 
-``static_mapping``     Set model attributes not in the CSV the same
-                       for every row in the database by providing a dictionary
-                       with the name of the columns as keys and the static
-                       inputs as values.
+``static_mapping``       Set model attributes not in the CSV the same
+                         for every row in the database by providing a dictionary
+                         with the name of the columns as keys and the static
+                         inputs as values.
 
-``ignore_headers``     A list of headers from your csv that don't have
-                       equivalent fields in your model. These columns will
-                       be ignored.
-=====================  =====================================================
+``ignore_headers``       A list of headers from your csv that don't have
+                         equivalent fields in your model. These columns will
+                         be ignored.
+
+``overloaded_mapping``   Reuse a mapped column for a different model field.
+                         This is useful when you want to have both the
+                         original value as well as a modified form, generally
+                         using a `copy_template` to transform the second value
+=======================  =====================================================
 
 
 ``save()`` keyword arguments
