@@ -189,8 +189,8 @@ class CopyMapping(object):
             'db_table': self.temp_table_name,
             'extra_options': '',
             'header_list': ", ".join([
-                                         '"%s"' % h for f, h in self.field_header_crosswalk
-                                         ])
+                '"%s"' % h for f, h in self.field_header_crosswalk
+             ])
         }
         if self.delimiter:
             options['extra_options'] += " DELIMITER '%s'" % self.delimiter
