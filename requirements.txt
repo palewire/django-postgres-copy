@@ -6,3 +6,4 @@ tox
 python-coveralls
 sphinx
 sphinx-autobuild
+twine
