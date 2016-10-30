@@ -45,11 +45,14 @@ class CopyMapping(object):
         else:
             self.static_mapping = {}
 
-        # Make sure all of the headers in the mapping actually exist in the CSV file
+        # Make sure all of the headers in the mapping actually exist
+        # in the CSV file
         headers = self.get_headers()
         for map_header in self.mapping.values():
             if map_header not in headers:
-                raise ValueError("Header '%s' in the mapping not found in the CSV file" % map_header)
+                raise ValueError(
+                    "Header '%s' in mapping not found in CSV file" % map_header
+                )
 
         # Connect the headers from the CSV with the fields on the model
         self.field_header_crosswalk = []
@@ -59,8 +62,9 @@ class CopyMapping(object):
             try:
                 f_name = inverse_mapping[h]
             except KeyError:
-                # If the CSV field is not included on the model map, that's okay, it just means
-                # the user has decided not to load that column.
+                # If the CSV field is not included on the model map,
+                # that's okay, it just means the user has decided not
+                # to load that column.
                 self.excluded_headers.append(h)
                 pass
             try:

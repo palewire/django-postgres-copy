@@ -16,8 +16,7 @@ install:
  - pip install -q Django==$DJANGO_VERSION
 
 script:
- - pep8 postgres_copy
- - pyflakes postgres_copy
+ - flake8 postgres_copy
  - coverage run setup.py test
 
 after_success:

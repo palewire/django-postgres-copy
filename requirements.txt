@@ -1,8 +1,7 @@
 Django
 coverage
-pep8
+flake8
 psycopg2
-pyflakes
 tox
 python-coveralls
 sphinx
