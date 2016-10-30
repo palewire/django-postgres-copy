@@ -1,9 +1,14 @@
+# Dependencies
 Django
-coverage
-flake8
 psycopg2
-tox
-python-coveralls
+
+# Docs
 sphinx
 sphinx-autobuild
+
+# Testing
 twine
+flake8
+coverage
+python-coveralls
+tox
