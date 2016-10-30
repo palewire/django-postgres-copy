@@ -45,14 +45,24 @@ class CopyMapping(object):
         else:
             self.static_mapping = {}
 
+        # Make sure all of the headers in the mapping actually exist in the CSV file
+        headers = self.get_headers()
+        for map_header in self.mapping.values():
+            if map_header not in headers:
+                raise ValueError("Header '%s' in the mapping not found in the CSV file" % map_header)
+
         # Connect the headers from the CSV with the fields on the model
         self.field_header_crosswalk = []
+        self.excluded_headers = []
         inverse_mapping = {v: k for k, v in self.mapping.items()}
-        for h in self.get_headers():
+        for h in headers:
             try:
                 f_name = inverse_mapping[h]
             except KeyError:
-                raise ValueError("Map does not include %s field" % h)
+                # If the CSV field is not included on the model map, that's okay, it just means
+                # the user has decided not to load that column.
+                self.excluded_headers.append(h)
+                pass
             try:
                 f = [f for f in self.model._meta.fields if f.name == f_name][0]
             except IndexError:
@@ -204,6 +214,9 @@ class CopyMapping(object):
         model_fields = []
 
         for field, header in self.field_header_crosswalk:
+            # Any of the headers excluded from the mapping need to be skipped
+            if header in self.excluded_headers:
+                continue
             model_fields.append('"%s"' % field.get_attname_column()[1])
 
         for k in self.static_mapping.keys():
@@ -213,6 +226,10 @@ class CopyMapping(object):
 
         temp_fields = []
         for field, header in self.field_header_crosswalk:
+            # Any of the headers excluded from the mapping need to be skipped
+            if header in self.excluded_headers:
+                continue
+            # Otherwise go ahead and format the SQL
             string = '"%s"' % header
             if hasattr(field, 'copy_template'):
                 string = field.copy_template % dict(name=header)
