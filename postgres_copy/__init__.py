@@ -1,9 +1,9 @@
 import os
 import sys
 import csv
+from collections import OrderedDict
 from django.db import connections, router
 from django.contrib.humanize.templatetags.humanize import intcomma
-from collections import OrderedDict
 
 
 class CopyMapping(object):
@@ -23,12 +23,18 @@ class CopyMapping(object):
         encoding=None,
         static_mapping=None
     ):
+        # Set the required arguments
         self.model = model
         self.mapping = mapping
+
+        # Line up the CSV file
         if os.path.exists(csv_path):
             self.csv_path = csv_path
         else:
             raise ValueError("csv_path does not exist")
+        self.headers = self.get_headers()
+
+        # Line up the database connection
         if using is not None:
             self.using = using
         else:
@@ -37,6 +43,9 @@ class CopyMapping(object):
         if self.conn.vendor != 'postgresql':
             raise TypeError("Only PostgreSQL backends supported")
         self.backend = self.conn.ops
+        self.temp_table_name = "temp_%s" % self.model._meta.db_table
+
+        # Hook in the other optional settings
         self.delimiter = delimiter
         self.null = null
         self.encoding = encoding
@@ -45,42 +54,62 @@ class CopyMapping(object):
         else:
             self.static_mapping = {}
 
-        # Make sure all of the headers in the mapping actually exist
-        # in the CSV file
-        headers = self.get_headers()
-        for map_header in self.mapping.values():
-            if map_header not in headers:
-                raise ValueError(
-                    "Header '%s' in mapping not found in CSV file" % map_header
-                )
+        # Make sure the mapping is legit
+        self.validate_mapping()
 
+        # Identify any CSV headers that have been excluded from the mapping
+        self.excluded_headers = [h for h in self.headers if h not in self.mapping.keys()]
+
+        #
         # Connect the headers from the CSV with the fields on the model
-        self.field_header_crosswalk = []
-        self.excluded_headers = []
-        inverse_mapping = {v: k for k, v in self.mapping.items()}
-        for h in headers:
-            try:
-                f_name = inverse_mapping[h]
-            except KeyError:
-                # If the CSV field is not included on the model map,
-                # that's okay, it just means the user has decided not
-                # to load that column.
-                self.excluded_headers.append(h)
-                pass
-            try:
-                f = [f for f in self.model._meta.fields if f.name == f_name][0]
-            except IndexError:
-                raise ValueError("Model does not include %s field" % f_name)
-            self.field_header_crosswalk.append((f, h))
+        #
 
-        # Validate that the static mapping columns exist
-        for f_name in self.static_mapping.keys():
-            try:
-                [s for s in self.model._meta.fields if s.name == f_name][0]
-            except IndexError:
+        # self.field_header_crosswalk = []
+        # # Flip around the mapping so the CSV headers are the keys and database model fields the values
+        # inverse_mapping = {v: k for k, v in self.mapping.items()}
+        #
+        # # Loop through the CSV headers ...
+        # for h in headers:
+        #     # Check if they are in the mapping
+        #     try:
+        #         f_name = inverse_mapping[h]
+        #     except KeyError:
+        #         # If the CSV field is not included on the model map,
+        #         # that's okay, it just means the user has decided not
+        #         # to load that column.
+        #         self.excluded_headers.append(h)
+        #         pass
+        #     self.field_header_crosswalk.append((f, h))
+
+    def get_field(self, name):
+        """
+        Returns any fields on the database model matching the provided name.
+        """
+        try:
+            [f for f in self.model._meta.fields if f.name == map_field][0]
+        except IndexError:
+            return None
+
+    def validate_mapping(self):
+        """
+        Verify that the mapping provided by the user is acceptable.
+
+        Raises errors if something goes wrong. Returns nothing if everything is kosher.
+        """
+        # Make sure all of the CSV headers in the mapping actually exist
+        for map_header in self.mapping.values():
+            if map_header not in self.headers:
+                raise ValueError("Header '%s' not found in CSV file" % map_header)
+
+        # Make sure all the model fields in the mapping actually exist
+        for map_field in self.mapping.keys():
+            if not self.get_field(map_field):
                 raise ValueError("Model does not include %s field" % f_name)
 
-        self.temp_table_name = "temp_%s" % self.model._meta.db_table
+        # Make sure any static mapping columns exist
+        for static_field in self.static_mapping.keys():
+            if not self.get_field(static_field):
+                raise ValueError("Model does not include %s field" % f_name)
 
     def save(self, silent=False, stream=sys.stdout):
         """
@@ -148,7 +177,12 @@ class CopyMapping(object):
         field_list = []
 
         # Loop through all the fields and CSV headers together
-        for field, header in self.field_header_crosswalk:
+        for field_name, header in self.mapping.items():
+
+            # Pull the field object from the model
+            field = self.get_field(field_name)
+
+            # Format the SQL create statement
             string = '"%s" %s' % (header, field.db_type(self.conn))
 
             # If the field has an override, use that
@@ -216,8 +250,7 @@ class CopyMapping(object):
         )
 
         model_fields = []
-
-        for field, header in self.field_header_crosswalk:
+        for field_name, header in self.mapping.items():
             # Any of the headers excluded from the mapping need to be skipped
             if header in self.excluded_headers:
                 continue
@@ -226,23 +259,40 @@ class CopyMapping(object):
         for k in self.static_mapping.keys():
             model_fields.append('"%s"' % k)
 
+        print self.field_header_crosswalk
+        print model_fields
         options['model_fields'] = ", ".join(model_fields)
 
         temp_fields = []
         for field, header in self.field_header_crosswalk:
+
+            # Pull the field object from the model
+            field = self.get_field(field_name)
+
             # Any of the headers excluded from the mapping need to be skipped
             if header in self.excluded_headers:
                 continue
+
             # Otherwise go ahead and format the SQL
             string = '"%s"' % header
+
+            # The template overrides too
             if hasattr(field, 'copy_template'):
                 string = field.copy_template % dict(name=header)
             template_method = 'copy_%s_template' % field.name
             if hasattr(self.model, template_method):
                 template = getattr(self.model(), template_method)()
                 string = template % dict(name=header)
+
+            # Add field to list
             temp_fields.append(string)
+
+        # Tack on static fields
         for v in self.static_mapping.values():
             temp_fields.append("'%s'" % v)
+
+        # Join it all together
         options['temp_fields'] = ", ".join(temp_fields)
+
+        print sql % options
         return sql % options

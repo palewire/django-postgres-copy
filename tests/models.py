@@ -41,3 +41,22 @@ class LimitedMockObject(models.Model):
     def copy_name_template(self):
         return 'upper("%(name)s")'
     copy_name_template.copy_type = 'text'
+
+
+class OverloadMockObject(models.Model):
+    name = models.CharField(max_length=500)
+    upper_name = models.CharField(max_length=500)
+    lower_name = models.CharField(max_length=500)
+    number = MyIntegerField(null=True, db_column='num')
+    dt = models.DateField(null=True)
+
+    class Meta:
+        app_label = 'tests'
+
+    def copy_upper_name_template(self):
+        return 'upper("%(name)s")'
+    copy_upper_name_template.copy_type = 'text'
+
+    def copy_lower_name_template(self):
+        return 'lower("%(name)s")'
+    copy_lower_name_template.copy_type = 'text'
