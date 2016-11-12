@@ -206,7 +206,6 @@ class PostgresCopyTest(TestCase):
             ExtendedMockObject,
             self.name_path,
             dict(name='NAME', number='NUMBER', dt='DATE'),
-            encoding='UTF-8',
             static_mapping={'static_val':1,'static_string':'test'}
         )
         c.save()
@@ -245,28 +244,28 @@ class PostgresCopyTest(TestCase):
             date(2012, 1, 1)
         )
 
-    # def test_overload_save(self):
-    #     c = CopyMapping(
-    #         OverloadMockObject,
-    #         self.name_path,
-    #         dict(name='NAME', lower_name='NAME', upper_name='NAME', number='NUMBER', dt='DATE'),
-    #     )
-    #     c.save()
-    #     self.assertEqual(OverloadMockObject.objects.count(), 3)
-    #     self.assertEqual(OverloadMockObject.objects.get(name='ben').number, 1)
-    #     self.assertEqual(OverloadMockObject.objects.get(lower_name='ben').number, 1)
-    #     self.assertEqual(OverloadMockObject.objects.get(upper_name='BEN').number, 1)
-    #     self.assertEqual(
-    #         OverloadMockObject.objects.get(name='ben').dt,
-    #         date(2012, 1, 1)
-    #     )
-    #     omo = OverloadMockObject.objects.first()
-    #     self.assertEqual(omo.name.lower(), omo.lower_name)
-    #
-    # def test_missing_overload_field(self):
-    #     with self.assertRaises(ValueError):
-    #         c = CopyMapping(
-    #             OverloadMockObject,
-    #             self.name_path,
-    #             dict(name='NAME', number='NUMBER', dt='DATE', missing='NAME'),
-    #         )
+    def test_overload_save(self):
+        c = CopyMapping(
+            OverloadMockObject,
+            self.name_path,
+            dict(name='NAME', lower_name='NAME', upper_name='NAME', number='NUMBER', dt='DATE'),
+        )
+        c.save()
+        self.assertEqual(OverloadMockObject.objects.count(), 3)
+        self.assertEqual(OverloadMockObject.objects.get(name='ben').number, 1)
+        self.assertEqual(OverloadMockObject.objects.get(lower_name='ben').number, 1)
+        self.assertEqual(OverloadMockObject.objects.get(upper_name='BEN').number, 1)
+        self.assertEqual(
+            OverloadMockObject.objects.get(name='ben').dt,
+            date(2012, 1, 1)
+        )
+        omo = OverloadMockObject.objects.first()
+        self.assertEqual(omo.name.lower(), omo.lower_name)
+
+    def test_missing_overload_field(self):
+        with self.assertRaises(ValueError):
+            c = CopyMapping(
+                OverloadMockObject,
+                self.name_path,
+                dict(name='NAME', number='NUMBER', dt='DATE', missing='NAME'),
+            )

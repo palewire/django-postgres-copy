@@ -35,7 +35,7 @@ class TestCommand(Command):
 
 setup(
     name='django-postgres-copy',
-    version='0.0.8',
+    version='0.1.0',
     description="Quickly load comma-delimited data into a Django model \
 using PostgreSQL's COPY command",
     author='Ben Welsh',
