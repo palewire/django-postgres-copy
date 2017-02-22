@@ -120,12 +120,11 @@ class CopyMapping(object):
         fp = open(self.csv_path, 'r')
         cursor.copy_expert(copy_sql, fp)
         cursor.execute(insert_sql)
-        insert_count = cursor.rowcount
         cursor.execute(drop_sql)
 
         if not silent:
             stream.write(
-                "%s records loaded\n" % intcomma(insert_count)
+                "%s records loaded\n" % intcomma(cursor.rowcount)
             )
 
     def get_headers(self):
