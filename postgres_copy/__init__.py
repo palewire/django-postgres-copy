@@ -124,7 +124,7 @@ class CopyMapping(object):
 
         if not silent:
             stream.write(
-                "%s records loaded\n" % intcomma(self.model.objects.count())
+                "%s records loaded\n" % intcomma(cursor.rowcount)
             )
 
     def get_headers(self):
