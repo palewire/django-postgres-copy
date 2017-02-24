@@ -40,7 +40,7 @@ setup(
 using PostgreSQL's COPY command",
     author='Ben Welsh',
     author_email='ben.welsh@gmail.com',
-    url='http://www.github.com/california-civic-data-coalition/django-postgresql-copy/',
+    url='http://www.github.com/california-civic-data-coalition/django-postgres-copy/',
     license="MIT",
     packages=("postgres_copy",),
     install_requires=(),
