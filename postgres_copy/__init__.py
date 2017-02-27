@@ -89,9 +89,83 @@ class CopyMapping(object):
             if not self.get_field(static_field):
                 raise ValueError("Model does not include %s field" % static_field)
 
+    def create(self, cursor):
+        """
+        Generate and run create sql for the temp table.
+        Runs a DROP on same prior to CREATE to avoid collisions.
+
+        cursor:
+          A cursor object on the db
+        """
+        self.drop(cursor)
+        create_sql = self.prep_create()
+        cursor.execute(create_sql)
+
+    def pre_copy(self, cursor):
+        pass
+
+    def copy(self, cursor):
+        """
+        Generate and run the COPY command to copy data from csv to temp table.
+        Calls `self.pre_copy(cursor)` and `self.post_copy(cursor)` respectively
+        before and after running copy
+
+        cursor:
+          A cursor object on the db
+        """
+        self.pre_copy(cursor)
+        copy_sql = self.prep_copy()
+        fp = open(self.csv_path, 'r')
+        cursor.copy_expert(copy_sql, fp)
+        self.post_copy(cursor)
+
+    def post_copy(self, cursor):
+        pass
+
+    def pre_insert(self, cursor):
+        pass
+
+    def insert(self, cursor):
+        """
+        Generate and run the INSERT command to move data from the temp table
+        to the concrete table.
+        Calls `self.pre_copy(cursor)` and `self.post_copy(cursor)` respectively
+        before and after running copy
+
+        returns: the count of rows inserted
+
+        cursor:
+          A cursor object on the db
+        """
+        self.pre_insert(cursor)
+        insert_sql = self.prep_insert()
+        cursor.execute(insert_sql)
+        insert_count = cursor.rowcount
+        self.post_insert(cursor)
+
+        return insert_count
+
+    def post_insert(self, cursor):
+        pass
+
+    def drop(self, cursor):
+        """
+        Generate and run the DROP command for the temp table.
+
+        cursor:
+          A cursor object on the db
+        """
+        drop_sql = self.prep_drop()
+        cursor.execute(drop_sql)
+
     def save(self, silent=False, stream=sys.stdout):
         """
         Saves the contents of the CSV file to the database.
+
+        Override this method and use 'self.create(cursor)`,
+        `self.copy(cursor)`, `self.insert(cursor)`, and `self.drop(cursor)`
+        if you need functionality other than the default create/copy/insert/drop
+        workflow.
 
          silent:
            By default, non-fatal error notifications are printed to stdout,
@@ -106,22 +180,11 @@ class CopyMapping(object):
             stream.write("Loading CSV to %s\n" % self.model.__name__)
 
         # Connect to the database
-        cursor = self.conn.cursor()
-
-        # Create all of the raw SQL
-        drop_sql = self.prep_drop()
-        create_sql = self.prep_create()
-        copy_sql = self.prep_copy()
-        insert_sql = self.prep_insert()
-
-        # Run all of the raw SQL
-        cursor.execute(drop_sql)
-        cursor.execute(create_sql)
-        fp = open(self.csv_path, 'r')
-        cursor.copy_expert(copy_sql, fp)
-        cursor.execute(insert_sql)
-        insert_count = cursor.rowcount
-        cursor.execute(drop_sql)
+        with self.conn.cursor() as c:
+            self.create(c)
+            self.copy(c)
+            insert_count = self.insert(c)
+            self.drop(c)
 
         if not silent:
             stream.write(

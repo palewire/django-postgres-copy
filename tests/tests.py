@@ -4,8 +4,8 @@ from .models import (
     MockObject,
     ExtendedMockObject,
     LimitedMockObject,
-    OverloadMockObject
-)
+    OverloadMockObject,
+    HookedCopyMapping)
 from postgres_copy import CopyMapping
 from django.test import TestCase
 
@@ -269,3 +269,64 @@ class PostgresCopyTest(TestCase):
                 self.name_path,
                 dict(name='NAME', number='NUMBER', dt='DATE', missing='NAME'),
             )
+
+
+    def test_save_steps(self):
+        c = CopyMapping(
+            MockObject,
+            self.name_path,
+            dict(name='NAME', number='NUMBER', dt='DATE'),
+        )
+        cursor = c.conn.cursor()
+
+        c.create(cursor)
+        cursor.execute("""SELECT to_regclass('%s');""" % c.temp_table_name)
+        self.assertEquals(cursor.fetchone()[0], c.temp_table_name)
+        cursor.execute("""SELECT count(*) FROM %s;""" % c.temp_table_name)
+        self.assertEquals(cursor.fetchone()[0], 0)
+        cursor.execute("""SELECT count(*) FROM %s;""" % c.model._meta.db_table)
+        self.assertEquals(cursor.fetchone()[0], 0)
+
+        c.copy(cursor)
+        cursor.execute("""SELECT count(*) FROM %s;""" % c.temp_table_name)
+        self.assertEquals(cursor.fetchone()[0], 3)
+        cursor.execute("""SELECT count(*) FROM %s;""" % c.model._meta.db_table)
+        self.assertEquals(cursor.fetchone()[0], 0)
+
+        c.insert(cursor)
+        cursor.execute("""SELECT count(*) FROM %s;""" % c.model._meta.db_table)
+        self.assertEquals(cursor.fetchone()[0], 3)
+
+        c.drop(cursor)
+        cursor.execute("""SELECT to_regclass('%s');""" % c.temp_table_name)
+        self.assertIsNone(cursor.fetchone()[0])
+        cursor.close()
+
+    def test_hooks(self):
+        c = HookedCopyMapping(
+            MockObject,
+            self.name_path,
+            dict(name='NAME', number='NUMBER', dt='DATE'),
+        )
+        cursor = c.conn.cursor()
+
+        c.create(cursor)
+        self.assertRaises(AttributeError, lambda: c.ran_pre_copy)
+        self.assertRaises(AttributeError, lambda: c.ran_post_copy)
+        self.assertRaises(AttributeError, lambda: c.ran_pre_insert)
+        self.assertRaises(AttributeError, lambda: c.ran_post_insert)
+        c.copy(cursor)
+        self.assertTrue(c.ran_pre_copy)
+        self.assertTrue(c.ran_post_copy)
+        self.assertRaises(AttributeError, lambda: c.ran_pre_insert)
+        self.assertRaises(AttributeError, lambda: c.ran_post_insert)
+
+
+        c.insert(cursor)
+        self.assertTrue(c.ran_pre_copy)
+        self.assertTrue(c.ran_post_copy)
+        self.assertTrue(c.ran_pre_insert)
+        self.assertTrue(c.ran_post_insert)
+
+        c.drop(cursor)
+        cursor.close()
