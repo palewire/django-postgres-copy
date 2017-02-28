@@ -1,8 +1,6 @@
 import os
 from datetime import date
 
-from django.db import ProgrammingError
-
 from .models import (
     MockObject,
     ExtendedMockObject,
