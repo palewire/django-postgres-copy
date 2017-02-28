@@ -1,5 +1,8 @@
 import os
 from datetime import date
+
+from django.db import ProgrammingError
+
 from .models import (
     MockObject,
     ExtendedMockObject,
@@ -280,8 +283,6 @@ class PostgresCopyTest(TestCase):
         cursor = c.conn.cursor()
 
         c.create(cursor)
-        cursor.execute("""SELECT to_regclass('%s');""" % c.temp_table_name)
-        self.assertEquals(cursor.fetchone()[0], c.temp_table_name)
         cursor.execute("""SELECT count(*) FROM %s;""" % c.temp_table_name)
         self.assertEquals(cursor.fetchone()[0], 0)
         cursor.execute("""SELECT count(*) FROM %s;""" % c.model._meta.db_table)
@@ -298,8 +299,7 @@ class PostgresCopyTest(TestCase):
         self.assertEquals(cursor.fetchone()[0], 3)
 
         c.drop(cursor)
-        cursor.execute("""SELECT to_regclass('%s');""" % c.temp_table_name)
-        self.assertIsNone(cursor.fetchone()[0])
+        self.assertEquals(cursor.statusmessage, 'DROP TABLE')
         cursor.close()
 
     def test_hooks(self):
@@ -320,7 +320,6 @@ class PostgresCopyTest(TestCase):
         self.assertTrue(c.ran_post_copy)
         self.assertRaises(AttributeError, lambda: c.ran_pre_insert)
         self.assertRaises(AttributeError, lambda: c.ran_post_insert)
-
 
         c.insert(cursor)
         self.assertTrue(c.ran_pre_copy)
