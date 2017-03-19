@@ -59,105 +59,6 @@ class CopyMapping(object):
         # Make sure the everything is legit
         self.validate_mapping()
 
-    def get_field(self, name):
-        """
-        Returns any fields on the database model matching the provided name.
-        """
-        try:
-            return [f for f in self.model._meta.fields if f.name == name][0]
-        except IndexError:
-            return None
-
-    def validate_mapping(self):
-        """
-        Verify that the mapping provided by the user is acceptable.
-
-        Raises errors if something goes wrong. Returns nothing if everything is kosher.
-        """
-        # Make sure all of the CSV headers in the mapping actually exist
-        for map_header in self.mapping.values():
-            if map_header not in self.headers:
-                raise ValueError("Header '%s' not found in CSV file" % map_header)
-
-        # Make sure all the model fields in the mapping actually exist
-        for map_field in self.mapping.keys():
-            if not self.get_field(map_field):
-                raise ValueError("Model does not include %s field" % map_field)
-
-        # Make sure any static mapping columns exist
-        for static_field in self.static_mapping.keys():
-            if not self.get_field(static_field):
-                raise ValueError("Model does not include %s field" % static_field)
-
-    def create(self, cursor):
-        """
-        Generate and run create sql for the temp table.
-        Runs a DROP on same prior to CREATE to avoid collisions.
-
-        cursor:
-          A cursor object on the db
-        """
-        self.drop(cursor)
-        create_sql = self.prep_create()
-        cursor.execute(create_sql)
-
-    def pre_copy(self, cursor):
-        pass
-
-    def copy(self, cursor):
-        """
-        Generate and run the COPY command to copy data from csv to temp table.
-        Calls `self.pre_copy(cursor)` and `self.post_copy(cursor)` respectively
-        before and after running copy
-
-        cursor:
-          A cursor object on the db
-        """
-        self.pre_copy(cursor)
-        copy_sql = self.prep_copy()
-        fp = open(self.csv_path, 'r')
-        cursor.copy_expert(copy_sql, fp)
-        self.post_copy(cursor)
-
-    def post_copy(self, cursor):
-        pass
-
-    def pre_insert(self, cursor):
-        pass
-
-    def insert(self, cursor):
-        """
-        Generate and run the INSERT command to move data from the temp table
-        to the concrete table.
-        Calls `self.pre_copy(cursor)` and `self.post_copy(cursor)` respectively
-        before and after running copy
-
-        returns: the count of rows inserted
-
-        cursor:
-          A cursor object on the db
-        """
-        self.pre_insert(cursor)
-        insert_sql = self.prep_insert()
-        cursor.execute(insert_sql)
-        insert_count = cursor.rowcount
-        self.post_insert(cursor)
-
-        return insert_count
-
-    def post_insert(self, cursor):
-        pass
-
-    def drop(self, cursor):
-        """
-        Generate and run the DROP command for the temp table.
-
-        cursor:
-          A cursor object on the db
-        """
-        drop_sql = self.prep_drop()
-        cursor.execute(drop_sql)
-
     def save(self, silent=False, stream=sys.stdout):
         """
         Saves the contents of the CSV file to the database.
@@ -191,6 +92,15 @@ class CopyMapping(object):
                 "%s records loaded\n" % intcomma(insert_count)
             )
 
+    def get_field(self, name):
+        """
+        Returns any fields on the database model matching the provided name.
+        """
+        try:
+            return [f for f in self.model._meta.fields if f.name == name][0]
+        except IndexError:
+            return None
+
     def get_headers(self):
         """
         Returns the column headers from the csv as a list.
@@ -200,13 +110,30 @@ class CopyMapping(object):
             headers = next(csv_reader)
         return headers
 
-    def prep_drop(self):
+    def validate_mapping(self):
         """
-        Creates a DROP statement that gets rid of the temporary table.
+        Verify that the mapping provided by the user is acceptable.
 
-        Return SQL that can be run.
+        Raises errors if something goes wrong. Returns nothing if everything is kosher.
         """
-        return "DROP TABLE IF EXISTS %s;" % self.temp_table_name
+        # Make sure all of the CSV headers in the mapping actually exist
+        for map_header in self.mapping.values():
+            if map_header not in self.headers:
+                raise ValueError("Header '%s' not found in CSV file" % map_header)
+
+        # Make sure all the model fields in the mapping actually exist
+        for map_field in self.mapping.keys():
+            if not self.get_field(map_field):
+                raise ValueError("Model does not include %s field" % map_field)
+
+        # Make sure any static mapping columns exist
+        for static_field in self.static_mapping.keys():
+            if not self.get_field(static_field):
+                raise ValueError("Model does not include %s field" % static_field)
+
+    #
+    # CREATE commands
+    #
 
     def prep_create(self):
         """
@@ -233,6 +160,22 @@ class CopyMapping(object):
         # Mash together the SQL and pass it out
         return sql % options
 
+    def create(self, cursor):
+        """
+        Generate and run create sql for the temp table.
+        Runs a DROP on same prior to CREATE to avoid collisions.
+
+        cursor:
+          A cursor object on the db
+        """
+        self.drop(cursor)
+        create_sql = self.prep_create()
+        cursor.execute(create_sql)
+
+    #
+    # COPY commands
+    #
+
     def prep_copy(self):
         """
         Creates a COPY statement that loads the CSV into a temporary table.
@@ -258,6 +201,32 @@ class CopyMapping(object):
         if self.encoding:
             options['extra_options'] += " ENCODING '%s'" % self.encoding
         return sql % options
+
+    def pre_copy(self, cursor):
+        pass
+
+    def copy(self, cursor):
+        """
+        Generate and run the COPY command to copy data from csv to temp table.
+
+        Calls `self.pre_copy(cursor)` and `self.post_copy(cursor)` respectively
+        before and after running copy
+
+        cursor:
+          A cursor object on the db
+        """
+        self.pre_copy(cursor)
+        copy_sql = self.prep_copy()
+        fp = open(self.csv_path, 'r')
+        cursor.copy_expert(copy_sql, fp)
+        self.post_copy(cursor)
+
+    def post_copy(self, cursor):
+        pass
+
+    #
+    # INSERT commands
+    #
 
     def prep_insert(self):
         """
@@ -326,3 +295,52 @@ class CopyMapping(object):
 
         # Pass it out
         return sql % options
+
+    def pre_insert(self, cursor):
+        pass
+
+    def insert(self, cursor):
+        """
+        Generate and run the INSERT command to move data from the temp table
+        to the concrete table.
+
+        Calls `self.pre_copy(cursor)` and `self.post_copy(cursor)` respectively
+        before and after running copy
+
+        returns: the count of rows inserted
+
+        cursor:
+          A cursor object on the db
+        """
+        self.pre_insert(cursor)
+        insert_sql = self.prep_insert()
+        cursor.execute(insert_sql)
+        insert_count = cursor.rowcount
+        self.post_insert(cursor)
+
+        return insert_count
+
+    def post_insert(self, cursor):
+        pass
+
+    #
+    # DROP commands
+    #
+
+    def prep_drop(self):
+        """
+        Creates a DROP statement that gets rid of the temporary table.
+
+        Return SQL that can be run.
+        """
+        return "DROP TABLE IF EXISTS %s;" % self.temp_table_name
+
+    def drop(self, cursor):
+        """
+        Generate and run the DROP command for the temp table.
+
+        cursor:
+          A cursor object on the db
+        """
+        drop_sql = self.prep_drop()
+        cursor.execute(drop_sql)
