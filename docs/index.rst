@@ -54,7 +54,7 @@ The package can be installed from the Python Package Index with `pip`.
     $ pip install django-postgres-copy
 
 You will of course have to have Django, PostgreSQL and an adapter between the
-two (like psycopg2) already installed to put this library to use. 
+two (like psycopg2) already installed to put this library to use.
 
 An example
 ----------
@@ -240,7 +240,6 @@ This example loads in the column as the forgiving `text <http://www.postgresql.o
 
 
   class MyIntegerField(IntegerField):
-      copy_type = 'text'
       copy_template = """
           CASE
               WHEN "%(name)s" = 'yes' THEN 1
@@ -269,8 +268,6 @@ A second approach is to provide a SQL string for how to transform a field during
 
 You must name the method so that the field name is sandwiched between ``copy_`` and ``_template``. It must return a string interpolation keyed to "name", where the name of the database column will be slotted.
 
-You can optionally give the temporary field a different data type, like the more-permissive ``text`` type, by setting the ``copy_type`` attribute on the model method.
-
 For the example above, the model might be modified to look like this.
 
 .. code-block:: python
@@ -288,7 +285,6 @@ For the example above, the model might be modified to look like this.
                   WHEN "%(name)s" = 'no' THEN 0
               END
               """
-        copy_value_template.copy_type = 'text'
 
 And that's it.
 
