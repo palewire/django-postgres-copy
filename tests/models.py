@@ -13,7 +13,6 @@ class MockObject(models.Model):
 
     def copy_name_template(self):
         return 'upper("%(name)s")'
-    copy_name_template.copy_type = 'text'
 
 
 class ExtendedMockObject(models.Model):
@@ -28,7 +27,6 @@ class ExtendedMockObject(models.Model):
 
     def copy_name_template(self):
         return 'upper("%(name)s")'
-    copy_name_template.copy_type = 'text'
 
 
 class LimitedMockObject(models.Model):
@@ -40,7 +38,6 @@ class LimitedMockObject(models.Model):
 
     def copy_name_template(self):
         return 'upper("%(name)s")'
-    copy_name_template.copy_type = 'text'
 
 
 class OverloadMockObject(models.Model):
@@ -55,8 +52,6 @@ class OverloadMockObject(models.Model):
 
     def copy_upper_name_template(self):
         return 'upper("%(name)s")'
-    copy_upper_name_template.copy_type = 'text'
 
     def copy_lower_name_template(self):
         return 'lower("%(name)s")'
-    copy_lower_name_template.copy_type = 'text'
