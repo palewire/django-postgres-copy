@@ -327,7 +327,7 @@ And your loader would look like this:
 Extending with hooks
 --------------------
 
-The ```CopyMapping`` loader includes optional hooks run before and after the COPY statement that loads your CSV into a temporary table and again before and again the INSERT statement that then slots it into your model.
+The ``CopyMapping`` loader includes optional hooks run before and after the COPY statement that loads your CSV into a temporary table and again before and again the INSERT statement that then slots it into your model.
 
 If you have extra steps or more complicated logic you'd like to work into a loading routine, these hooks provide an opportunity to extend the base library.
 
