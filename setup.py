@@ -39,7 +39,7 @@ setup(
     description="Quickly load comma-delimited data into a Django model using PostgreSQL's COPY command",
     author='Ben Welsh',
     author_email='ben.welsh@gmail.com',
-    url='http://www.github.com/california-civic-data-coalition/django-postgres-copy/',
+    url='http://django-postgres-copy.californiacivicdata.org/',
     license="MIT",
     packages=("postgres_copy",),
     install_requires=(),
@@ -54,6 +54,7 @@ setup(
         'Framework :: Django :: 1.8',
         'Framework :: Django :: 1.9',
         'Framework :: Django :: 1.10',
+        'Framework :: Django :: 1.11',
         'License :: OSI Approved :: MIT License',
     ],
 )
