@@ -358,7 +358,7 @@ To try them out, subclass ``CopyMapping`` and fill in as many of the optional ho
 
 Now you can run that subclass as you normally would its parent
 
-... code-block:: python
+.. code-block:: python
 
     from myapp.models import Person
     from myapp.loaders import HookedCopyMapping
