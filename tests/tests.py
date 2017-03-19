@@ -4,7 +4,8 @@ from .models import (
     MockObject,
     ExtendedMockObject,
     LimitedMockObject,
-    OverloadMockObject
+    OverloadMockObject,
+    HookedCopyMapping
 )
 from postgres_copy import CopyMapping
 from django.test import TestCase
@@ -206,15 +207,15 @@ class PostgresCopyTest(TestCase):
             ExtendedMockObject,
             self.name_path,
             dict(name='NAME', number='NUMBER', dt='DATE'),
-            static_mapping={'static_val':1,'static_string':'test'}
+            static_mapping=dict(static_val=1, static_string='test')
         )
         c.save()
         self.assertEqual(
-            ExtendedMockObject.objects.filter(static_val = 1).count(),
+            ExtendedMockObject.objects.filter(static_val=1).count(),
             3
         )
         self.assertEqual(
-            ExtendedMockObject.objects.filter(static_string = 'test').count(),
+            ExtendedMockObject.objects.filter(static_string='test').count(),
             3
         )
 
@@ -225,24 +226,9 @@ class PostgresCopyTest(TestCase):
                 self.name_path,
                 dict(name='NAME', number='NUMBER', dt='DATE'),
                 encoding='UTF-8',
-                static_mapping={'static_bad':1,}
+                static_mapping=dict(static_bad=1)
             )
             c.save()
-
-    def test_save_foreign_key(self):
-        c = CopyMapping(
-            MockObject,
-            self.foreign_path,
-            dict(name='NAME', number='NUMBER', dt='DATE', parent='PARENT')
-        )
-
-        c.save()
-        self.assertEqual(MockObject.objects.count(), 3)
-        self.assertEqual(MockObject.objects.get(name='BEN').parent_id, 4)
-        self.assertEqual(
-            MockObject.objects.get(name='BEN').dt,
-            date(2012, 1, 1)
-        )
 
     def test_overload_save(self):
         c = CopyMapping(
@@ -264,8 +250,65 @@ class PostgresCopyTest(TestCase):
 
     def test_missing_overload_field(self):
         with self.assertRaises(ValueError):
-            c = CopyMapping(
+            CopyMapping(
                 OverloadMockObject,
                 self.name_path,
                 dict(name='NAME', number='NUMBER', dt='DATE', missing='NAME'),
             )
+
+    def test_save_steps(self):
+        c = CopyMapping(
+            MockObject,
+            self.name_path,
+            dict(name='NAME', number='NUMBER', dt='DATE'),
+        )
+        cursor = c.conn.cursor()
+
+        c.create(cursor)
+        cursor.execute("""SELECT count(*) FROM %s;""" % c.temp_table_name)
+        self.assertEquals(cursor.fetchone()[0], 0)
+        cursor.execute("""SELECT count(*) FROM %s;""" % c.model._meta.db_table)
+        self.assertEquals(cursor.fetchone()[0], 0)
+
+        c.copy(cursor)
+        cursor.execute("""SELECT count(*) FROM %s;""" % c.temp_table_name)
+        self.assertEquals(cursor.fetchone()[0], 3)
+        cursor.execute("""SELECT count(*) FROM %s;""" % c.model._meta.db_table)
+        self.assertEquals(cursor.fetchone()[0], 0)
+
+        c.insert(cursor)
+        cursor.execute("""SELECT count(*) FROM %s;""" % c.model._meta.db_table)
+        self.assertEquals(cursor.fetchone()[0], 3)
+
+        c.drop(cursor)
+        self.assertEquals(cursor.statusmessage, 'DROP TABLE')
+        cursor.close()
+
+    def test_hooks(self):
+        c = HookedCopyMapping(
+            MockObject,
+            self.name_path,
+            dict(name='NAME', number='NUMBER', dt='DATE'),
+        )
+        cursor = c.conn.cursor()
+
+        c.create(cursor)
+        self.assertRaises(AttributeError, lambda: c.ran_pre_copy)
+        self.assertRaises(AttributeError, lambda: c.ran_post_copy)
+        self.assertRaises(AttributeError, lambda: c.ran_pre_insert)
+        self.assertRaises(AttributeError, lambda: c.ran_post_insert)
+
+        c.copy(cursor)
+        self.assertTrue(c.ran_pre_copy)
+        self.assertTrue(c.ran_post_copy)
+        self.assertRaises(AttributeError, lambda: c.ran_pre_insert)
+        self.assertRaises(AttributeError, lambda: c.ran_post_insert)
+
+        c.insert(cursor)
+        self.assertTrue(c.ran_pre_copy)
+        self.assertTrue(c.ran_post_copy)
+        self.assertTrue(c.ran_pre_insert)
+        self.assertTrue(c.ran_post_insert)
+
+        c.drop(cursor)
+        cursor.close()

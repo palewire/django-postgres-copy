@@ -7,11 +7,9 @@ Quickly load comma-delimited data into a Django model using PostgreSQL's COPY co
 Why and what for?
 -----------------
 
-`The people <http://www.californiacivicdata.org/about/>`_ who made this library are data journalists.
-We are often downloading, cleaning and analyzing new data.
+`The people <http://www.californiacivicdata.org/about/>`_ who made this library are data journalists. We are often downloading, cleaning and analyzing new data.
 
-That means we write a load of loaders. You can usually do this by looping through each row
-and saving it to the database using the Django's ORM `create method <https://docs.djangoproject.com/en/1.8/ref/models/querysets/#django.db.models.query.QuerySet.create>`_.
+That means we write a load of loaders. You can usually do this by looping through each row and saving it to the database using the Django's ORM `create method <https://docs.djangoproject.com/en/1.10/ref/models/querysets/#django.db.models.query.QuerySet.create>`_.
 
 .. code-block:: python
 
@@ -24,12 +22,9 @@ and saving it to the database using the Django's ORM `create method <https://doc
 
 But if you have a big CSV, Django will rack up database queries and it can take a long time to finish.
 
-Lucky for us, PostgreSQL has a built-in tool called `COPY <http://www.postgresql.org/docs/9.4/static/sql-copy.html>`_ that will hammer data into the
-database with one quick query.
+Lucky for us, PostgreSQL has a built-in tool called `COPY <http://www.postgresql.org/docs/9.4/static/sql-copy.html>`_ that will hammer data into the database with one quick query.
 
-This package tries to make using COPY as easy any other database routine supported by Django. It is
-largely based on the design of the `LayerMapping <https://docs.djangoproject.com/en/1.8/ref/contrib/gis/layermapping/>`_
-utility for importing geospatial data.
+This package tries to make using COPY as easy any other database routine supported by Django. It is largely based on the design of the `LayerMapping <https://docs.djangoproject.com/en/1.8/ref/contrib/gis/layermapping/>`_ utility for importing geospatial data.
 
 .. code-block:: python
 
@@ -53,14 +48,12 @@ The package can be installed from the Python Package Index with `pip`.
 
     $ pip install django-postgres-copy
 
-You will of course have to have Django, PostgreSQL and an adapter between the
-two (like psycopg2) already installed to put this library to use.
+You will of course have to have Django, PostgreSQL and an adapter between the two (like psycopg2) already installed to put this library to use.
 
 An example
 ----------
 
-It all starts with a CSV file you'd like to load into your database. This library
-is intended to be used with large files but here's something simple as an example.
+It all starts with a CSV file you'd like to load into your database. This library is intended to be used with large files but here's something simple as an example.
 
 .. code-block:: text
 
@@ -87,8 +80,7 @@ If the model hasn't been created in your database, that needs to happen.
 
     $ python manage.py migrate
 
-Create a loader that uses this library to load CSV data into the model. One place you could
-put it is in a Django management command.
+Create a loader that uses this library to load CSV data into the model. One place you could put it is in a Django management command.
 
 .. code-block:: python
 
@@ -125,7 +117,7 @@ Like I said, that's it!
 ``CopyMapping`` API
 -------------------
 
-.. class:: CopyMapping(model, csv_path, mapping[, using=None, delimiter=',', null=None, encoding=None])
+.. class:: CopyMapping(model, csv_path, mapping[, using=None, delimiter=',', null=None, encoding=None, static_mapping=None])
 
 The following are the arguments and keywords that may be used during
 instantiation of ``CopyMapping`` objects.
@@ -175,8 +167,7 @@ Keyword Arguments
 
 .. method:: CopyMapping.save([silent=False, stream=sys.stdout])
 
-The ``save()`` method also accepts keywords.  These keywords are
-used for controlling output logging and error handling.
+The ``save()`` method also accepts keywords.  These keywords are used for controlling output logging and error handling.
 
 ===========================  =================================================
 Keyword Arguments            Description
@@ -194,12 +185,9 @@ Keyword Arguments            Description
 Transforming data
 -----------------
 
-By default, the COPY command cannot transform data on-the-fly as it is loaded into
-the database.
+By default, the COPY command cannot transform data on-the-fly as it is loaded into the database.
 
-This library first loads the data into a temporary table
-before inserting all records into the model table. So it is possible to use PostgreSQL's
-built-in SQL methods to modify values during the insert.
+This library first loads the data into a temporary table before inserting all records into the model table. So it is possible to use PostgreSQL's built-in SQL methods to modify values during the insert.
 
 As an example, imagine a CSV that includes a column of yes and no values that you wanted to store in the database as 1 or 0 in an integer field.
 
@@ -230,9 +218,9 @@ Custom-field transformations
 
 One approach is to create a custom Django field.
 
-You can set a temporary data type for a column when it is first loaded, and then provide a SQL string for how to transform it during the insert into the model table. The transformation must include a string interpolation keyed to "name", where the name of the database column will be slotted.
+You can provide a SQL statement for how to transform the data during the insert into the model table. The transformation must include a string interpolation keyed to "name", where the title of the database column will be slotted.
 
-This example loads in the column as the forgiving `text <http://www.postgresql.org/docs/9.4/static/datatype-character.html>`_ data type and then uses a `CASE statement <http://www.postgresql.org/docs/9.4/static/plpgsql-control-structures.html>`_ to transforms the data using a CASE statement.
+This example uses a `CASE statement <http://www.postgresql.org/docs/9.4/static/plpgsql-control-structures.html>`_ to transforms the data.
 
 .. code-block:: python
 
@@ -264,9 +252,9 @@ Run your loader and it should finish fine.
 Model-method transformations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-A second approach is to provide a SQL string for how to transform a field during the insert on the model itself. This lets you specific different transformations for different fields of the same type.
+A second approach is to provide a SQL string for how to transform a field during the insert on the model itself. This lets you specify different transformations for different fields of the same type.
 
-You must name the method so that the field name is sandwiched between ``copy_`` and ``_template``. It must return a string interpolation keyed to "name", where the name of the database column will be slotted.
+You must name the method so that the field name is sandwiched between ``copy_`` and ``_template``. It must return a SQL statement with a string interpolation keyed to "name", where the name of the database column will be slotted.
 
 For the example above, the model might be modified to look like this.
 
@@ -292,12 +280,9 @@ And that's it.
 Inserting static values
 -----------------------
 
-If your model has columns that are not in the CSV, you can set static values
-for what is inserted using the ``static_mapping`` keyword argument. It will
-insert the provided values into every row in the database.
+If your model has columns that are not in the CSV, you can set static values for what is inserted using the ``static_mapping`` keyword argument. It will insert the provided values into every row in the database.
 
-An example could be if you want to include the name of the source CSV file
-along with each row.
+An example could be if you want to include the name of the source CSV file along with each row.
 
 Your model might look like this:
 
@@ -337,6 +322,61 @@ And your loader would look like this:
             )
             # Then save it.
             c.save()
+
+
+Extending with hooks
+--------------------
+
+The ```CopyMapping`` loader includes optional hooks run before and after the COPY statement that loads your CSV into a temporary table and again before and again the INSERT statement that then slots it into your model.
+
+If you have extra steps or more complicated logic you'd like to work into a loading routine, these hooks provide an opportunity to extend the base library.
+
+To try them out, subclass ``CopyMapping`` and fill in as many of the optional hook methods below as you need.
+
+.. code-block:: python
+
+    from postgres_copy import CopyMapping
+
+
+    class HookedCopyMapping(CopyMapping):
+        def pre_copy(self, cursor):
+            print "pre_copy!"
+            # Doing whatever you'd like here
+
+        def post_copy(self, cursor):
+            print "post_copy!"
+            # And here
+
+        def pre_insert(self, cursor):
+            print "pre_insert!"
+            # And here
+
+        def post_insert(self, cursor):
+            print "post_insert!"
+            # And finally here
+
+
+Now you can run that subclass as you normally would its parent
+
+... code-block:: python
+
+    from myapp.models import Person
+    from myapp.loaders import HookedCopyMapping
+    from django.core.management.base import BaseCommand
+
+
+    class Command(BaseCommand):
+
+        def handle(self, *args, **kwargs):
+            # Note that we're using HookedCopyMapping here
+            c = HookedCopyMapping(
+                Person,
+                '/path/to/my/data.csv',
+                dict(name='NAME', number='NUMBER'),
+            )
+            # Then save it.
+            c.save()
+
 
 Open-source resources
 ---------------------

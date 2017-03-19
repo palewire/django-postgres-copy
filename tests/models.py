@@ -1,5 +1,6 @@
 from django.db import models
 from .fields import MyIntegerField
+from postgres_copy import CopyMapping
 
 
 class MockObject(models.Model):
@@ -55,3 +56,17 @@ class OverloadMockObject(models.Model):
 
     def copy_lower_name_template(self):
         return 'lower("%(name)s")'
+
+
+class HookedCopyMapping(CopyMapping):
+    def pre_copy(self, cursor):
+        self.ran_pre_copy = True
+
+    def post_copy(self, cursor):
+        self.ran_post_copy = True
+
+    def pre_insert(self, cursor):
+        self.ran_pre_insert = True
+
+    def post_insert(self, cursor):
+        self.ran_post_insert = True
