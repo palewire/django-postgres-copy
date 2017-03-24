@@ -284,7 +284,7 @@ Here's another example of a common issue, transforming the CSV's date format to 
             return """
                 CASE
                     WHEN "%(name)s" = '' THEN NULL
-                    ELSE to_date("%(name)s", 'MM/DD/YYYY') ## <-- The source CSV's date pattern can be set here. 
+                    ELSE to_date("%(name)s", 'MM/DD/YYYY') /* The source CSV's date pattern can be set here. */
                 END
             """
 
