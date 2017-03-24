@@ -276,6 +276,19 @@ For the example above, the model might be modified to look like this.
 
 And that's it.
 
+Here's another example of a common issue, transforming the CSV's date format to one PostgreSQL and Django will understand.
+
+.. code-block:: python
+
+        def copy_mydatefield_template(self):
+            return """
+                CASE
+                    WHEN "%(name)s" = '' THEN NULL
+                    ELSE to_date("%(name)s", 'MM/DD/YYYY') /* The source CSV's date pattern can be set here. */
+                END
+            """
+
+It's important to handle empty strings (by converting them to NULL) in this example. PostgreSQL will accept empty strings, but Django won't be able to ingest the field and you'll get a strange "year out of range" error when you call something like ``MyModel.objects.all()``.
 
 Inserting static values
 -----------------------
