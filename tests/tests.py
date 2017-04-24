@@ -114,6 +114,21 @@ class PostgresCopyTest(TestCase):
             date(2012, 1, 1)
         )
 
+    def test_save_foreign_key_by_id(self):
+        c = CopyMapping(
+            MockObject,
+            self.foreign_path,
+            dict(name='NAME', number='NUMBER', dt='DATE', parent_id='PARENT')
+        )
+
+        c.save()
+        self.assertEqual(MockObject.objects.count(), 3)
+        self.assertEqual(MockObject.objects.get(name='BEN').parent_id, 4)
+        self.assertEqual(
+            MockObject.objects.get(name='BEN').dt,
+            date(2012, 1, 1)
+        )
+
     def test_silent_save(self):
         c = CopyMapping(
             MockObject,
