@@ -97,7 +97,7 @@ class CopyMapping(object):
         Returns any fields on the database model matching the provided name.
         """
         try:
-            return [f for f in self.model._meta.fields if f.name == name][0]
+            return [f for f in self.model._meta.fields if name in [f.name, f.attname]][0]
         except IndexError:
             return None
 
