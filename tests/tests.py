@@ -18,6 +18,7 @@ class PostgresCopyTest(TestCase):
         self.name_path = os.path.join(self.data_dir, 'names.csv')
         self.foreign_path = os.path.join(self.data_dir, 'foreignkeys.csv')
         self.pipe_path = os.path.join(self.data_dir, 'pipes.csv')
+        self.quote_path = os.path.join(self.data_dir, 'quote.csv')
         self.null_path = os.path.join(self.data_dir, 'nulls.csv')
         self.backwards_path = os.path.join(self.data_dir, 'backwards.csv')
 
@@ -157,6 +158,20 @@ class PostgresCopyTest(TestCase):
             MockObject.objects.get(name='BEN').dt,
             date(2012, 1, 1)
         )
+
+    def test_quote_save(self):
+        c = CopyMapping(
+            MockObject,
+            self.quote_path,
+            dict(name='NAME', number='NUMBER', dt='DATE'),
+            delimiter="\t",
+            quote_character='`'
+        )
+        c.save()
+        self.assertEqual(MockObject.objects.count(), 3)
+        self.assertEqual(MockObject.objects.get(number=1).name, 'B`EN')
+        self.assertEqual(MockObject.objects.get(number=2).name, 'JO\tE')
+        self.assertEqual(MockObject.objects.get(number=3).name, 'JAN"E')
 
     def test_null_save(self):
         c = CopyMapping(
