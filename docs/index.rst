@@ -142,6 +142,10 @@ Keyword Arguments
                        By default  it is ",". This must be a single one-byte
                        character.
 
+``quote_character``    Specifies the quoting character to be used when a
+                       data value is quoted. The default is double-quote.
+                       This must be a single one-byte character.
+
 ``null``               Specifies the string that represents a null value.
                        The default is an unquoted empty string. This must
                        be a single one-byte character.
