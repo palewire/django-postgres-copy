@@ -22,6 +22,7 @@ class CopyMapping(object):
         mapping,
         using=None,
         delimiter=',',
+        quote_character=None,
         null=None,
         encoding=None,
         static_mapping=None
@@ -34,6 +35,7 @@ class CopyMapping(object):
             raise ValueError("csv_path does not exist")
 
         # Hook in the other optional settings
+        self.quote_character = quote_character
         self.delimiter = delimiter
         self.null = null
         self.encoding = encoding
@@ -194,6 +196,8 @@ class CopyMapping(object):
                 '"%s"' % h for h in self.headers
             ])
         }
+        if self.quote_character:
+            options['extra_options'] += " QUOTE '%s'" % self.quote_character
         if self.delimiter:
             options['extra_options'] += " DELIMITER '%s'" % self.delimiter
         if self.null is not None:
