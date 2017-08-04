@@ -24,6 +24,8 @@ class CopyMapping(object):
         delimiter=',',
         quote_character=None,
         null=None,
+        force_not_null=None,
+        force_null=None,
         encoding=None,
         static_mapping=None
     ):
@@ -38,6 +40,8 @@ class CopyMapping(object):
         self.quote_character = quote_character
         self.delimiter = delimiter
         self.null = null
+        self.force_not_null = force_not_null
+        self.force_null = force_null
         self.encoding = encoding
         if static_mapping is not None:
             self.static_mapping = OrderedDict(static_mapping)
@@ -202,6 +206,10 @@ class CopyMapping(object):
             options['extra_options'] += " DELIMITER '%s'" % self.delimiter
         if self.null is not None:
             options['extra_options'] += " NULL '%s'" % self.null
+        if self.force_not_null is not None:
+            options['extra_options'] += " FORCE NOT NULL %s" % ','.join('"%s"' % s for s in self.force_not_null)
+        if self.force_null is not None:
+            options['extra_options'] += " FORCE NULL %s" % ','.join('"%s"' % s for s in self.force_null)
         if self.encoding:
             options['extra_options'] += " ENCODING '%s'" % self.encoding
         return sql % options
