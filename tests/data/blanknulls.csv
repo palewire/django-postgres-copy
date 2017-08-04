@@ -1,0 +1,6 @@
+NAME,NUMBER,DATE,COLOR
+ben,1,2012-01-01,red
+joe,2,2012-01-02,green
+jane,3,2012-01-03,orange
+nullboy,,2012-01-04,
+badboy,x,2012-01-05,blue

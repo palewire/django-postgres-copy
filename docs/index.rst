@@ -117,7 +117,7 @@ Like I said, that's it!
 ``CopyMapping`` API
 -------------------
 
-.. class:: CopyMapping(model, csv_path, mapping[, using=None, delimiter=',', null=None, encoding=None, static_mapping=None])
+.. class:: CopyMapping(model, csv_path, mapping[, using=None, delimiter=',', null=None, force_not_null=None, force_null=None, encoding=None, static_mapping=None])
 
 The following are the arguments and keywords that may be used during
 instantiation of ``CopyMapping`` objects.
@@ -149,6 +149,19 @@ Keyword Arguments
 ``null``               Specifies the string that represents a null value.
                        The default is an unquoted empty string. This must
                        be a single one-byte character.
+
+``force_not_null``     Specifies which columns that should ignore matches
+                       against the null string. Empty values in these columns
+                       will remain zero-length strings rather than becoming
+                       nulls. The default is None. If passed, this must be
+                       list of column names.
+
+``force_null``         Specifies which columns that should register matches
+                       against the null string, even if it has been quoted.
+                       In the default case where the null string is empty,
+                       this converts a quoted empty string into NULL. The
+                       default is None. If passed, this must be list of
+                       column names.
 
 ``encoding``           Specifies the character set encoding of the strings
                        in the CSV data source.  For example, ``'latin-1'``,

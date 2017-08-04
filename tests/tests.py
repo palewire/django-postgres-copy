@@ -2,6 +2,7 @@ import os
 from datetime import date
 from .models import (
     MockObject,
+    MockBlankObject,
     ExtendedMockObject,
     LimitedMockObject,
     OverloadMockObject,
@@ -19,6 +20,7 @@ class PostgresCopyTest(TestCase):
         self.foreign_path = os.path.join(self.data_dir, 'foreignkeys.csv')
         self.pipe_path = os.path.join(self.data_dir, 'pipes.csv')
         self.quote_path = os.path.join(self.data_dir, 'quote.csv')
+        self.blank_null_path = os.path.join(self.data_dir, 'blanknulls.csv')
         self.null_path = os.path.join(self.data_dir, 'nulls.csv')
         self.backwards_path = os.path.join(self.data_dir, 'backwards.csv')
 
@@ -179,6 +181,38 @@ class PostgresCopyTest(TestCase):
             self.null_path,
             dict(name='NAME', number='NUMBER', dt='DATE'),
             null='',
+        )
+        c.save()
+        self.assertEqual(MockObject.objects.count(), 5)
+        self.assertEqual(MockObject.objects.get(name='BEN').number, 1)
+        self.assertEqual(MockObject.objects.get(name='NULLBOY').number, None)
+        self.assertEqual(
+            MockObject.objects.get(name='BEN').dt,
+            date(2012, 1, 1)
+        )
+
+    def test_force_not_null_save(self):
+        c = CopyMapping(
+            MockBlankObject,
+            self.blank_null_path,
+            dict(name='NAME', number='NUMBER', dt='DATE', color='COLOR'),
+            force_not_null=('COLOR',),
+        )
+        c.save()
+        self.assertEqual(MockBlankObject.objects.count(), 5)
+        self.assertEqual(MockBlankObject.objects.get(name='BEN').color, 'red')
+        self.assertEqual(MockBlankObject.objects.get(name='NULLBOY').color, '')
+        self.assertEqual(
+            MockBlankObject.objects.get(name='BEN').dt,
+            date(2012, 1, 1)
+        )
+
+    def test_force_null_save(self):
+        c = CopyMapping(
+            MockObject,
+            self.null_path,
+            dict(name='NAME', number='NUMBER', dt='DATE'),
+            force_null=('NUMBER',),
         )
         c.save()
         self.assertEqual(MockObject.objects.count(), 5)
