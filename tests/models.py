@@ -16,6 +16,20 @@ class MockObject(models.Model):
         return 'upper("%(name)s")'
 
 
+class MockBlankObject(models.Model):
+    name = models.CharField(max_length=500)
+    number = MyIntegerField(null=True, db_column='num')
+    dt = models.DateField(null=True)
+    color = models.CharField(max_length=50, blank=True)
+    parent = models.ForeignKey('MockObject', null=True, default=None)
+
+    class Meta:
+        app_label = 'tests'
+
+    def copy_name_template(self):
+        return 'upper("%(name)s")'
+
+
 class ExtendedMockObject(models.Model):
     static_val = models.IntegerField()
     name = models.CharField(max_length=500)
