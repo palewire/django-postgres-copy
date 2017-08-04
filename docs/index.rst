@@ -150,13 +150,13 @@ Keyword Arguments
                        The default is an unquoted empty string. This must
                        be a single one-byte character.
 
-``force_not_null``     Specifies which columns that should ignore matches
+``force_not_null``     Specifies which columns should ignore matches
                        against the null string. Empty values in these columns
                        will remain zero-length strings rather than becoming
                        nulls. The default is None. If passed, this must be
                        list of column names.
 
-``force_null``         Specifies which columns that should register matches
+``force_null``         Specifies which columns should register matches
                        against the null string, even if it has been quoted.
                        In the default case where the null string is empty,
                        this converts a quoted empty string into NULL. The
