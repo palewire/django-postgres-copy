@@ -1,4 +1,5 @@
 import os
+import csv
 from datetime import date
 from .models import (
     MockObject,
@@ -12,7 +13,7 @@ from postgres_copy import CopyMapping
 from django.test import TestCase
 
 
-class PostgresCopyTest(TestCase):
+class BaseTest(TestCase):
 
     def setUp(self):
         self.data_dir = os.path.join(os.path.dirname(__file__), 'data')
@@ -29,6 +30,32 @@ class PostgresCopyTest(TestCase):
         ExtendedMockObject.objects.all().delete()
         LimitedMockObject.objects.all().delete()
         OverloadMockObject.objects.all().delete()
+
+
+class PostgresCopyToTest(BaseTest):
+
+    def test_export(self):
+        # Import the data
+        c = CopyMapping(
+            MockObject,
+            self.name_path,
+            dict(name='NAME', number='NUMBER', dt='DATE'),
+        )
+        c.save()
+        self.assertEqual(MockObject.objects.count(), 3)
+        # Now export it
+        export_path = os.path.join(os.path.dirname(__file__), 'export.csv')
+        MockObject.objects.to_csv(export_path)
+        self.assertTrue(os.path.exists(export_path))
+        reader = csv.DictReader(open(export_path, 'r'))
+        self.assertTrue(
+            ['BEN', 'JOE', 'JANE'],
+            [i['name'] for i in reader]
+        )
+        os.remove(export_path)
+
+
+class PostgresCopyTest(BaseTest):
 
     def test_bad_call(self):
         with self.assertRaises(TypeError):
