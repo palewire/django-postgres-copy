@@ -1,6 +1,7 @@
 from django.db import models
 from .fields import MyIntegerField
 from postgres_copy import CopyMapping
+from postgres_copy.managers import CopyToQuerySet
 
 
 class MockObject(models.Model):
@@ -8,6 +9,7 @@ class MockObject(models.Model):
     number = MyIntegerField(null=True, db_column='num')
     dt = models.DateField(null=True)
     parent = models.ForeignKey('MockObject', null=True, default=None)
+    objects = CopyToQuerySet.as_manager()
 
     class Meta:
         app_label = 'tests'
