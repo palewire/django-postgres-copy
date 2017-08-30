@@ -4,8 +4,8 @@
 Handlers for working with PostgreSQL's COPY TO command.
 """
 from __future__ import unicode_literals
+from django.db import connection
 from psycopg2.extensions import adapt
-from django.db import models, connection
 from django.db.models.sql.query import Query
 from django.db.models.sql.compiler import SQLCompiler
 
@@ -69,23 +69,3 @@ class CopyToQuery(Query):
         Return a SQLCopyToCompiler object.
         """
         return SQLCopyToCompiler(self, connection, using)
-
-
-class CopyToQuerySet(models.QuerySet):
-    """
-    Subclass of QuerySet that adds _copy_to_csv method.
-    """
-    def to_csv(self, csv_path, *fields):
-        """
-        Copy current objects in QuerySet to a file at csv_path.
-        Use optional fields arguments to specify the names of fields
-        to be copied and their order in the csv file.
-        Return a call to .execute_sql() on the compiler of the queryset's query.
-        """
-        query = self.query.clone(CopyToQuery)
-        query.copy_to_fields = fields
-        compiler = query.get_compiler(self.db, connection=connection)
-        compiler.execute_sql(csv_path)
-
-
-CopyToManager = models.Manager.from_queryset(CopyToQuerySet)

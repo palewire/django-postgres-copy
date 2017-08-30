@@ -103,12 +103,10 @@ class PostgresCopyTest(BaseTest):
         )
 
     def test_simple_save(self):
-        c = CopyMapping(
-            MockObject,
+        MockObject.objects.from_csv(
             self.name_path,
-            dict(name='NAME', number='NUMBER', dt='DATE'),
+            dict(name='NAME', number='NUMBER', dt='DATE')
         )
-        c.save()
         self.assertEqual(MockObject.objects.count(), 3)
         self.assertEqual(MockObject.objects.get(name='BEN').number, 1)
         self.assertEqual(
