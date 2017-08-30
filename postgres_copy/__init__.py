@@ -4,7 +4,7 @@ from django.db import models
 from django.db import connection
 from .copy_from import CopyMapping
 from .copy_to import SQLCopyToCompiler, CopyToQuery
-__version__ = '0.1.2'
+__version__ = '2.0.0'
 
 
 class CopyQuerySet(models.QuerySet):
