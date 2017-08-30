@@ -1,7 +1,7 @@
 from django.db import models
 from .fields import MyIntegerField
 from postgres_copy import CopyMapping
-from postgres_copy.managers import CopyToQuerySet
+from postgres_copy import CopyToQuerySet
 
 
 class MockObject(models.Model):
