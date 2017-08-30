@@ -4,3 +4,4 @@ build/*
 *.egg*
 dist
 .tox
+.python-version
