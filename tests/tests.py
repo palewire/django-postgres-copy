@@ -133,7 +133,6 @@ class PostgresCopyTest(BaseTest):
             self.foreign_path,
             dict(name='NAME', number='NUMBER', dt='DATE', parent='PARENT')
         )
-
         c.save()
         self.assertEqual(MockObject.objects.count(), 3)
         self.assertEqual(MockObject.objects.get(name='BEN').parent_id, 4)
@@ -148,7 +147,6 @@ class PostgresCopyTest(BaseTest):
             self.foreign_path,
             dict(name='NAME', number='NUMBER', dt='DATE', parent_id='PARENT')
         )
-
         c.save()
         self.assertEqual(MockObject.objects.count(), 3)
         self.assertEqual(MockObject.objects.get(name='BEN').parent_id, 4)
