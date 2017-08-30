@@ -10,7 +10,6 @@ import csv
 from collections import OrderedDict
 from django.db import connections, router
 from django.contrib.humanize.templatetags.humanize import intcomma
-__version__ = '0.1.2'
 
 
 class CopyMapping(object):
