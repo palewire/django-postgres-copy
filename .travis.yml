@@ -15,7 +15,7 @@ addons:
 env:
  - DJANGO_VERSION=1.8.18
  - DJANGO_VERSION=1.10.7
- - DJANGO_VERSION=1.11
+ - DJANGO_VERSION=1.11.4
 
 install:
  - pip install -r requirements.txt
