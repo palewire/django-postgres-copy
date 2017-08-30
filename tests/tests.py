@@ -115,12 +115,10 @@ class PostgresCopyTest(BaseTest):
         )
 
     def test_limited_save(self):
-        c = CopyMapping(
-            LimitedMockObject,
+        LimitedMockObject.objects.from_csv(
             self.name_path,
             dict(name='NAME', dt='DATE')
         )
-        c.save()
         self.assertEqual(LimitedMockObject.objects.count(), 3)
         self.assertEqual(
             LimitedMockObject.objects.get(name='BEN').dt,
@@ -128,12 +126,10 @@ class PostgresCopyTest(BaseTest):
         )
 
     def test_save_foreign_key(self):
-        c = CopyMapping(
-            MockObject,
+        MockObject.objects.from_csv(
             self.foreign_path,
             dict(name='NAME', number='NUMBER', dt='DATE', parent='PARENT')
         )
-        c.save()
         self.assertEqual(MockObject.objects.count(), 3)
         self.assertEqual(MockObject.objects.get(name='BEN').parent_id, 4)
         self.assertEqual(
@@ -142,12 +138,10 @@ class PostgresCopyTest(BaseTest):
         )
 
     def test_save_foreign_key_by_id(self):
-        c = CopyMapping(
-            MockObject,
+        MockObject.objects.from_csv(
             self.foreign_path,
             dict(name='NAME', number='NUMBER', dt='DATE', parent_id='PARENT')
         )
-        c.save()
         self.assertEqual(MockObject.objects.count(), 3)
         self.assertEqual(MockObject.objects.get(name='BEN').parent_id, 4)
         self.assertEqual(
@@ -170,13 +164,11 @@ class PostgresCopyTest(BaseTest):
         )
 
     def test_pipe_save(self):
-        c = CopyMapping(
-            MockObject,
+        MockObject.objects.from_csv(
             self.pipe_path,
             dict(name='NAME', number='NUMBER', dt='DATE'),
             delimiter="|",
         )
-        c.save()
         self.assertEqual(MockObject.objects.count(), 3)
         self.assertEqual(MockObject.objects.get(name='BEN').number, 1)
         self.assertEqual(
@@ -185,27 +177,23 @@ class PostgresCopyTest(BaseTest):
         )
 
     def test_quote_save(self):
-        c = CopyMapping(
-            MockObject,
+        MockObject.objects.from_csv(
             self.quote_path,
             dict(name='NAME', number='NUMBER', dt='DATE'),
             delimiter="\t",
             quote_character='`'
         )
-        c.save()
         self.assertEqual(MockObject.objects.count(), 3)
         self.assertEqual(MockObject.objects.get(number=1).name, 'B`EN')
         self.assertEqual(MockObject.objects.get(number=2).name, 'JO\tE')
         self.assertEqual(MockObject.objects.get(number=3).name, 'JAN"E')
 
     def test_null_save(self):
-        c = CopyMapping(
-            MockObject,
+        MockObject.objects.from_csv(
             self.null_path,
             dict(name='NAME', number='NUMBER', dt='DATE'),
             null='',
         )
-        c.save()
         self.assertEqual(MockObject.objects.count(), 5)
         self.assertEqual(MockObject.objects.get(name='BEN').number, 1)
         self.assertEqual(MockObject.objects.get(name='NULLBOY').number, None)
@@ -215,13 +203,11 @@ class PostgresCopyTest(BaseTest):
         )
 
     def test_force_not_null_save(self):
-        c = CopyMapping(
-            MockBlankObject,
+        MockBlankObject.objects.from_csv(
             self.blank_null_path,
             dict(name='NAME', number='NUMBER', dt='DATE', color='COLOR'),
             force_not_null=('COLOR',),
         )
-        c.save()
         self.assertEqual(MockBlankObject.objects.count(), 5)
         self.assertEqual(MockBlankObject.objects.get(name='BEN').color, 'red')
         self.assertEqual(MockBlankObject.objects.get(name='NULLBOY').color, '')
@@ -231,13 +217,11 @@ class PostgresCopyTest(BaseTest):
         )
 
     def test_force_null_save(self):
-        c = CopyMapping(
-            MockObject,
+        MockObject.objects.from_csv(
             self.null_path,
             dict(name='NAME', number='NUMBER', dt='DATE'),
             force_null=('NUMBER',),
         )
-        c.save()
         self.assertEqual(MockObject.objects.count(), 5)
         self.assertEqual(MockObject.objects.get(name='BEN').number, 1)
         self.assertEqual(MockObject.objects.get(name='NULLBOY').number, None)
@@ -247,12 +231,10 @@ class PostgresCopyTest(BaseTest):
         )
 
     def test_backwards_save(self):
-        c = CopyMapping(
-            MockObject,
+        MockObject.objects.from_csv(
             self.backwards_path,
             dict(name='NAME', number='NUMBER', dt='DATE'),
         )
-        c.save()
         self.assertEqual(MockObject.objects.count(), 3)
         self.assertEqual(MockObject.objects.get(name='BEN').number, 1)
         self.assertEqual(
@@ -261,12 +243,10 @@ class PostgresCopyTest(BaseTest):
         )
 
     def test_field_override_save(self):
-        c = CopyMapping(
-            MockObject,
+        MockObject.objects.from_csv(
             self.null_path,
             dict(name='NAME', number='NUMBER', dt='DATE'),
         )
-        c.save()
         self.assertEqual(MockObject.objects.count(), 5)
         self.assertEqual(MockObject.objects.get(name='BADBOY').number, None)
         self.assertEqual(
@@ -275,13 +255,11 @@ class PostgresCopyTest(BaseTest):
         )
 
     def test_encoding_save(self):
-        c = CopyMapping(
-            MockObject,
+        MockObject.objects.from_csv(
             self.null_path,
             dict(name='NAME', number='NUMBER', dt='DATE'),
             encoding='UTF-8'
         )
-        c.save()
         self.assertEqual(MockObject.objects.count(), 5)
         self.assertEqual(MockObject.objects.get(name='BADBOY').number, None)
         self.assertEqual(
@@ -290,13 +268,11 @@ class PostgresCopyTest(BaseTest):
         )
 
     def test_static_values(self):
-        c = CopyMapping(
-            ExtendedMockObject,
+        ExtendedMockObject.objects.from_csv(
             self.name_path,
             dict(name='NAME', number='NUMBER', dt='DATE'),
             static_mapping=dict(static_val=1, static_string='test')
         )
-        c.save()
         self.assertEqual(
             ExtendedMockObject.objects.filter(static_val=1).count(),
             3
@@ -308,22 +284,18 @@ class PostgresCopyTest(BaseTest):
 
     def test_bad_static_values(self):
         with self.assertRaises(ValueError):
-            c = CopyMapping(
-                ExtendedMockObject,
+            ExtendedMockObject.objects.from_csv(
                 self.name_path,
                 dict(name='NAME', number='NUMBER', dt='DATE'),
                 encoding='UTF-8',
                 static_mapping=dict(static_bad=1)
             )
-            c.save()
 
     def test_overload_save(self):
-        c = CopyMapping(
-            OverloadMockObject,
+        OverloadMockObject.objects.from_csv(
             self.name_path,
             dict(name='NAME', lower_name='NAME', upper_name='NAME', number='NUMBER', dt='DATE'),
         )
-        c.save()
         self.assertEqual(OverloadMockObject.objects.count(), 3)
         self.assertEqual(OverloadMockObject.objects.get(name='ben').number, 1)
         self.assertEqual(OverloadMockObject.objects.get(lower_name='ben').number, 1)

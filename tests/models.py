@@ -24,6 +24,7 @@ class MockBlankObject(models.Model):
     dt = models.DateField(null=True)
     color = models.CharField(max_length=50, blank=True)
     parent = models.ForeignKey('MockObject', null=True, default=None)
+    objects = CopyManager()
 
     class Meta:
         app_label = 'tests'
@@ -38,6 +39,7 @@ class ExtendedMockObject(models.Model):
     number = MyIntegerField(null=True, db_column='num')
     dt = models.DateField(null=True)
     static_string = models.CharField(max_length=5)
+    objects = CopyManager()
 
     class Meta:
         app_label = 'tests'
@@ -49,6 +51,7 @@ class ExtendedMockObject(models.Model):
 class LimitedMockObject(models.Model):
     name = models.CharField(max_length=500)
     dt = models.DateField(null=True)
+    objects = CopyManager()
 
     class Meta:
         app_label = 'tests'
@@ -63,6 +66,7 @@ class OverloadMockObject(models.Model):
     lower_name = models.CharField(max_length=500)
     number = MyIntegerField(null=True, db_column='num')
     dt = models.DateField(null=True)
+    objects = CopyManager()
 
     class Meta:
         app_label = 'tests'
