@@ -86,3 +86,6 @@ class CopyToQuerySet(models.QuerySet):
         query.copy_to_fields = fields
         compiler = query.get_compiler(self.db, connection=connection)
         compiler.execute_sql(csv_path)
+
+
+CopyToManager = models.Manager.from_queryset(CopyToQuerySet)

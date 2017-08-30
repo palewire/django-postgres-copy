@@ -5,6 +5,7 @@ from .copy_to import (
     SQLCopyToCompiler,
     CopyToQuery,
     CopyToQuerySet,
+    CopyToManager,
 )
 
 __all__ = (
@@ -12,4 +13,5 @@ __all__ = (
     'SQLCopyToCompiler',
     'CopyToQuery',
     'CopyToQuerySet',
+    'CopyToManager',
 )
