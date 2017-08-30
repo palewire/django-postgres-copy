@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""
+Handlers for working with PostgreSQL's COPY command.
+"""
+from __future__ import unicode_literals
 import os
 import sys
 import csv

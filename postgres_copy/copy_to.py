@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Custom managers for working with CAL-ACCESS processed data models.
+Handlers for working with PostgreSQL's COPY TO command.
 """
 from __future__ import unicode_literals
-from django.db import models, connection
-from django.db.models.sql.compiler import SQLCompiler
-from django.db.models.sql.query import Query
 from psycopg2.extensions import adapt
+from django.db import models, connection
+from django.db.models.sql.query import Query
+from django.db.models.sql.compiler import SQLCompiler
 
 
 class SQLCopyToCompiler(SQLCompiler):
