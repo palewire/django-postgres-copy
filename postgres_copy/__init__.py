@@ -9,18 +9,18 @@ __version__ = '0.1.2'
 
 class CopyQuerySet(models.QuerySet):
     """
-    Subclass of QuerySet that adds from_csv to to_csv methods.
+    Subclass of QuerySet that adds from_csv and to_csv methods.
     """
     def from_csv(self, csv_path, mapping, **kwargs):
         """
-        Copy CSV file to model using the provided mapping.
+        Copy CSV file from the provided path to the current model using the provided mapping.
         """
         mapping = CopyMapping(self.model, csv_path, mapping, **kwargs)
         mapping.save()
 
     def to_csv(self, csv_path, *fields):
         """
-        Copy current objects in QuerySet to a file at csv_path.
+        Copy current QuerySet to CSV at provided path.
         """
         query = self.query.clone(CopyToQuery)
         query.copy_to_fields = fields
