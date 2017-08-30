@@ -7,7 +7,7 @@ from __future__ import unicode_literals
 from django.db import models, connection
 from django.db.models.sql.compiler import SQLCompiler
 from django.db.models.sql.query import Query
-from psycopg2.sql import Literal
+from psycopg2.extensions import adapt
 
 
 class SQLCopyToCompiler(SQLCompiler):
@@ -36,20 +36,20 @@ class SQLCopyToCompiler(SQLCompiler):
         """
         Run the COPY TO query.
         """
+        # adapt SELECT query parameters to SQL syntax
+        params = self.as_sql()[1]
+        adapted_params = tuple(
+            adapt(p) for p in params
+        )
         # open file for writing
         # use stdout to avoid file permission issues
         with open(csv_path, 'wb') as stdout:
             with connection.cursor() as c:
-                # compose SELECT query parameters as sql strings
-                params = self.as_sql()[1]
-                adapted_params = tuple(
-                    Literal(p).as_string(c.cursor) for p in params
-                )
                 # compile the SELECT query
                 select_sql = self.as_sql()[0] % adapted_params
                 # then the COPY TO query
                 copy_to_sql = "COPY (%s) TO STDOUT CSV HEADER" % select_sql
-                # then executw
+                # then execute
                 c.cursor.copy_expert(copy_to_sql, stdout)
 
 
