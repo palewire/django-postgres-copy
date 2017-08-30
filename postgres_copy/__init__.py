@@ -16,7 +16,7 @@ class CopyQuerySet(models.QuerySet):
         Copy CSV file from the provided path to the current model using the provided mapping.
         """
         mapping = CopyMapping(self.model, csv_path, mapping, **kwargs)
-        mapping.save()
+        mapping.save(silent=True)
 
     def to_csv(self, csv_path, *fields):
         """
