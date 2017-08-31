@@ -34,7 +34,7 @@ CopyManager = models.Manager.from_queryset(CopyQuerySet)
 __all__ = (
     'CopyManager',
     'CopyMapping',
+    'CopyQuerySet',
     'CopyToQuery',
-    'CopyToQuerySet',
     'SQLCopyToCompiler',
 )
