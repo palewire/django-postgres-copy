@@ -70,17 +70,20 @@ It all starts with a CSV file you'd like to load into your database. This librar
     joe,2,2012-01-02
     jane,3,2012-01-03
 
-A Django model that corresponds to the data might look something like this.
+A Django model that corresponds to the data might look something like this. It should have our custom manager attached.
 
 .. code-block:: python
+    :emphasize-lines: 2,9
 
     from django.db import models
+    from postgres_copy import CopyManager
 
 
     class Person(models.Model):
         name = models.CharField(max_length=500)
         number = models.IntegerField(null=True)
         dt = models.DateField(null=True)
+        objects = CopyManager()
 
 If the model hasn't been created in your database, that needs to happen.
 
@@ -88,38 +91,57 @@ If the model hasn't been created in your database, that needs to happen.
 
     $ python manage.py migrate
 
-Create a loader that uses this library to load CSV data into the model. One place you could put it is in a Django management command.
+How to import data
+~~~~~~~~~~~~~~~~~~
+
+Here's how to create a script to import CSV data into the model. Our favorite way to do this is to write a `custom Django management command <https://docs.djangoproject.com/en/1.11/howto/custom-management-commands/>`_.
 
 .. code-block:: python
+    :emphasize-lines: 1,8-14
 
     from myapp.models import Person
-    from postgres_copy import CopyMapping
     from django.core.management.base import BaseCommand
 
 
     class Command(BaseCommand):
 
         def handle(self, *args, **kwargs):
-            c = CopyMapping(
-                # Give it the model
-                Person,
+            Person.objects.from_csv(
                 # The path to your CSV
                 '/path/to/my/data.csv',
                 # And a dict mapping the  model fields to CSV headers
                 dict(name='NAME', number='NUMBER', dt='DATE')
             )
-            # Then save it.
-            c.save()
 
 Run your loader and that's it.
 
 .. code-block:: bash
 
-    $ python manage.py mymanagementcommand
-    Loading CSV to Person
-    3 records loaded
+    $ python manage.py myimportcommand
 
-Like I said, that's it!
+How to export data
+~~~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+    :emphasize-lines: 1,8-10
+
+    from myapp.models import Person
+    from django.core.management.base import BaseCommand
+
+
+    class Command(BaseCommand):
+
+        def handle(self, *args, **kwargs):
+            # All this method needs is the path to your CSV
+            Person.objects.to_csv('/path/to/my/export.csv')
+
+Run your loader and that's it.
+
+.. code-block:: bash
+
+    $ python manage.py myexportcommand
+
+That's it!
 
 
 ``CopyMapping`` API
