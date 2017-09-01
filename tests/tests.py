@@ -54,6 +54,21 @@ class PostgresCopyToTest(BaseTest):
         )
         os.remove(export_path)
 
+    def test_filter(self):
+        MockObject.objects.from_csv(
+            self.name_path,
+            dict(name='NAME', number='NUMBER', dt='DATE')
+        )
+        self.assertEqual(MockObject.objects.count(), 3)
+        export_path = os.path.join(os.path.dirname(__file__), 'export.csv')
+        MockObject.objects.filter(name="BEN").to_csv(export_path)
+        reader = csv.DictReader(open(export_path, 'r'))
+        self.assertTrue(
+            ['BEN'],
+            [i['name'] for i in reader]
+        )
+        os.remove(export_path)
+
 
 class PostgresCopyTest(BaseTest):
 
