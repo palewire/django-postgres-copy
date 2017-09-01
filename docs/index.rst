@@ -17,6 +17,7 @@ That means we write a load of loaders. In the past we did this by looping throug
     import csv
     from myapp.models import MyModel
 
+
     data = csv.DictReader(open("./data.csv"))
     for row in data:
         MyModel.objects.create(name=row['NAME'], number=row['NUMBER'])
@@ -33,6 +34,7 @@ Here's how it imports a CSV to a database table.
 
     from myapp.models import MyModel
 
+
     MyModel.objects.from_csv(
         "./data.csv",  # The source file
         dict(name='NAME', number='NUMBER')  # A crosswalk of model fields to CSV headers.
@@ -43,6 +45,7 @@ And here's how it exports a database table to a CSV.
 .. code-block:: python
 
     from myapp.models import MyModel
+
 
     MyModel.objects.to_csv("./data.csv")
 
