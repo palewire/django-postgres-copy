@@ -498,6 +498,7 @@ Your models might look like this:
         name = models.CharField(max_length=500)
         objects = CopyManager()
 
+
     class Person(models.Model):
         name = models.CharField(max_length=500)
         number = models.IntegerField()
