@@ -35,7 +35,7 @@ Here's how it imports a CSV to a database table.
 
     MyModel.objects.from_csv(
         "./data.csv",  # The source file
-        dict(name='NAME', number='NUMBER')  # A crosswalk between the model fields and the CSV headers.
+        dict(name='NAME', number='NUMBER')  # A crosswalk of model fields to CSV headers.
     )
 
 And here's how it exports a database table to a CSV.
