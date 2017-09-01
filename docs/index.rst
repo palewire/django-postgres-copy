@@ -138,7 +138,7 @@ How to export data
             # All this method needs is the path to your CSV
             Person.objects.to_csv('/path/to/my/export.csv')
 
-Run your loader and that's it.
+Run your exporter and that's it.
 
 .. code-block:: bash
 
