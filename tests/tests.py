@@ -69,6 +69,20 @@ class PostgresCopyToTest(BaseTest):
         )
         os.remove(export_path)
 
+    def test_fewer_fields(self):
+        MockObject.objects.from_csv(
+            self.name_path,
+            dict(name='NAME', number='NUMBER', dt='DATE')
+        )
+        self.assertEqual(MockObject.objects.count(), 3)
+        export_path = os.path.join(os.path.dirname(__file__), 'export.csv')
+        MockObject.objects.to_csv(export_path, 'name')
+        reader = csv.DictReader(open(export_path, 'r'))
+        for row in reader:
+            self.assertTrue(row['name'] in ['BEN', 'JOE', 'JANE'])
+            self.assertTrue(len(row.keys()), 1)
+        os.remove(export_path)
+
 
 class PostgresCopyTest(BaseTest):
 
