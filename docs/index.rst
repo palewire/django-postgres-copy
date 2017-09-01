@@ -265,7 +265,7 @@ This example uses a `CASE statement <http://www.postgresql.org/docs/9.4/static/p
 Back in the models file the custom field can be substituted for the default.
 
 .. code-block:: python
-    :emphasize-lines: 3,7
+    :emphasize-lines: 3,8
 
     from django.db import models
     from postgres_copy import CopyManager
@@ -336,7 +336,7 @@ An example could be if you want to include the name of the source CSV file along
 Your model might look like this:
 
 .. code-block:: python
-    :emphasize-lines: 6
+    :emphasize-lines: 8
 
     from django.db import models
     from postgres_copy import CopyManager
