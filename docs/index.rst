@@ -6,7 +6,7 @@ Quickly move comma-delimited data in and out of a Django model using PostgreSQL'
 
 
 Why and what for?
------------------
+=================
 
 `The people <http://www.californiacivicdata.org/about/>`_ who made this library are data journalists. We are often downloading, cleaning and analyzing new data.
 
@@ -48,7 +48,7 @@ And here's how it exports a database table to a CSV.
 
 
 Installation
-------------
+============
 
 The package can be installed from the Python Package Index with `pip`.
 
@@ -59,7 +59,7 @@ The package can be installed from the Python Package Index with `pip`.
 You will of course have to have Django, PostgreSQL and an adapter between the two (like `psycopg2 <http://initd.org/psycopg/docs/>`_) already installed to put this library to use.
 
 An example
-----------
+==========
 
 It all starts with a CSV file you'd like to load into your database. This library is intended to be used with large files but here's something simple as an example.
 
@@ -92,7 +92,7 @@ If the model hasn't been created in your database, that needs to happen.
     $ python manage.py migrate
 
 How to import data
-~~~~~~~~~~~~~~~~~~
+------------------
 
 Here's how to create a script to import CSV data into the model. Our favorite way to do this is to write a `custom Django management command <https://docs.djangoproject.com/en/1.11/howto/custom-management-commands/>`_.
 
@@ -120,7 +120,7 @@ Run your loader and that's it.
     $ python manage.py myimportcommand
 
 How to export data
-~~~~~~~~~~~~~~~~~~
+------------------
 
 .. code-block:: python
     :emphasize-lines: 1,8-10
@@ -144,19 +144,17 @@ Run your loader and that's it.
 That's it!
 
 
-``CopyMapping`` API
--------------------
+Import options
+==============
 
-.. class:: CopyMapping(model, csv_path, mapping[, using=None, delimiter=',', null=None, force_not_null=None, force_null=None, encoding=None, static_mapping=None])
+The ``from_csv`` method has the following arguments and keywords options.
 
-The following are the arguments and keywords that may be used during
-instantiation of ``CopyMapping`` objects.
+.. class:: from_csv(csv_path, mapping[, using=None, delimiter=',', null=None, force_not_null=None, force_null=None, encoding=None, static_mapping=None])
+
 
 =================  =========================================================
 Argument           Description
 =================  =========================================================
-``model``          The target model, *not* an instance.
-
 ``csv_path``       The path to the delimited data source file
                    (e.g., a CSV)
 
@@ -209,26 +207,6 @@ Keyword Arguments
 =====================  =====================================================
 
 
-``save()`` keyword arguments
-----------------------------
-
-.. method:: CopyMapping.save([silent=False, stream=sys.stdout])
-
-The ``save()`` method also accepts keywords.  These keywords are used for controlling output logging and error handling.
-
-===========================  =================================================
-Keyword Arguments            Description
-===========================  =================================================
-``silent``                   By default, non-fatal error notifications are
-                             printed to ``sys.stdout``, but this keyword may
-                             be set to disable these notifications.
-
-``stream``                   Status information will be written to this file
-                             handle.  Defaults to using ``sys.stdout``, but
-                             any object with a ``write`` method is supported.
-===========================  =================================================
-
-
 Transforming data
 -----------------
 
@@ -249,11 +227,13 @@ A model to store the data as you'd prefer to might look like this.
 .. code-block:: python
 
     from django.db import models
+    from postgres_copy import CopyManager
 
 
     class Person(models.Model):
         name = models.CharField(max_length=500)
         value = models.IntegerField()
+        objects = CopyManager()
 
 But if the CSV file was loaded directly into the database, you would receive a data type error when the 'yes' and 'no' strings were inserted into the integer field.
 
@@ -285,13 +265,18 @@ This example uses a `CASE statement <http://www.postgresql.org/docs/9.4/static/p
 Back in the models file the custom field can be substituted for the default.
 
 .. code-block:: python
+    :emphasize-lines: 3,7
 
     from django.db import models
+    from postgres_copy import CopyManager
     from myapp.fields import MyIntegerField
+
 
     class Person(models.Model):
         name = models.CharField(max_length=500)
         value = MyIntegerField()
+        objects = CopyManager()
+
 
 Run your loader and it should finish fine.
 
@@ -306,12 +291,16 @@ You must name the method so that the field name is sandwiched between ``copy_`` 
 For the example above, the model might be modified to look like this.
 
 .. code-block:: python
+    :emphasize-lines: 10-16
 
     from django.db import models
+    from postgres_copy import CopyManager
+
 
     class Person(models.Model):
         name = models.CharField(max_length=500)
         value = models.IntegerField()
+        objects = CopyManager()
 
         def copy_value_template(self):
           return """
@@ -350,46 +339,43 @@ Your model might look like this:
     :emphasize-lines: 6
 
     from django.db import models
+    from postgres_copy import CopyManager
+
 
     class Person(models.Model):
         name = models.CharField(max_length=500)
         number = models.IntegerField()
         source_csv = models.CharField(max_length=500)
+        objects = CopyManager()
+
 
 And your loader would look like this:
 
 .. code-block:: python
-    :emphasize-lines: 16-18
+    :emphasize-lines: 11-13
 
     from myapp.models import Person
-    from postgres_copy import CopyMapping
     from django.core.management.base import BaseCommand
 
 
     class Command(BaseCommand):
 
         def handle(self, *args, **kwargs):
-            c = CopyMapping(
-                # Give it the model
-                Person,
-                # The path to your CSV
+            Person.objects.from_csv(
                 '/path/to/my/data.csv',
-                # And a dict mapping the  model fields to CSV headers
                 dict(name='NAME', number='NUMBER'),
                 static_mapping = {
                     'source_csv': 'data.csv'
                 }
             )
-            # Then save it.
-            c.save()
 
 
 Extending with hooks
 --------------------
 
-The ``CopyMapping`` loader includes optional hooks run before and after the COPY statement that loads your CSV into a temporary table and again before and again the INSERT statement that then slots it into your model.
+The ``from_csv`` method connects with a lower level ``CopyMapping`` class with optional hooks that run before and after the COPY statement. They run first when the CSV is into a temporary table and then again before and after the INSERT statement that then slots data into your model's table.
 
-If you have extra steps or more complicated logic you'd like to work into a loading routine, these hooks provide an opportunity to extend the base library.
+If you have extra steps or more complicated logic you'd like to work into a loading routine, ``CopyMapping`` and its hooks provide an opportunity to extend the base library.
 
 To try them out, subclass ``CopyMapping`` and fill in as many of the optional hook methods below as you need.
 
@@ -416,9 +402,11 @@ To try them out, subclass ``CopyMapping`` and fill in as many of the optional ho
             # And finally here
 
 
-Now you can run that subclass as you normally would its parent
+Now you can run that subclass directly rather than via a manager. The only differences are that model is the first argument ``CopyMapping``, which creates an object that is executed with a call to its ``save`` method.
 
 .. code-block:: python
+    :emphasize-lines: 2,9-16
+
 
     from myapp.models import Person
     from myapp.loaders import HookedCopyMapping
