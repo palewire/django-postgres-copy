@@ -425,6 +425,7 @@ Now you can run that subclass directly rather than via a manager. The only diffe
             # Then save it.
             c.save()
 
+
 Export options
 ==============
 
@@ -440,10 +441,88 @@ Argument           Description
                    (e.g., a CSV)
 
 ``fields``        Strings corresponding to
-                   the model fields for exporting. All fields on the model
+                   the model fields to be exported. All fields on the model
                    are exported by default. Fields on related models can be
-                   included with Django's double underscore notation.  
+                   included with Django's double underscore notation.
 =================  =========================================================
+
+Reducing the exported fields
+----------------------------
+
+You can reduce the number of fields exported by providing the ones you want as a list to the ``to_csv`` method.
+
+Your model might look like this:
+
+.. code-block:: python
+
+    from django.db import models
+    from postgres_copy import CopyManager
+
+
+    class Person(models.Model):
+        name = models.CharField(max_length=500)
+        number = models.IntegerField()
+        objects = CopyManager()
+
+You could export only the name field by providing it as an extra parameter.
+
+.. code-block:: python
+    :emphasize-lines: 10
+
+    from myapp.models import Person
+    from django.core.management.base import BaseCommand
+
+
+    class Command(BaseCommand):
+
+        def handle(self, *args, **kwargs):
+            Person.objects.to_csv(
+                '/path/to/my/export.csv',
+                'name'
+            )
+
+Increasing the exported fields
+------------------------------
+
+In cases where you model is connected to other tables with a foreign key, you can increase the number of fields exported to included related tables using Django's double underscore notation.
+
+Your models might look like this:
+
+.. code-block:: python
+
+    from django.db import models
+    from postgres_copy import CopyManager
+
+
+    class Hometown(models.Model):
+        name = models.CharField(max_length=500)
+        objects = CopyManager()
+
+    class Person(models.Model):
+        name = models.CharField(max_length=500)
+        number = models.IntegerField()
+        hometown = models.ForeignKey(Hometown)
+        objects = CopyManager()
+
+You can reach across to related tables during an export by adding their fields to the export method.
+
+
+.. code-block:: python
+    :emphasize-lines: 12
+
+    from myapp.models import Person
+    from django.core.management.base import BaseCommand
+
+
+    class Command(BaseCommand):
+
+        def handle(self, *args, **kwargs):
+            Person.objects.to_csv(
+                '/path/to/my/export.csv',
+                'name',
+                'number',
+                'hometown__name'
+            )
 
 
 Open-source resources
