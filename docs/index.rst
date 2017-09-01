@@ -152,7 +152,7 @@ Import options
 
 The ``from_csv`` method has the following arguments and keywords options.
 
-.. class:: from_csv(csv_path, mapping[, using=None, delimiter=',', null=None, force_not_null=None, force_null=None, encoding=None, static_mapping=None])
+.. method:: from_csv(csv_path, mapping[, using=None, delimiter=',', null=None, force_not_null=None, force_null=None, encoding=None, static_mapping=None])
 
 
 =================  =========================================================
@@ -434,7 +434,7 @@ Export options
 
 The ``to_csv`` method only requires one argument, the path to where the CSV should be exported. It also allows users to optionally limit or expand the fields written out by providing them as additional parameters.
 
-.. class:: to_csv(csv_path [, *fields])
+.. method:: to_csv(csv_path [, *fields])
 
 
 =================  =========================================================
