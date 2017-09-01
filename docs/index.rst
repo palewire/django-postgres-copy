@@ -25,7 +25,7 @@ That works, but if you have a big file as Django racks up a database query for e
 
 Lucky for us, PostgreSQL has a built-in tool called `COPY <http://www.postgresql.org/docs/9.4/static/sql-copy.html>`_ that can hammer data in and out the database with one quick query.
 
-This package tries to make using COPY as easy any other database routine supported by Django. It is implemented by a custom `model manager<https://docs.djangoproject.com/en/dev/topics/db/managers/>`_.
+This package tries to make using COPY as easy any other database routine supported by Django. It is implemented by a custom `model manager <https://docs.djangoproject.com/en/dev/topics/db/managers/>`_.
 
 Here's how it imports a CSV to a database table.
 
