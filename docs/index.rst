@@ -10,7 +10,7 @@ Why and what for?
 
 `The people <http://www.californiacivicdata.org/about/>`_ who made this library are data journalists. We are often downloading, cleaning and analyzing new data.
 
-That means we write a load of loaders. You can usually do this by looping through each row and saving it to the database using the Django's ORM `create method <https://docs.djangoproject.com/en/1.10/ref/models/querysets/#django.db.models.query.QuerySet.create>`_.
+That means we write a load of loaders. In the past we did this by looping through each row and saving it to the database using the Django's ORM `create method <https://docs.djangoproject.com/en/dev/ref/models/querysets/#django.db.models.query.QuerySet.create>`_.
 
 .. code-block:: python
 
@@ -21,23 +21,30 @@ That means we write a load of loaders. You can usually do this by looping throug
     for row in data:
         MyModel.objects.create(name=row['NAME'], number=row['NUMBER'])
 
-But if you have a big CSV, Django will rack up database queries and it can take a long time to finish.
+That works, but if you have a big file as Django racks up a database query for each row it can take a long time to get all the data in the database.
 
-Lucky for us, PostgreSQL has a built-in tool called `COPY <http://www.postgresql.org/docs/9.4/static/sql-copy.html>`_ that will hammer data into the database with one quick query.
+Lucky for us, PostgreSQL has a built-in tool called `COPY <http://www.postgresql.org/docs/9.4/static/sql-copy.html>`_ that can hammer data in and out the database with one quick query.
 
-This package tries to make using COPY as easy any other database routine supported by Django. It is largely based on the design of the `LayerMapping <https://docs.djangoproject.com/en/1.8/ref/contrib/gis/layermapping/>`_ utility for importing geospatial data.
+This package tries to make using COPY as easy any other database routine supported by Django. It is implemented by a custom `model manager<https://docs.djangoproject.com/en/dev/topics/db/managers/>`_.
+
+Here's how it imports a CSV to a database table.
 
 .. code-block:: python
 
     from myapp.models import MyModel
-    from postgres_copy import CopyMapping
 
-    c = CopyMapping(
-        MyModel,
+    MyModel.objects.from_csv(
         "./data.csv",
         dict(name='NAME', number='NUMBER')
     )
-    c.save()
+
+And here's how it exports a database table to a CSV.
+
+.. code-block:: python
+
+    from myapp.models import MyModel
+
+    MyModel.objects.to_csv("./data.csv")
 
 
 Installation
