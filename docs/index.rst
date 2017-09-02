@@ -144,13 +144,23 @@ Run your exporter and that's it.
 
     $ python manage.py myexportcommand
 
-That's it!
+That's it. You can even export your queryset after any filters or other tricks. This will work;
+
+.. code-block:: python
+
+    Person.objects.exclude(name='BEN').to_csv('/path/to/my/export.csv')
+
+And so will something like this:
+
+.. code-block:: python
+
+    Person.objects.annotate(name_count=Count('name')).to_csv('/path/to/my/export.csv')
 
 
 Import options
 ==============
 
-The ``from_csv`` method has the following arguments and keywords options.
+The ``from_csv`` manager method has the following arguments and keywords options.
 
 .. method:: from_csv(csv_path, mapping[, using=None, delimiter=',', null=None, force_not_null=None, force_null=None, encoding=None, static_mapping=None])
 
@@ -432,7 +442,7 @@ Now you can run that subclass directly rather than via a manager. The only diffe
 Export options
 ==============
 
-The ``to_csv`` method only requires one argument, the path to where the CSV should be exported. It also allows users to optionally limit or expand the fields written out by providing them as additional parameters.
+The ``to_csv`` manager method only requires one argument, the path to where the CSV should be exported. It also allows users to optionally limit or expand the fields written out by providing them as additional parameters.
 
 .. method:: to_csv(csv_path [, *fields])
 
