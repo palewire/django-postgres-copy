@@ -92,6 +92,13 @@ class PostgresCopyToTest(BaseTest):
         for row in reader:
             self.assertTrue('name_count' in row)
 
+    def test_extra(self):
+        self._load_objects(self.name_path)
+        MockObject.objects.extra(select={'lower': 'LOWER("name")'}).to_csv(self.export_path)
+        reader = csv.DictReader(open(self.export_path, 'r'))
+        for row in reader:
+            self.assertTrue('lower' in row)
+
 
 class PostgresCopyTest(BaseTest):
 
