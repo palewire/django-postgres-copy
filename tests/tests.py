@@ -9,6 +9,7 @@ from .models import (
     OverloadMockObject,
     HookedCopyMapping
 )
+from django.db.models import Count
 from postgres_copy import CopyMapping
 from django.test import TestCase
 
@@ -34,68 +35,62 @@ class BaseTest(TestCase):
 
 class PostgresCopyToTest(BaseTest):
 
+    def setUp(self):
+        super(PostgresCopyToTest, self).setUp()
+        self.export_path = os.path.join(os.path.dirname(__file__), 'export.csv')
+
+    def tearDown(self):
+        super(PostgresCopyToTest, self).tearDown()
+        if os.path.exists(self.export_path):
+            os.remove(self.export_path)
+
+    def _load_objects(self, file_path, mapping=dict(name='NAME', number='NUMBER', dt='DATE')):
+        MockObject.objects.from_csv(file_path, mapping)
+
     def test_export(self):
-        # Import the data
-        c = CopyMapping(
-            MockObject,
-            self.name_path,
-            dict(name='NAME', number='NUMBER', dt='DATE'),
-        )
-        c.save()
-        self.assertEqual(MockObject.objects.count(), 3)
-        # Now export it
-        export_path = os.path.join(os.path.dirname(__file__), 'export.csv')
-        MockObject.objects.to_csv(export_path)
-        self.assertTrue(os.path.exists(export_path))
-        reader = csv.DictReader(open(export_path, 'r'))
+        self._load_objects(self.name_path)
+        MockObject.objects.to_csv(self.export_path)
+        self.assertTrue(os.path.exists(self.export_path))
+        reader = csv.DictReader(open(self.export_path, 'r'))
         self.assertTrue(
             ['BEN', 'JOE', 'JANE'],
             [i['name'] for i in reader]
         )
-        os.remove(export_path)
 
     def test_filter(self):
-        MockObject.objects.from_csv(
-            self.name_path,
-            dict(name='NAME', number='NUMBER', dt='DATE')
-        )
-        self.assertEqual(MockObject.objects.count(), 3)
-        export_path = os.path.join(os.path.dirname(__file__), 'export.csv')
-        MockObject.objects.filter(name="BEN").to_csv(export_path)
-        reader = csv.DictReader(open(export_path, 'r'))
+        self._load_objects(self.name_path)
+        MockObject.objects.filter(name="BEN").to_csv(self.export_path)
+        reader = csv.DictReader(open(self.export_path, 'r'))
         self.assertTrue(
             ['BEN'],
             [i['name'] for i in reader]
         )
-        os.remove(export_path)
 
     def test_fewer_fields(self):
-        MockObject.objects.from_csv(
-            self.name_path,
-            dict(name='NAME', number='NUMBER', dt='DATE')
-        )
-        self.assertEqual(MockObject.objects.count(), 3)
-        export_path = os.path.join(os.path.dirname(__file__), 'export.csv')
-        MockObject.objects.to_csv(export_path, 'name')
-        reader = csv.DictReader(open(export_path, 'r'))
+        self._load_objects(self.name_path)
+        MockObject.objects.to_csv(self.export_path, 'name')
+        reader = csv.DictReader(open(self.export_path, 'r'))
         for row in reader:
             self.assertTrue(row['name'] in ['BEN', 'JOE', 'JANE'])
             self.assertTrue(len(row.keys()), 1)
-        os.remove(export_path)
 
     def test_related_fields(self):
-        MockObject.objects.from_csv(
+        self._load_objects(
             self.foreign_path,
-            dict(name='NAME', number='NUMBER', dt='DATE', parent='PARENT')
+            mapping=dict(name='NAME', number='NUMBER', dt='DATE', parent='PARENT')
         )
-        self.assertEqual(MockObject.objects.count(), 3)
-        export_path = os.path.join(os.path.dirname(__file__), 'export.csv')
-        MockObject.objects.to_csv(export_path, 'name', 'parent__id', 'parent__name')
-        reader = csv.DictReader(open(export_path, 'r'))
+        MockObject.objects.to_csv(self.export_path, 'name', 'parent__id', 'parent__name')
+        reader = csv.DictReader(open(self.export_path, 'r'))
         for row in reader:
             self.assertTrue(row['parent_id'] in ['4', '5', '6'])
             self.assertTrue(len(row.keys()), 3)
-        os.remove(export_path)
+
+    def test_annotate(self):
+        self._load_objects(self.name_path)
+        MockObject.objects.annotate(name_count=Count('name')).to_csv(self.export_path)
+        reader = csv.DictReader(open(self.export_path, 'r'))
+        for row in reader:
+            self.assertTrue('name_count' in row)
 
 
 class PostgresCopyTest(BaseTest):

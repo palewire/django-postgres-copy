@@ -1,3 +1,5 @@
 [run]
 include =
     postgres_copy/__init__.py
+    postgres_copy/copy_from.py
+    postgres_copy/copy_to.py

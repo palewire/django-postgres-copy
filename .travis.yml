@@ -9,23 +9,14 @@ python:
  - "2.7"
  - "3.6"
 
-addons:
- postgresql: "9.4"
-
 env:
- - DJANGO_VERSION=1.8.18 PSYCOPG2_VERSION=2.5.4
- - DJANGO_VERSION=1.10.7 PSYCOPG2_VERSION=2.5.4
- - DJANGO_VERSION=1.11.4 PSYCOPG2_VERSION=2.5.4
- - DJANGO_VERSION=1.8.18 PSYCOPG2_VERSION=2.6.2
- - DJANGO_VERSION=1.10.7 PSYCOPG2_VERSION=2.6.2
- - DJANGO_VERSION=1.11.4 PSYCOPG2_VERSION=2.6.2
- - DJANGO_VERSION=1.8.18 PSYCOPG2_VERSION=2.7.*
- - DJANGO_VERSION=1.10.7 PSYCOPG2_VERSION=2.7.*
- - DJANGO_VERSION=1.11.4 PSYCOPG2_VERSION=2.7.*
+ - DJANGO_VERSION=1.8.18
+ - DJANGO_VERSION=1.10.7
+ - DJANGO_VERSION=1.11
 
 install:
- - pip install flake8 coverage coveralls
- - pip install -q psycopg2==$PSYCOPG2_VERSION
+ - pip install -r requirements.txt
+ - pip uninstall -y Django
  - pip install -q Django==$DJANGO_VERSION
 
 script:
