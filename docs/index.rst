@@ -497,7 +497,7 @@ You could export only the name field by providing it as an extra parameter.
 Increasing the exported fields
 ------------------------------
 
-In cases where you model is connected to other tables with a foreign key, you can increase the number of fields exported to included related tables using Django's double underscore notation.
+In cases where your model is connected to other tables with a foreign key, you can increase the number of fields exported to included related tables using Django's double underscore notation.
 
 Your models might look like this:
 
