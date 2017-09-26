@@ -420,7 +420,7 @@ class PostgresCopyTest(BaseTest):
 
 class MultiDbTest(BaseTest):
 
-    def test_simple_save(self):
+    def test_from_csv(self):
         MockObject.objects.from_csv(
             self.name_path,
             dict(name='NAME', number='NUMBER', dt='DATE'),
@@ -433,3 +433,29 @@ class MultiDbTest(BaseTest):
             MockObject.objects.using('alternative').get(name='BEN').dt,
             date(2012, 1, 1)
         )
+
+    def test_to_csv(self):
+        # First with the default database
+        mapping = dict(name='NAME', number='NUMBER', dt='DATE')
+        MockObject.objects.from_csv(self.name_path, mapping)
+        export_path = os.path.join(os.path.dirname(__file__), 'default.csv')
+        MockObject.objects.to_csv(export_path)
+        self.assertTrue(os.path.exists(export_path))
+        reader = csv.DictReader(open(export_path, 'r'))
+        self.assertTrue(
+            ['BEN', 'JOE', 'JANE'],
+            [i['name'] for i in reader]
+        )
+        os.remove(export_path)
+
+        # Next with the alternative database
+        MockObject.objects.from_csv(self.name_path, mapping, using="alternative")
+        export_path = os.path.join(os.path.dirname(__file__), 'alternative.csv')
+        MockObject.objects.using('alternative').to_csv(export_path)
+        self.assertTrue(os.path.exists(export_path))
+        reader = csv.DictReader(open(export_path, 'r'))
+        self.assertTrue(
+            ['BEN', 'JOE', 'JANE'],
+            [i['name'] for i in reader]
+        )
+        os.remove(export_path)
