@@ -4,7 +4,7 @@
 Handlers for working with PostgreSQL's COPY TO command.
 """
 from __future__ import unicode_literals
-from django.db import connection
+from django.db import connections
 from psycopg2.extensions import adapt
 from django.db.models.sql.query import Query
 from django.db.models.sql.compiler import SQLCompiler
@@ -44,7 +44,7 @@ class SQLCopyToCompiler(SQLCompiler):
         # open file for writing
         # use stdout to avoid file permission issues
         with open(csv_path, 'wb') as stdout:
-            with connection.cursor() as c:
+            with connections[self.using].cursor() as c:
                 # compile the SELECT query
                 select_sql = self.as_sql()[0] % adapted_params
                 # then the COPY TO query
