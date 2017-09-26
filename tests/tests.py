@@ -416,3 +416,20 @@ class PostgresCopyTest(BaseTest):
 
         c.drop(cursor)
         cursor.close()
+
+
+class MultiDbTest(BaseTest):
+
+    def test_simple_save(self):
+        MockObject.objects.from_csv(
+            self.name_path,
+            dict(name='NAME', number='NUMBER', dt='DATE'),
+            using='alternative'
+        )
+        self.assertEqual(MockObject.objects.count(), 0)
+        self.assertEqual(MockObject.objects.using('alternative').count(), 3)
+        self.assertEqual(MockObject.objects.using('alternative').get(name='BEN').number, 1)
+        self.assertEqual(
+            MockObject.objects.using('alternative').get(name='BEN').dt,
+            date(2012, 1, 1)
+        )

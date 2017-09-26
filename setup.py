@@ -22,6 +22,11 @@ class TestCommand(Command):
                     'USER': 'postgres',
                     'ENGINE': 'django.db.backends.postgresql_psycopg2'
                 },
+                'alternative': {
+                    'NAME': 'test_alternative',
+                    'USER': 'postgres',
+                    'ENGINE': 'django.db.backends.postgresql_psycopg2'
+                },
                 'sqlite': {
                     'NAME': 'sqlite',
                     'ENGINE': 'django.db.backends.sqlite3'
@@ -35,8 +40,8 @@ class TestCommand(Command):
 
 setup(
     name='django-postgres-copy',
-    version='2.0.0',
-    description="Quickly move comma-delimited data in and out of a Django model using PostgreSQL's COPY command.",
+    version='0.2.3',
+    description="Quickly load comma-delimited data into a Django model using PostgreSQL's COPY command",
     author='Ben Welsh',
     author_email='ben.welsh@gmail.com',
     url='http://django-postgres-copy.californiacivicdata.org/',
@@ -52,11 +57,9 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Framework :: Django',
         'Framework :: Django :: 1.8',
+        'Framework :: Django :: 1.9',
         'Framework :: Django :: 1.10',
         'Framework :: Django :: 1.11',
         'License :: OSI Approved :: MIT License',
-        'Intended Audience :: Developers',
-        'Topic :: Database',
-        'Topic :: Database :: Database Engines/Servers'
     ],
 )
