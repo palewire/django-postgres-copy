@@ -90,3 +90,8 @@ class HookedCopyMapping(CopyMapping):
 
     def post_insert(self, cursor):
         self.ran_post_insert = True
+
+
+class SecondaryMockObject(models.Model):
+    text = models.CharField(max_length=500)
+    objects = CopyManager()

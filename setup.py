@@ -25,9 +25,15 @@ class TestCommand(Command):
                 'sqlite': {
                     'NAME': 'sqlite',
                     'ENGINE': 'django.db.backends.sqlite3'
+                },
+                'secondary': {
+                    'NAME': 'test_secondary',
+                    'USER': 'postgres',
+                    'ENGINE': 'django.db.backends.postgresql_psycopg2'
                 }
             },
             INSTALLED_APPS=("tests",),
+            DATABASE_ROUTERS=['tests.router.CustomRouter']
         )
         django.setup()
         call_command('test', 'tests.tests')
