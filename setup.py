@@ -30,9 +30,15 @@ class TestCommand(Command):
                 'sqlite': {
                     'NAME': 'sqlite',
                     'ENGINE': 'django.db.backends.sqlite3'
+                },
+                'secondary': {
+                    'NAME': 'test_secondary',
+                    'USER': 'postgres',
+                    'ENGINE': 'django.db.backends.postgresql_psycopg2'
                 }
             },
             INSTALLED_APPS=("tests",),
+            DATABASE_ROUTERS=['tests.router.CustomRouter']
         )
         django.setup()
         call_command('test', 'tests.tests')
@@ -40,7 +46,7 @@ class TestCommand(Command):
 
 setup(
     name='django-postgres-copy',
-    version='0.2.4',
+    version='2.0.2',
     description="Quickly load comma-delimited data into a Django model using PostgreSQL's COPY command",
     author='Ben Welsh',
     author_email='ben.welsh@gmail.com',

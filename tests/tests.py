@@ -7,7 +7,8 @@ from .models import (
     ExtendedMockObject,
     LimitedMockObject,
     OverloadMockObject,
-    HookedCopyMapping
+    HookedCopyMapping,
+    SecondaryMockObject,
 )
 from django.db.models import Count
 from postgres_copy import CopyMapping
@@ -25,14 +26,18 @@ class BaseTest(TestCase):
         self.blank_null_path = os.path.join(self.data_dir, 'blanknulls.csv')
         self.null_path = os.path.join(self.data_dir, 'nulls.csv')
         self.backwards_path = os.path.join(self.data_dir, 'backwards.csv')
-        self.matching_headers_path = os.path.join(self.data_dir,
-                                                  'matching_headers.csv')
+        self.matching_headers_path = os.path.join(
+            self.data_dir,
+            'matching_headers.csv'
+        )
+        self.secondarydb_path = os.path.join(self.data_dir, 'secondary_db.csv')
 
     def tearDown(self):
         MockObject.objects.all().delete()
         ExtendedMockObject.objects.all().delete()
         LimitedMockObject.objects.all().delete()
         OverloadMockObject.objects.all().delete()
+        SecondaryMockObject.objects.all().delete()
 
 
 class PostgresCopyToTest(BaseTest):
@@ -49,11 +54,24 @@ class PostgresCopyToTest(BaseTest):
     def _load_objects(self, file_path, mapping=dict(name='NAME', number='NUMBER', dt='DATE')):
         MockObject.objects.from_csv(file_path, mapping)
 
+    def _load_secondary_objects(self, file_path, mapping=dict(text='TEXT')):
+        SecondaryMockObject.objects.from_csv(file_path, mapping)
+
     def test_export(self):
         self._load_objects(self.name_path)
         MockObject.objects.to_csv(self.export_path)
         self.assertTrue(os.path.exists(self.export_path))
         reader = csv.DictReader(open(self.export_path, 'r'))
+        self.assertTrue(
+            ['BEN', 'JOE', 'JANE'],
+            [i['name'] for i in reader]
+        )
+
+    def test_export_delimiter(self):
+        self._load_objects(self.name_path)
+        MockObject.objects.to_csv(self.export_path, delimiter=';')
+        self.assertTrue(os.path.exists(self.export_path))
+        reader = csv.DictReader(open(self.export_path, 'r'), delimiter=';')
         self.assertTrue(
             ['BEN', 'JOE', 'JANE'],
             [i['name'] for i in reader]
@@ -100,6 +118,28 @@ class PostgresCopyToTest(BaseTest):
         reader = csv.DictReader(open(self.export_path, 'r'))
         for row in reader:
             self.assertTrue('lower' in row)
+
+    def test_export_multi_db(self):
+        self._load_objects(self.name_path)
+        self._load_secondary_objects(self.secondarydb_path)
+
+        MockObject.objects.to_csv(self.export_path)
+        self.assertTrue(os.path.exists(self.export_path))
+        reader = csv.DictReader(open(self.export_path, 'r'))
+        self.assertTrue(
+            ['BEN', 'JOE', 'JANE'],
+            [i['name'] for i in reader]
+        )
+
+        SecondaryMockObject.objects.to_csv(self.export_path)
+        self.assertTrue(os.path.exists(self.export_path))
+        reader = csv.DictReader(open(self.export_path, 'r'))
+        items = [i['text'] for i in reader]
+        self.assertEqual(len(items), 3)
+        self.assertEqual(
+            ['SECONDARY TEXT 1', 'SECONDARY TEXT 2', 'SECONDARY TEXT 3'],
+            items
+        )
 
 
 class PostgresCopyTest(BaseTest):
