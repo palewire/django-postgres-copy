@@ -444,7 +444,7 @@ Export options
 
 The ``to_csv`` manager method only requires one argument, the path to where the CSV should be exported. It also allows users to optionally limit or expand the fields written out by providing them as additional parameters.
 
-.. method:: to_csv(csv_path [, *fields])
+.. method:: to_csv(csv_path [, *fields, delimiter=','])
 
 
 =================  =========================================================
@@ -453,10 +453,13 @@ Argument           Description
 ``csv_path``       The path to the delimited data source file
                    (e.g., a CSV)
 
-``fields``        Strings corresponding to
+``fields``         Strings corresponding to
                    the model fields to be exported. All fields on the model
                    are exported by default. Fields on related models can be
                    included with Django's double underscore notation.
+
+``delimiter``      String that will be used as a delimiter for the CSV
+                   file.
 =================  =========================================================
 
 Reducing the exported fields
