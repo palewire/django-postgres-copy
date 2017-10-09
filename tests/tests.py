@@ -57,6 +57,16 @@ class PostgresCopyToTest(BaseTest):
             [i['name'] for i in reader]
         )
 
+    def test_export_delimiter(self):
+        self._load_objects(self.name_path)
+        MockObject.objects.to_csv(self.export_path, delimiter=';')
+        self.assertTrue(os.path.exists(self.export_path))
+        reader = csv.DictReader(open(self.export_path, 'r'), delimiter=';')
+        self.assertTrue(
+            ['BEN', 'JOE', 'JANE'],
+            [i['name'] for i in reader]
+        )
+
     def test_filter(self):
         self._load_objects(self.name_path)
         MockObject.objects.filter(name="BEN").to_csv(self.export_path)

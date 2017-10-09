@@ -18,12 +18,13 @@ class CopyQuerySet(models.QuerySet):
         mapping = CopyMapping(self.model, csv_path, mapping, **kwargs)
         mapping.save(silent=True)
 
-    def to_csv(self, csv_path, *fields):
+    def to_csv(self, csv_path, *fields, **kwargs):
         """
         Copy current QuerySet to CSV at provided path.
         """
         query = self.query.clone(CopyToQuery)
         query.copy_to_fields = fields
+        query.copy_to_delimiter = kwargs.get('delimiter', ',')
         compiler = query.get_compiler(self.db, connection=connection)
         compiler.execute_sql(csv_path)
 
