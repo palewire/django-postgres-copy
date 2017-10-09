@@ -11,7 +11,7 @@ class CopyQuerySet(models.QuerySet):
     """
     Subclass of QuerySet that adds from_csv and to_csv methods.
     """
-    def from_csv(self, csv_path, mapping, **kwargs):
+    def from_csv(self, csv_path, mapping=None, **kwargs):
         """
         Copy CSV file from the provided path to the current model using the provided mapping.
         """
