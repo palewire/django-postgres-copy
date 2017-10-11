@@ -96,6 +96,24 @@ class PostgresCopyToTest(BaseTest):
             [i['name'] for i in reader]
         )
 
+    def test_export_null_string(self):
+        self._load_objects(self.blank_null_path)
+        MockObject.objects.to_csv(self.export_path)
+        self.assertTrue(os.path.exists(self.export_path))
+        reader = csv.DictReader(open(self.export_path, 'r'))
+        self.assertTrue(
+            ['1', '2', '3', '', ''],
+            [i['num'] for i in reader]
+        )
+
+        MockObject.objects.to_csv(self.export_path, null_string='NULL')
+        self.assertTrue(os.path.exists(self.export_path))
+        reader = csv.DictReader(open(self.export_path, 'r'))
+        self.assertTrue(
+            ['1', '2', '3', 'NULL', ''],
+            [i['num'] for i in reader]
+        )
+
     def test_filter(self):
         self._load_objects(self.name_path)
         MockObject.objects.filter(name="BEN").to_csv(self.export_path)

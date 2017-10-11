@@ -27,6 +27,8 @@ class CopyQuerySet(models.QuerySet):
         query.copy_to_delimiter = kwargs.get('delimiter', ',')
         with_header = kwargs.get('with_header', True)
         query.copy_to_header = "HEADER" if with_header else ""
+        null_string = kwargs.get('with_header', None)
+        query.copy_to_null_string = "" if null_string is None else "NULL '%s'" % null_string
         compiler = query.get_compiler(self.db, connection=connection)
         compiler.execute_sql(csv_path)
 
