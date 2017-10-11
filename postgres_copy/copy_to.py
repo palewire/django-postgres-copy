@@ -49,8 +49,8 @@ class SQLCopyToCompiler(SQLCompiler):
                 select_sql = self.as_sql()[0] % adapted_params
                 # then the COPY TO query
                 copy_to_sql = (
-                    "COPY (%s) TO STDOUT DELIMITER '%s' CSV HEADER"
-                ) % (select_sql, self.query.copy_to_delimiter)
+                    "COPY (%s) TO STDOUT DELIMITER '%s' CSV %s"
+                ) % (select_sql, self.query.copy_to_delimiter, self.query.copy_to_header)
                 # then execute
                 c.cursor.copy_expert(copy_to_sql, stdout)
 
