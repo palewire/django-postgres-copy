@@ -7,6 +7,8 @@ import os
 import sys
 import csv
 from collections import OrderedDict
+
+from django.core.exceptions import FieldDoesNotExist
 from django.db import connections, router
 from django.contrib.humanize.templatetags.humanize import intcomma
 
@@ -105,8 +107,8 @@ class CopyMapping(object):
         Returns any fields on the database model matching the provided name.
         """
         try:
-            return [f for f in self.model._meta.fields if name in [f.name, f.attname]][0]
-        except IndexError:
+            return self.model._meta.get_field(name)
+        except FieldDoesNotExist:
             return None
 
     def get_headers(self):
