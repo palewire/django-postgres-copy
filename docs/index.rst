@@ -462,6 +462,9 @@ Argument           Description
                    file.
 
 ``with_header``    Boolean determines if the header should be exported
+
+``null_string``    String to populate exported null values with. Default
+                   is an empty string.
 =================  =========================================================
 
 Reducing the exported fields
