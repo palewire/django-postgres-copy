@@ -63,6 +63,29 @@ class PostgresCopyToTest(BaseTest):
             [i['name'] for i in reader]
         )
 
+    def test_export_header_setting(self):
+        self._load_objects(self.name_path)
+        MockObject.objects.to_csv(self.export_path)
+        reader = csv.DictReader(open(self.export_path, 'r'))
+        self.assertTrue(
+            ['BEN', 'JOE', 'JANE'],
+            [i['name'] for i in reader]
+        )
+        MockObject.objects.to_csv(self.export_path, with_header=True)
+        reader = csv.DictReader(open(self.export_path, 'r'))
+        self.assertTrue(
+            ['BEN', 'JOE', 'JANE'],
+            [i['name'] for i in reader]
+        )
+        MockObject.objects.to_csv(self.export_path, with_header=False)
+        reader = csv.DictReader(open(self.export_path, 'r'))
+        with self.assertRaises(KeyError):
+            [i['name'] for i in reader]
+        self.assertTrue(
+            ['JOE', 'JANE'],
+            [i['BEN'] for i in reader]
+        )
+
     def test_export_delimiter(self):
         self._load_objects(self.name_path)
         MockObject.objects.to_csv(self.export_path, delimiter=';')
