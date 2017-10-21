@@ -68,7 +68,7 @@ It all starts with a CSV file you'd like to load into your database. This librar
 
 .. code-block:: text
 
-    NAME,NUMBER,DATE
+    name,number,date
     ben,1,2012-01-01
     joe,2,2012-01-02
     jane,3,2012-01-03
@@ -85,7 +85,7 @@ A Django model that corresponds to the data might look something like this. It s
     class Person(models.Model):
         name = models.CharField(max_length=500)
         number = models.IntegerField(null=True)
-        dt = models.DateField(null=True)
+        date = models.DateField(null=True)
         objects = CopyManager()
 
 If the model hasn't been created in your database, that needs to happen.
@@ -109,14 +109,11 @@ Here's how to create a script to import CSV data into the model. Our favorite wa
     class Command(BaseCommand):
 
         def handle(self, *args, **kwargs):
-            Person.objects.from_csv(
-                # The path to your CSV
-                '/path/to/my/data.csv',
-                # And a dict mapping the  model fields to CSV headers
-                dict(name='NAME', number='NUMBER', dt='DATE')
-            )
+            # Since the CSV headers match the model fields,
+            # you only need to provide the file's path
+            Person.objects.from_csv('/path/to/my/import.csv')
 
-Run your loader and that's it.
+Run your loader.
 
 .. code-block:: bash
 
