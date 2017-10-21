@@ -7,9 +7,8 @@ import os
 import sys
 import csv
 from collections import OrderedDict
-
-from django.core.exceptions import FieldDoesNotExist
 from django.db import connections, router
+from django.core.exceptions import FieldDoesNotExist
 from django.contrib.humanize.templatetags.humanize import intcomma
 
 
@@ -143,7 +142,7 @@ class CopyMapping(object):
         # Make sure all the model fields in the mapping actually exist
         for map_field in self.mapping.keys():
             if not self.get_field(map_field):
-                raise ValueError("Model does not include %s field" % map_field)
+                raise FieldDoesNotExist("Model does not include %s field" % map_field)
 
         # Make sure any static mapping columns exist
         for static_field in self.static_mapping.keys():

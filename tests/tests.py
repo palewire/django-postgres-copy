@@ -13,6 +13,7 @@ from .models import (
 from django.db.models import Count
 from postgres_copy import CopyMapping
 from django.test import TestCase
+from django.core.exceptions import FieldDoesNotExist
 
 
 class BaseTest(TestCase):
@@ -216,7 +217,7 @@ class PostgresCopyTest(BaseTest):
             )
 
     def test_bad_field(self):
-        with self.assertRaises(ValueError):
+        with self.assertRaises(FieldDoesNotExist):
             CopyMapping(
                 MockObject,
                 self.name_path,
@@ -243,15 +244,17 @@ class PostgresCopyTest(BaseTest):
         )
 
     def test_match_heading(self):
-        MockObject.objects.from_csv(
-            self.matching_headers_path,
-        )
+        MockObject.objects.from_csv(self.matching_headers_path)
         self.assertEqual(MockObject.objects.count(), 3)
         self.assertEqual(MockObject.objects.get(name='BEN').number, 1)
         self.assertEqual(
             MockObject.objects.get(name='BEN').dt,
             date(2012, 1, 1)
         )
+
+    def test_bad_match_heading(self):
+        with self.assertRaises(FieldDoesNotExist):
+            MockObject.objects.from_csv(self.name_path)
 
     def test_limited_save(self):
         LimitedMockObject.objects.from_csv(
@@ -447,7 +450,7 @@ class PostgresCopyTest(BaseTest):
         self.assertEqual(omo.name.lower(), omo.lower_name)
 
     def test_missing_overload_field(self):
-        with self.assertRaises(ValueError):
+        with self.assertRaises(FieldDoesNotExist):
             CopyMapping(
                 OverloadMockObject,
                 self.name_path,
