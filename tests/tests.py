@@ -71,13 +71,13 @@ class PostgresCopyToTest(BaseTest):
             ['BEN', 'JOE', 'JANE'],
             [i['name'] for i in reader]
         )
-        MockObject.objects.to_csv(self.export_path, with_header=True)
+        MockObject.objects.to_csv(self.export_path, header=True)
         reader = csv.DictReader(open(self.export_path, 'r'))
         self.assertTrue(
             ['BEN', 'JOE', 'JANE'],
             [i['name'] for i in reader]
         )
-        MockObject.objects.to_csv(self.export_path, with_header=False)
+        MockObject.objects.to_csv(self.export_path, header=False)
         reader = csv.DictReader(open(self.export_path, 'r'))
         with self.assertRaises(KeyError):
             [i['name'] for i in reader]
@@ -106,7 +106,7 @@ class PostgresCopyToTest(BaseTest):
             [i['num'] for i in reader]
         )
 
-        MockObject.objects.to_csv(self.export_path, null_string='NULL')
+        MockObject.objects.to_csv(self.export_path, null='NULL')
         self.assertTrue(os.path.exists(self.export_path))
         reader = csv.DictReader(open(self.export_path, 'r'))
         self.assertTrue(

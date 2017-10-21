@@ -24,12 +24,10 @@ class SQLCopyToCompiler(SQLCompiler):
             for field in self.query.copy_to_fields:
                 # raises error if field is not available
                 expression = self.query.resolve_ref(field)
-
                 if field in self.query.annotations:
                     selection = (expression, self.compile(expression), field)
                 else:
                     selection = (expression, self.compile(expression), None)
-
                 self.select.append(selection)
 
     def execute_sql(self, csv_path):
@@ -38,9 +36,7 @@ class SQLCopyToCompiler(SQLCompiler):
         """
         # adapt SELECT query parameters to SQL syntax
         params = self.as_sql()[1]
-        adapted_params = tuple(
-            adapt(p) for p in params
-        )
+        adapted_params = tuple(adapt(p) for p in params)
         # open file for writing
         # use stdout to avoid file permission issues
         with open(csv_path, 'wb') as stdout:
@@ -48,10 +44,13 @@ class SQLCopyToCompiler(SQLCompiler):
                 # compile the SELECT query
                 select_sql = self.as_sql()[0] % adapted_params
                 # then the COPY TO query
-                copy_to_sql = (
-                    "COPY (%s) TO STDOUT DELIMITER '%s' CSV %s %s"
-                ) % (select_sql, self.query.copy_to_delimiter, self.query.copy_to_header,
-                     self.query.copy_to_null_string)
+                copy_to_sql = "COPY ({}) TO STDOUT DELIMITER '{}' CSV {} {}"
+                copy_to_sql = copy_to_sql.format(
+                    select_sql,
+                    self.query.copy_to_delimiter,
+                    self.query.copy_to_header,
+                    self.query.copy_to_null_string
+                )
                 # then execute
                 c.cursor.copy_expert(copy_to_sql, stdout)
 

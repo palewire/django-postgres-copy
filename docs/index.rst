@@ -461,9 +461,9 @@ Argument           Description
 ``delimiter``      String that will be used as a delimiter for the CSV
                    file.
 
-``with_header``    Boolean determines if the header should be exported
+``header``         Boolean determines if the header should be exported
 
-``null_string``    String to populate exported null values with. Default
+``null``           String to populate exported null values with. Default
                    is an empty string.
 =================  =========================================================
 
