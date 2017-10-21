@@ -169,9 +169,9 @@ Argument           Description
                    (e.g., a CSV)
 =================  =========================================================
 
-=====================  ========================================================
+=====================  =======================================================
 Keyword Argument       Description
-=====================  ========================================================
+=====================  =======================================================
 ``mapping``            A (optional) dictionary: keys are strings corresponding
                        to the model field, and values correspond to string
                        field names for the CSV header. If not informed, the
