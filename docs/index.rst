@@ -216,7 +216,7 @@ Keyword Argument       Description
                        for every row in the database by providing a dictionary
                        with the name of the columns as keys and the static
                        inputs as values.
-=====================  =====================================================
+=====================  =======================================================
 
 
 Transforming data
