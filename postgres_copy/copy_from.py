@@ -35,7 +35,6 @@ class CopyMapping(object):
     ):
         # Set the required arguments
         self.model = model
-        self.mapping = OrderedDict(mapping)
         self.csv_path = csv_path
         if not os.path.exists(self.csv_path):
             raise ValueError("csv_path does not exist")
@@ -65,6 +64,7 @@ class CopyMapping(object):
 
         # Pull the CSV headers
         self.headers = self.get_headers()
+        self.mapping = self.get_mapping(mapping)
 
         # Make sure the everything is legit
         self.validate_mapping()
@@ -110,6 +110,15 @@ class CopyMapping(object):
             return self.model._meta.get_field(name)
         except FieldDoesNotExist:
             return None
+
+    def get_mapping(self, mapping):
+        """
+        Returns a generated mapping based on the CSV header
+        """
+        if mapping:
+            return OrderedDict(mapping)
+
+        return {name: name for name in self.headers}
 
     def get_headers(self):
         """

@@ -26,6 +26,10 @@ class BaseTest(TestCase):
         self.blank_null_path = os.path.join(self.data_dir, 'blanknulls.csv')
         self.null_path = os.path.join(self.data_dir, 'nulls.csv')
         self.backwards_path = os.path.join(self.data_dir, 'backwards.csv')
+        self.matching_headers_path = os.path.join(
+            self.data_dir,
+            'matching_headers.csv'
+        )
         self.secondarydb_path = os.path.join(self.data_dir, 'secondary_db.csv')
 
     def tearDown(self):
@@ -230,6 +234,17 @@ class PostgresCopyTest(BaseTest):
         MockObject.objects.from_csv(
             self.name_path,
             dict(name='NAME', number='NUMBER', dt='DATE')
+        )
+        self.assertEqual(MockObject.objects.count(), 3)
+        self.assertEqual(MockObject.objects.get(name='BEN').number, 1)
+        self.assertEqual(
+            MockObject.objects.get(name='BEN').dt,
+            date(2012, 1, 1)
+        )
+
+    def test_match_heading(self):
+        MockObject.objects.from_csv(
+            self.matching_headers_path,
         )
         self.assertEqual(MockObject.objects.count(), 3)
         self.assertEqual(MockObject.objects.get(name='BEN').number, 1)

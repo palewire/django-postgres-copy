@@ -162,7 +162,7 @@ Import options
 
 The ``from_csv`` manager method has the following arguments and keywords options.
 
-.. method:: from_csv(csv_path, mapping[, using=None, delimiter=',', null=None, force_not_null=None, force_null=None, encoding=None, static_mapping=None])
+.. method:: from_csv(csv_path[, mapping=None, using=None, delimiter=',', null=None, force_not_null=None, force_null=None, encoding=None, static_mapping=None])
 
 
 =================  =========================================================
@@ -171,9 +171,10 @@ Argument           Description
 ``csv_path``       The path to the delimited data source file
                    (e.g., a CSV)
 
-``mapping``        A dictionary: keys are strings corresponding to
-                   the model field, and values correspond to
-                   string field names for the CSV header.
+``mapping``        A (optional) dictionary: keys are strings corresponding
+                   to the model field, and values correspond to string
+                   field names for the CSV header. If not informed, the
+                   mapping is generated based on the CSV file header.
 =================  =========================================================
 
 =====================  =====================================================
