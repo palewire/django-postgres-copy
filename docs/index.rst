@@ -167,16 +167,16 @@ Argument           Description
 =================  =========================================================
 ``csv_path``       The path to the delimited data source file
                    (e.g., a CSV)
-
-``mapping``        A (optional) dictionary: keys are strings corresponding
-                   to the model field, and values correspond to string
-                   field names for the CSV header. If not informed, the
-                   mapping is generated based on the CSV file header.
 =================  =========================================================
 
-=====================  =====================================================
-Keyword Arguments
-=====================  =====================================================
+=====================  ========================================================
+Keyword Argument       Description
+=====================  ========================================================
+``mapping``            A (optional) dictionary: keys are strings corresponding
+                       to the model field, and values correspond to string
+                       field names for the CSV header. If not informed, the
+                       mapping is generated based on the CSV file header.
+
 ``delimiter``          The character that separates values in the data file.
                        By default  it is ",". This must be a single one-byte
                        character.
