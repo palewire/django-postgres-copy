@@ -22,11 +22,11 @@ That means we write a load of loaders. In the past we did this by looping throug
     for row in data:
         MyModel.objects.create(name=row['NAME'], number=row['NUMBER'])
 
-That works, but if you have a big file as Django racks up a database query for each row it can take a long time to get all the data in the database.
+That works, but if you have a big file Django will rack up a database query for each row. That can take a long time to finish.
 
-Lucky for us, PostgreSQL has a built-in tool called `COPY <http://www.postgresql.org/docs/9.4/static/sql-copy.html>`_ that can hammer data in and out the database with one quick query.
+Lucky for us, PostgreSQL has a built-in tool called `COPY <http://www.postgresql.org/docs/9.4/static/sql-copy.html>`_ that hammers data in and out the database with one quick query.
 
-This package tries to make using COPY as easy any other database routine supported by Django. It is implemented by a custom `model manager <https://docs.djangoproject.com/en/dev/topics/db/managers/>`_.
+This package tries to make using COPY as easy as any other database routine supported by Django. It is implemented by a custom `model manager <https://docs.djangoproject.com/en/dev/topics/db/managers/>`_.
 
 Here's how it imports a CSV to a database table.
 
@@ -141,7 +141,7 @@ Run your exporter and that's it.
 
     $ python manage.py myexportcommand
 
-That's it. You can even export your queryset after any filters or other tricks. This will work;
+That's it. You can even export your queryset after any filters or other tricks. This will work:
 
 .. code-block:: python
 
