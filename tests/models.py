@@ -8,7 +8,7 @@ class MockObject(models.Model):
     name = models.CharField(max_length=500)
     number = MyIntegerField(null=True, db_column='num')
     dt = models.DateField(null=True)
-    parent = models.ForeignKey('MockObject', null=True, default=None)
+    parent = models.ForeignKey('MockObject', on_delete=models.CASCADE, null=True, default=None)
     objects = CopyManager()
 
     class Meta:
@@ -23,7 +23,7 @@ class MockBlankObject(models.Model):
     number = MyIntegerField(null=True, db_column='num')
     dt = models.DateField(null=True)
     color = models.CharField(max_length=50, blank=True)
-    parent = models.ForeignKey('MockObject', null=True, default=None)
+    parent = models.ForeignKey('MockObject', on_delete=models.CASCADE, null=True, default=None)
     objects = CopyManager()
 
     class Meta:
