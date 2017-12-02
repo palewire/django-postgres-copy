@@ -16,9 +16,9 @@ env:
  - DJANGO_VERSION=1.11.*
  - DJANGO_VERSION=2.0.*
 
- matrix:
+matrix:
   exclude:
-  - python: 3.6
+  - python: "3.6"
     env: DJANGO_VERSION=1.11.*
 
 install:
