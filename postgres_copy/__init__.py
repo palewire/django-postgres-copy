@@ -22,7 +22,10 @@ class CopyQuerySet(models.QuerySet):
         """
         Copy current QuerySet to CSV at provided path.
         """
-        query = self.query.clone(CopyToQuery)
+        try:
+            query = self.query.chain(CopyToQuery)
+        except AttributeError:
+            query = self.query.clone(CopyToQuery)
 
         # Get fields
         query.copy_to_fields = fields
