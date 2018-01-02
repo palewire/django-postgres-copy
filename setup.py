@@ -1,3 +1,4 @@
+import os
 from setuptools import setup
 from distutils.core import Command
 
@@ -38,10 +39,34 @@ class TestCommand(Command):
                 }
             },
             INSTALLED_APPS=("tests",),
-            DATABASE_ROUTERS=['tests.router.CustomRouter']
+            DATABASE_ROUTERS=['tests.router.CustomRouter'],
+            LOGGING = {
+                'version': 1,
+                'disable_existing_loggers': False,
+                'handlers': {
+                    'file': {
+                        'level': 'DEBUG',
+                        'class': 'logging.FileHandler',
+                        'filename': os.path.join(os.path.dirname(__file__), 'tests.log'),
+                    },
+                },
+                'formatters': {
+                    'verbose': {
+                        'format': '%(levelname)s|%(asctime)s|%(module)s|%(message)s',
+                        'datefmt': "%d/%b/%Y %H:%M:%S"
+                    }
+                },
+                'loggers': {
+                    'postgres_copy': {
+                        'handlers': ['file'],
+                        'level': 'DEBUG',
+                        'propagate': True,
+                    },
+                }
+            }
         )
         django.setup()
-        call_command('test', 'tests.tests')
+        call_command('test', 'tests.tests.PostgresCopyTest.test_save_foreign_key')
 
 
 setup(

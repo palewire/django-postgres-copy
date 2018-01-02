@@ -39,6 +39,7 @@ class ConstraintQuerySet(models.QuerySet):
         try:
             getattr(schema_editor, method_name)(*args)
         except Exception:
+            raise
             logger.debug("Edit unnecessary. Skipped")
             pass
 
@@ -76,7 +77,7 @@ class ConstraintQuerySet(models.QuerySet):
 
             # Remove any field indexes
             for field in self.indexed_fields:
-                logger.debug("Dropping indexes from {}".format(field))
+                logger.debug("Dropping index from {}".format(field))
                 field_copy = field.__copy__()
                 field_copy.db_index = False
                 args = (self.model, field, field_copy)
@@ -110,13 +111,13 @@ class ConstraintQuerySet(models.QuerySet):
         with connection.schema_editor() as schema_editor:
             # Add any "index_together" contraints to the database.
             if self.model._meta.index_together:
-                logger.debug("Adding index_together of {}".format(self.model._meta.index_together))
+                logger.debug("Restoring index_together of {}".format(self.model._meta.index_together))
                 args = (self.model, (), self.model._meta.index_together)
                 self.edit_schema(schema_editor, 'alter_index_together', args)
 
             # Add any indexes to the fields
             for field in self.indexed_fields:
-                logger.debug("Adding indexes to {}".format(field))
+                logger.debug("Restoring index to {}".format(field))
                 field_copy = field.__copy__()
                 field_copy.db_index = False
                 args = (self.model, field_copy, field)
@@ -127,7 +128,7 @@ class CopyQuerySet(ConstraintQuerySet):
     """
     Subclass of QuerySet that adds from_csv and to_csv methods.
     """
-    def from_csv(self, csv_path, mapping=None, drop_constraints=False, drop_indexes=False, **kwargs):
+    def from_csv(self, csv_path, mapping=None, drop_constraints=True, drop_indexes=True, **kwargs):
         """
         Copy CSV file from the provided path to the current model using the provided mapping.
         """
