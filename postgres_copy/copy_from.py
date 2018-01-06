@@ -341,7 +341,6 @@ class CopyMapping(object):
         cursor.execute(insert_sql)
         insert_count = cursor.rowcount
         self.post_insert(cursor)
-
         return insert_count
 
     def post_insert(self, cursor):
@@ -357,7 +356,7 @@ class CopyMapping(object):
 
         Return SQL that can be run.
         """
-        return "DROP TABLE IF EXISTS %s;" % self.temp_table_name
+        return 'DROP TABLE IF EXISTS "%s";' % self.temp_table_name
 
     def drop(self, cursor):
         """
