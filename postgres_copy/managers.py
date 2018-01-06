@@ -128,7 +128,7 @@ class CopyQuerySet(ConstraintQuerySet):
     """
     Subclass of QuerySet that adds from_csv and to_csv methods.
     """
-    def from_csv(self, csv_path, mapping=None, drop_constraints=True, drop_indexes=True, **kwargs):
+    def from_csv(self, csv_path, mapping=None, drop_constraints=True, drop_indexes=True, silent=True, **kwargs):
         """
         Copy CSV file from the provided path to the current model using the provided mapping.
         """
@@ -139,7 +139,7 @@ class CopyQuerySet(ConstraintQuerySet):
         if drop_indexes:
             self.drop_indexes()
 
-        mapping.save(silent=True)
+        mapping.save(silent=silent)
 
         if drop_constraints:
             self.restore_constraints()
