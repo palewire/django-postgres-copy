@@ -18,6 +18,21 @@ class MockObject(models.Model):
         return 'upper("%(name)s")'
 
 
+class MockFKObject(models.Model):
+    id = models.IntegerField(primary_key=True)
+    name = models.CharField(max_length=500)
+    number = MyIntegerField(null=True, db_column='num')
+    dt = models.DateField(null=True)
+    parent = models.ForeignKey('MockFKObject', on_delete=models.CASCADE, null=True, default=None)
+    objects = CopyManager()
+
+    class Meta:
+        app_label = 'tests'
+
+    def copy_name_template(self):
+        return 'upper("%(name)s")'
+
+
 class MockBlankObject(models.Model):
     name = models.CharField(max_length=500)
     number = MyIntegerField(null=True, db_column='num')

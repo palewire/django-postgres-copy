@@ -66,7 +66,8 @@ class TestCommand(Command):
             }
         )
         django.setup()
-        call_command('test', 'tests.tests.PostgresCopyTest.test_save_foreign_key')
+        call_command('test', 'tests')
+        # call_command('test', 'tests.tests.PostgresCopyToTest.test_related_fields')
 
 
 setup(

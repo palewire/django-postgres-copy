@@ -3,16 +3,17 @@ import csv
 from datetime import date
 from .models import (
     MockObject,
+    MockFKObject,
     MockBlankObject,
     ExtendedMockObject,
     LimitedMockObject,
     OverloadMockObject,
     HookedCopyMapping,
-    SecondaryMockObject,
+    SecondaryMockObject
 )
+from django.test import TestCase
 from django.db.models import Count
 from postgres_copy import CopyMapping
-from django.test import TestCase
 from django.core.exceptions import FieldDoesNotExist
 
 
@@ -35,6 +36,7 @@ class BaseTest(TestCase):
 
     def tearDown(self):
         MockObject.objects.all().delete()
+        MockFKObject.objects.all().delete()
         ExtendedMockObject.objects.all().delete()
         LimitedMockObject.objects.all().delete()
         OverloadMockObject.objects.all().delete()
@@ -137,14 +139,14 @@ class PostgresCopyToTest(BaseTest):
             self.assertTrue(len(row.keys()), 1)
 
     def test_related_fields(self):
-        self._load_objects(
+        MockFKObject.objects.from_csv(
             self.foreign_path,
-            mapping=dict(name='NAME', number='NUMBER', dt='DATE', parent='PARENT')
+            mapping=dict(id="NUMBER", name='NAME', number='NUMBER', dt='DATE', parent='PARENT')
         )
-        MockObject.objects.to_csv(self.export_path, 'name', 'parent__id', 'parent__name')
+        MockFKObject.objects.to_csv(self.export_path, 'name', 'parent__id', 'parent__name')
         reader = csv.DictReader(open(self.export_path, 'r'))
         for row in reader:
-            self.assertTrue(row['parent_id'] in ['4', '5', '6'])
+            self.assertTrue(row['parent_id'] in ['1', '2', '3'])
             self.assertTrue(len(row.keys()), 3)
 
     def test_annotate(self):
@@ -268,26 +270,26 @@ class PostgresCopyTest(BaseTest):
         )
 
     def test_save_foreign_key(self):
-        MockObject.objects.from_csv(
+        MockFKObject.objects.from_csv(
             self.foreign_path,
-            dict(name='NAME', number='NUMBER', dt='DATE', parent='PARENT')
+            dict(id="NUMBER", name='NAME', number='NUMBER', dt='DATE', parent='PARENT')
         )
-        self.assertEqual(MockObject.objects.count(), 3)
-        self.assertEqual(MockObject.objects.get(name='BEN').parent_id, 4)
+        self.assertEqual(MockFKObject.objects.count(), 3)
+        self.assertEqual(MockFKObject.objects.get(name='BEN').parent_id, 3)
         self.assertEqual(
-            MockObject.objects.get(name='BEN').dt,
+            MockFKObject.objects.get(name='BEN').dt,
             date(2012, 1, 1)
         )
 
     def test_save_foreign_key_by_id(self):
-        MockObject.objects.from_csv(
+        MockFKObject.objects.from_csv(
             self.foreign_path,
-            dict(name='NAME', number='NUMBER', dt='DATE', parent_id='PARENT')
+            dict(id="NUMBER", name='NAME', number='NUMBER', dt='DATE', parent_id='PARENT')
         )
-        self.assertEqual(MockObject.objects.count(), 3)
-        self.assertEqual(MockObject.objects.get(name='BEN').parent_id, 4)
+        self.assertEqual(MockFKObject.objects.count(), 3)
+        self.assertEqual(MockFKObject.objects.get(name='BEN').parent_id, 3)
         self.assertEqual(
-            MockObject.objects.get(name='BEN').dt,
+            MockFKObject.objects.get(name='BEN').dt,
             date(2012, 1, 1)
         )
 
