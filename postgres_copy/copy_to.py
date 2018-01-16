@@ -4,10 +4,12 @@
 Handlers for working with PostgreSQL's COPY TO command.
 """
 from __future__ import unicode_literals
+import logging
 from django.db import connections
 from psycopg2.extensions import adapt
 from django.db.models.sql.query import Query
 from django.db.models.sql.compiler import SQLCompiler
+logger = logging.getLogger(__name__)
 
 
 class SQLCopyToCompiler(SQLCompiler):
@@ -34,9 +36,12 @@ class SQLCopyToCompiler(SQLCompiler):
         """
         Run the COPY TO query.
         """
+        logger.debug("Copying data to {}".format(csv_path))
+
         # adapt SELECT query parameters to SQL syntax
         params = self.as_sql()[1]
         adapted_params = tuple(adapt(p) for p in params)
+
         # open file for writing
         # use stdout to avoid file permission issues
         with open(csv_path, 'wb') as stdout:
@@ -52,6 +57,7 @@ class SQLCopyToCompiler(SQLCompiler):
                     self.query.copy_to_null_string
                 )
                 # then execute
+                logger.debug(copy_to_sql)
                 c.cursor.copy_expert(copy_to_sql, stdout)
 
 
@@ -59,13 +65,6 @@ class CopyToQuery(Query):
     """
     Represents a "copy to" SQL query.
     """
-    def __init__(self, *args, **kwargs):
-        """
-        Extend inherited __init__ method to include setting copy_to_fields from args.
-        """
-        super(CopyToQuery, self).__init__(*args, **kwargs)
-        self.copy_to_fields = args
-
     def get_compiler(self, using=None, connection=None):
         """
         Return a SQLCopyToCompiler object.

@@ -6,17 +6,17 @@ Handlers for working with PostgreSQL's COPY command.
 import os
 import sys
 import csv
+import logging
 from collections import OrderedDict
 from django.db import connections, router
 from django.core.exceptions import FieldDoesNotExist
 from django.contrib.humanize.templatetags.humanize import intcomma
+logger = logging.getLogger(__name__)
 
 
 class CopyMapping(object):
     """
-    Maps comma-delimited data file to a Django model
-    and loads it into PostgreSQL databases using its
-    COPY command.
+    Maps comma-delimited file to Django model and loads it into PostgreSQL database using COPY command.
     """
     def __init__(
         self,
@@ -56,17 +56,23 @@ class CopyMapping(object):
         else:
             self.using = router.db_for_write(model)
         self.conn = connections[self.using]
+        self.backend = self.conn.ops
+
+        # Verify it is PostgreSQL
         if self.conn.vendor != 'postgresql':
             raise TypeError("Only PostgreSQL backends supported")
-        self.backend = self.conn.ops
-        self.temp_table_name = "temp_%s" % self.model._meta.db_table
 
         # Pull the CSV headers
         self.headers = self.get_headers()
+
+        # Map them to the model
         self.mapping = self.get_mapping(mapping)
 
         # Make sure the everything is legit
         self.validate_mapping()
+
+        # Configure the name of our temporary table to COPY into
+        self.temp_table_name = "temp_%s" % self.model._meta.db_table
 
     def save(self, silent=False, stream=sys.stdout):
         """
@@ -86,6 +92,7 @@ class CopyMapping(object):
            using `sys.stdout`, but any object with a `write` method is
            supported.
         """
+        logger.debug("Loading CSV to {}".format(self.model.__name__))
         if not silent:
             stream.write("Loading CSV to %s\n" % self.model.__name__)
 
@@ -116,13 +123,13 @@ class CopyMapping(object):
         """
         if mapping:
             return OrderedDict(mapping)
-
         return {name: name for name in self.headers}
 
     def get_headers(self):
         """
         Returns the column headers from the csv as a list.
         """
+        logger.debug("Retrieving headers from {}".format(self.csv_path))
         with open(self.csv_path, 'rU') as infile:
             csv_reader = csv.reader(infile, delimiter=self.delimiter)
             headers = next(csv_reader)
@@ -186,8 +193,10 @@ class CopyMapping(object):
         cursor:
           A cursor object on the db
         """
+        logger.debug("Running CREATE command")
         self.drop(cursor)
         create_sql = self.prep_create()
+        logger.debug(create_sql)
         cursor.execute(create_sql)
 
     #
@@ -239,10 +248,16 @@ class CopyMapping(object):
         cursor:
           A cursor object on the db
         """
+        # Run pre-copy hook
         self.pre_copy(cursor)
+
+        logger.debug("Running COPY command")
         copy_sql = self.prep_copy()
+        logger.debug(copy_sql)
         fp = open(self.csv_path, 'r')
         cursor.copy_expert(copy_sql, fp)
+
+        # Run post-copy hook
         self.post_copy(cursor)
 
     def post_copy(self, cursor):
@@ -336,11 +351,20 @@ class CopyMapping(object):
         cursor:
           A cursor object on the db
         """
+        # Pre-insert hook
         self.pre_insert(cursor)
+
+        logger.debug("Running INSERT command")
         insert_sql = self.prep_insert()
+        logger.debug(insert_sql)
         cursor.execute(insert_sql)
         insert_count = cursor.rowcount
+        logger.debug("{} rows inserted".format(insert_count))
+
+        # Post-insert hook
         self.post_insert(cursor)
+
+        # Return the row count
         return insert_count
 
     def post_insert(self, cursor):
@@ -365,5 +389,7 @@ class CopyMapping(object):
         cursor:
           A cursor object on the db
         """
+        logger.debug("Running INSERT command")
         drop_sql = self.prep_drop()
+        logger.debug(drop_sql)
         cursor.execute(drop_sql)

@@ -13,6 +13,8 @@ class MockObject(models.Model):
 
     class Meta:
         app_label = 'tests'
+        unique_together = ("name", "number")
+        index_together = ("name", "number")
 
     def copy_name_template(self):
         return 'upper("%(name)s")'

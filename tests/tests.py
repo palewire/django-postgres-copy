@@ -155,6 +155,7 @@ class PostgresCopyToTest(BaseTest):
         reader = csv.DictReader(open(self.export_path, 'r'))
         for row in reader:
             self.assertTrue('name_count' in row)
+            self.assertTrue(row['name_count'] == '1')
 
     def test_extra(self):
         self._load_objects(self.name_path)
@@ -186,7 +187,7 @@ class PostgresCopyToTest(BaseTest):
         )
 
 
-class PostgresCopyTest(BaseTest):
+class PostgresCopyFromTest(BaseTest):
 
     def test_bad_call(self):
         with self.assertRaises(TypeError):
@@ -243,6 +244,13 @@ class PostgresCopyTest(BaseTest):
         self.assertEqual(
             MockObject.objects.get(name='BEN').dt,
             date(2012, 1, 1)
+        )
+
+    def test_loud_save(self):
+        MockObject.objects.from_csv(
+            self.name_path,
+            mapping=dict(name='NAME', number='NUMBER', dt='DATE'),
+            silent=False
         )
 
     def test_match_heading(self):
@@ -532,6 +540,7 @@ class MultiDbTest(BaseTest):
             MockObject.objects.using('alternative').get(name='BEN').dt,
             date(2012, 1, 1)
         )
+        MockObject.objects.using("alternative").all().delete()
 
     def test_to_csv(self):
         # First with the default database
@@ -547,7 +556,9 @@ class MultiDbTest(BaseTest):
         )
         os.remove(export_path)
 
+    def test_to_csv_from_alt_db(self):
         # Next with the alternative database
+        mapping = dict(name='NAME', number='NUMBER', dt='DATE')
         MockObject.objects.from_csv(self.name_path, mapping, using="alternative")
         export_path = os.path.join(os.path.dirname(__file__), 'alternative.csv')
         MockObject.objects.using('alternative').to_csv(export_path)
@@ -557,4 +568,5 @@ class MultiDbTest(BaseTest):
             ['BEN', 'JOE', 'JANE'],
             [i['name'] for i in reader]
         )
+        MockObject.objects.using("alternative").all().delete()
         os.remove(export_path)
