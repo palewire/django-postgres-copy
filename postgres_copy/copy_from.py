@@ -94,7 +94,7 @@ class CopyMapping(object):
         """
         logger.debug("Loading CSV to {}".format(self.model.__name__))
         if not silent:
-            stream.write("Loading CSV to %s\n" % self.model.__name__)
+            stream.write("Loading CSV to {}\n".format(self.model.__name__))
 
         # Connect to the database
         with self.conn.cursor() as c:
@@ -104,9 +104,7 @@ class CopyMapping(object):
             self.drop(c)
 
         if not silent:
-            stream.write(
-                "%s records loaded\n" % intcomma(insert_count)
-            )
+            stream.write("{} records loaded\n".format(intcomma(insert_count)))
 
     def get_field(self, name):
         """
@@ -144,17 +142,17 @@ class CopyMapping(object):
         # Make sure all of the CSV headers in the mapping actually exist
         for map_header in self.mapping.values():
             if map_header not in self.headers:
-                raise ValueError("Header '%s' not found in CSV file" % map_header)
+                raise ValueError("Header '{}' not found in CSV file".format(map_header))
 
         # Make sure all the model fields in the mapping actually exist
         for map_field in self.mapping.keys():
             if not self.get_field(map_field):
-                raise FieldDoesNotExist("Model does not include %s field" % map_field)
+                raise FieldDoesNotExist("Model does not include {} field".format(map_field))
 
         # Make sure any static mapping columns exist
         for static_field in self.static_mapping.keys():
             if not self.get_field(static_field):
-                raise ValueError("Model does not include %s field" % static_field)
+                raise ValueError("Model does not include {} field".format(static_field))
 
     #
     # CREATE commands

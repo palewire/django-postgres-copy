@@ -168,7 +168,7 @@ class CopyQuerySet(ConstraintQuerySet):
 
         # Null string
         null_string = kwargs.get('null', None)
-        query.copy_to_null_string = "" if null_string is None else "NULL '%s'" % null_string
+        query.copy_to_null_string = "" if null_string is None else "NULL '{}'".format(null_string)
 
         # Run the query
         compiler = query.get_compiler(self.db, connection=connection)
