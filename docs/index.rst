@@ -159,7 +159,7 @@ Import options
 
 The ``from_csv`` manager method has the following arguments and keywords options.
 
-.. method:: from_csv(csv_path[, mapping=None, using=None, delimiter=',', null=None, force_not_null=None, force_null=None, encoding=None, static_mapping=None])
+.. method:: from_csv(csv_path[, mapping=None, drop_constraints=True, drop_indexes=True, using=None, delimiter=',', null=None, force_not_null=None, force_null=None, encoding=None, static_mapping=None])
 
 
 =================  =========================================================
@@ -177,6 +177,16 @@ Keyword Argument       Description
                        to the model field, and values correspond to string
                        field names for the CSV header. If not informed, the
                        mapping is generated based on the CSV file header.
+
+``drop_constraints``   A boolean that indicates whether or not constraints
+                       on the table and fields and should be dropped prior to
+                       loading, then restored afterward. Default is True.
+                       This is done to boost speed.
+
+``drop_indexes``       A boolean that indicates whether or not indexes
+                       on the table and fields and should be dropped prior to
+                       loading, then restored afterward. Default is True.
+                       This is done to boost speed.
 
 ``delimiter``          The character that separates values in the data file.
                        By default  it is ",". This must be a single one-byte
