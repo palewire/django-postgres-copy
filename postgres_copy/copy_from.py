@@ -106,6 +106,8 @@ class CopyMapping(object):
         if not silent:
             stream.write("{} records loaded\n".format(intcomma(insert_count)))
 
+        return insert_count
+
     def get_field(self, name):
         """
         Returns any fields on the database model matching the provided name.
