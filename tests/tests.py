@@ -235,7 +235,7 @@ class PostgresCopyFromTest(BaseTest):
         )
 
     def test_simple_save(self):
-        MockObject.objects.from_csv(
+        insert_count = MockObject.objects.from_csv(
             self.name_path,
             dict(name='NAME', number='NUMBER', dt='DATE')
         )
@@ -245,6 +245,7 @@ class PostgresCopyFromTest(BaseTest):
             MockObject.objects.get(name='BEN').dt,
             date(2012, 1, 1)
         )
+        self.assertEqual(insert_count, 3)
 
     def test_loud_save(self):
         MockObject.objects.from_csv(
