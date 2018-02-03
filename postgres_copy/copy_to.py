@@ -26,11 +26,10 @@ class SQLCopyToCompiler(SQLCompiler):
             for field in self.query.copy_to_fields:
                 # raises error if field is not available
                 expression = self.query.resolve_ref(field)
-                selection = (
-                    expression,
-                    self.compile(expression),
-                    field if field in self.query.annotations else None,
-                )
+                if field in self.query.annotations:
+                    selection = (expression, self.compile(expression), field)
+                else:
+                    selection = (expression, self.compile(expression), None)
                 self.select.append(selection)
 
     def execute_sql(self, csv_path):
