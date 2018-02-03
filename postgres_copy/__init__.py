@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from .copy_from import CopyMapping
 from .copy_to import SQLCopyToCompiler, CopyToQuery
-from .managers import CopyManager, CopyQuerySet
+from .managers import CopyManager, CopyQuerySet, from_csv, to_csv
 __version__ = '2.3.0'
 
 
@@ -11,5 +11,7 @@ __all__ = (
     'CopyMapping',
     'CopyQuerySet',
     'CopyToQuery',
-    'SQLCopyToCompiler'
+    'SQLCopyToCompiler',
+    'from_csv',
+    'to_csv'
 )

@@ -131,6 +131,23 @@ class CopyQuerySet(ConstraintQuerySet):
         """
         Copy CSV file from the provided path to the current model using the provided mapping.
         """
+        command = CopyCommand(self.model)
+        return command.from_csv(csv_path, mapping, drop_constraints, drop_indexes, silent, **kwargs)
+
+    def to_csv(self, csv_path, *fields, **kwargs):
+        """
+        Copy current QuerySet to CSV at provided path.
+        """
+        command = CopyCommand(self.model)
+        command.to_csv(csv_path, self.query, self.db, *fields, **kwargs)
+
+
+class CopyCommand(ConstraintQuerySet):
+
+    def __init__(self, model):
+        self.model = model
+
+    def from_csv(self, csv_path, mapping=None, drop_constraints=True, drop_indexes=True, silent=True, **kwargs):
         mapping = CopyMapping(self.model, csv_path, mapping, **kwargs)
 
         if drop_constraints:
@@ -147,16 +164,16 @@ class CopyQuerySet(ConstraintQuerySet):
 
         return insert_count
 
-    def to_csv(self, csv_path, *fields, **kwargs):
+    def to_csv(self, csv_path, query, db, *fields, **kwargs):
         """
         Copy current QuerySet to CSV at provided path.
         """
         try:
             # For Django 2.0 forward
-            query = self.query.chain(CopyToQuery)
+            query = query.chain(CopyToQuery)
         except AttributeError:
             # For Django 1.11 backward
-            query = self.query.clone(CopyToQuery)
+            query = query.clone(CopyToQuery)
 
         # Get fields
         query.copy_to_fields = fields
@@ -173,8 +190,18 @@ class CopyQuerySet(ConstraintQuerySet):
         query.copy_to_null_string = "" if null_string is None else "NULL '{}'".format(null_string)
 
         # Run the query
-        compiler = query.get_compiler(self.db, connection=connection)
+        compiler = query.get_compiler(db, connection=connection)
         compiler.execute_sql(csv_path)
+
+
+def from_csv(model, csv_path, mapping=None, drop_constraints=True, drop_indexes=True, silent=True, **kwargs):
+    command = CopyCommand(model)
+    return command.from_csv(csv_path, mapping, drop_constraints, drop_indexes, silent, **kwargs)
+
+
+def to_csv(csv_path, query, db, *fields, **kwargs):
+    command = CopyCommand(query.model)
+    command.to_csv(csv_path, query.query, db, *fields, **kwargs)
 
 
 CopyManager = models.Manager.from_queryset(CopyQuerySet)

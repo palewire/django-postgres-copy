@@ -153,6 +153,7 @@ class CopyMapping(object):
 
         Raises errors if something goes wrong. Returns nothing if everything is kosher.
         """
+
         # Make sure all of the CSV headers in the mapping actually exist
         for map_header in self.mapping.values():
             if map_header not in self.headers:
