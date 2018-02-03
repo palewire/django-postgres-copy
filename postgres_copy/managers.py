@@ -138,12 +138,14 @@ class CopyQuerySet(ConstraintQuerySet):
         if drop_indexes:
             self.drop_indexes()
 
-        mapping.save(silent=silent)
+        insert_count = mapping.save(silent=silent)
 
         if drop_constraints:
             self.restore_constraints()
         if drop_indexes:
             self.restore_indexes()
+
+        return insert_count
 
     def to_csv(self, csv_path, *fields, **kwargs):
         """
