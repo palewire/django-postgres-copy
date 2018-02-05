@@ -234,6 +234,19 @@ class PostgresCopyFromTest(BaseTest):
             dict(name='NAME', dt='DATE'),
         )
 
+    def test_simple_save_with_fileobject(self):
+        f = open(self.name_path, 'r')
+        MockObject.objects.from_csv(
+            f,
+            dict(name='NAME', number='NUMBER', dt='DATE')
+        )
+        self.assertEqual(MockObject.objects.count(), 3)
+        self.assertEqual(MockObject.objects.get(name='BEN').number, 1)
+        self.assertEqual(
+            MockObject.objects.get(name='BEN').dt,
+            date(2012, 1, 1)
+        )
+
     def test_simple_save(self):
         insert_count = MockObject.objects.from_csv(
             self.name_path,
