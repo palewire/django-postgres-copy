@@ -230,21 +230,23 @@ class CopyMapping(object):
             'db_table': self.temp_table_name,
             'extra_options': '',
             'header_list': ", ".join([
-                '"%s"' % h for h in self.headers
+                '"{}"'.format(h) for h in self.headers
             ])
         }
         if self.quote_character:
-            options['extra_options'] += " QUOTE '%s'" % self.quote_character
+            options['extra_options'] += " QUOTE '{}'".format(self.quote_character)
         if self.delimiter:
-            options['extra_options'] += " DELIMITER '%s'" % self.delimiter
+            options['extra_options'] += " DELIMITER '{}'".format(self.delimiter)
         if self.null is not None:
-            options['extra_options'] += " NULL '%s'" % self.null
+            options['extra_options'] += " NULL '{}'".format(self.null)
         if self.force_not_null is not None:
-            options['extra_options'] += " FORCE NOT NULL %s" % ','.join('"%s"' % s for s in self.force_not_null)
+            options['extra_options'] += " FORCE NOT NULL {}".format(
+                ','.join('"{}"'.format(s) for s in self.force_not_null)
+            )
         if self.force_null is not None:
-            options['extra_options'] += " FORCE NULL %s" % ','.join('"%s"' % s for s in self.force_null)
+            options['extra_options'] += " FORCE NULL {}".format(','.join('"%s"' % s for s in self.force_null))
         if self.encoding:
-            options['extra_options'] += " ENCODING '%s'" % self.encoding
+            options['extra_options'] += " ENCODING '{}'".format(self.encoding)
         return sql % options
 
     def pre_copy(self, cursor):
