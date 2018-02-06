@@ -21,7 +21,7 @@ class CopyMapping(object):
     def __init__(
         self,
         model,
-        csv,
+        csv_path_or_obj,
         mapping,
         using=None,
         delimiter=',',
@@ -34,14 +34,17 @@ class CopyMapping(object):
     ):
         # Set the required arguments
         self.model = model
-        self.csv_path = None
-        self.csv_file = None
-        if hasattr(csv, 'read'):
-            self.csv_file = csv
+        self.csv_path_or_obj = csv_path_or_obj
+
+        # If the CSV is not a file object already ...
+        if hasattr(csv_path_or_obj, 'read'):
+            self.csv_file = csv_path_or_obj
         else:
-            self.csv_path = csv
-            if not os.path.exists(self.csv_path):
-                raise ValueError("csv_path does not exist")
+            # ... verify the path exists ...
+            if not os.path.exists(self.csv_path_or_obj):
+                raise ValueError("CSV path does not exist")
+            # ... then open it up.
+            self.csv_file = open(self.csv_path_or_obj, 'rU')
 
         # Hook in the other optional settings
         self.quote_character = quote_character
@@ -134,15 +137,14 @@ class CopyMapping(object):
         """
         Returns the column headers from the csv as a list.
         """
-        if self.csv_path:
-            logger.debug("Retrieving headers from {}".format(self.csv_path))
-            with open(self.csv_path, 'rU') as infile:
-                csv_reader = csv.reader(infile, delimiter=self.delimiter)
-                headers = next(csv_reader)
-        else:
-            csv_reader = csv.reader(self.csv_file, delimiter=self.delimiter)
-            headers = next(csv_reader)
-            self.csv_file.seek(0)
+        logger.debug("Retrieving headers from {}".format(self.csv_file))
+        # Open it as a CSV
+        csv_reader = csv.reader(self.csv_file, delimiter=self.delimiter)
+        # Pop the headers
+        headers = next(csv_reader)
+        # Move back to the top of the file
+        self.csv_file.seek(0)
+        # Return the headers
         return headers
 
     def validate_mapping(self):
@@ -264,8 +266,7 @@ class CopyMapping(object):
         logger.debug("Running COPY command")
         copy_sql = self.prep_copy()
         logger.debug(copy_sql)
-        fp = open(self.csv_path, 'r') if self.csv_path else self.csv_file
-        cursor.copy_expert(copy_sql, fp)
+        cursor.copy_expert(copy_sql, self.csv_file)
 
         # Run post-copy hook
         self.post_copy(cursor)
