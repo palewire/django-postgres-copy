@@ -3,7 +3,7 @@
 from .copy_from import CopyMapping
 from .copy_to import SQLCopyToCompiler, CopyToQuery
 from .managers import CopyManager, CopyQuerySet
-__version__ = '2.2.0'
+__version__ = '2.3.0'
 
 
 __all__ = (
