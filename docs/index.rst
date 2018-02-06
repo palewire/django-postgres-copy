@@ -46,8 +46,20 @@ And here's how it exports a database table to a CSV.
 
     from myapp.models import MyModel
 
-
     MyModel.objects.to_csv("./data.csv")
+
+
+You can also use these methods standalone if you so need.
+
+.. code-block: python
+
+    from postgres_copy import from_csv
+    from myapp.models import MyModel
+
+    from_csv(MyModel, './data.csv', dict(name='NAME', number='NUMBER'))
+
+    query = MyModel.objects.all()
+    to_csv('./export.csv', query, db='default')
 
 
 Installation
