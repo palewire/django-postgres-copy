@@ -36,7 +36,7 @@ Here's how it imports a CSV to a database table.
 
 
     MyModel.objects.from_csv(
-        "./data.csv",  # The source file
+        "./data.csv",  # The path to a source file (a Python file object is also acceptable)
         dict(name='NAME', number='NUMBER')  # A crosswalk of model fields to CSV headers.
     )
 
@@ -110,7 +110,7 @@ Here's how to create a script to import CSV data into the model. Our favorite wa
 
         def handle(self, *args, **kwargs):
             # Since the CSV headers match the model fields,
-            # you only need to provide the file's path
+            # you only need to provide the file's path (or a Python file object)
             insert_count = Person.objects.from_csv('/path/to/my/import.csv')
             print "{} records inserted".format(insert_count)
 
@@ -160,15 +160,15 @@ Import options
 
 The ``from_csv`` manager method has the following arguments and keywords options. Returns the number of records added.
 
-.. method:: from_csv(csv_path[, mapping=None, drop_constraints=True, drop_indexes=True, using=None, delimiter=',', null=None, force_not_null=None, force_null=None, encoding=None, static_mapping=None])
+.. method:: from_csv(csv_path_or_obj[, mapping=None, drop_constraints=True, drop_indexes=True, using=None, delimiter=',', null=None, force_not_null=None, force_null=None, encoding=None, static_mapping=None])
 
 
-=================  =========================================================
-Argument           Description
-=================  =========================================================
-``csv_path``       The path to the delimited data source file
-                   (e.g., a CSV)
-=================  =========================================================
+===================  =========================================================
+Argument             Description
+===================  =========================================================
+``csv_path_or_obj``  The path to the delimited data file, or a Python file
+                     object containing delimited data
+===================  =========================================================
 
 
 =====================  =======================================================
