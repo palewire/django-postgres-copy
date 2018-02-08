@@ -147,7 +147,7 @@ class CopyQuerySet(ConstraintQuerySet):
 
         return insert_count
 
-    def to_csv(self, csv_path, *fields, **kwargs):
+    def to_csv(self, csv_path=None, *fields, **kwargs):
         """
         Copy current QuerySet to CSV at provided path.
         """
@@ -174,7 +174,8 @@ class CopyQuerySet(ConstraintQuerySet):
 
         # Run the query
         compiler = query.get_compiler(self.db, connection=connection)
-        compiler.execute_sql(csv_path)
-
+        data = compiler.execute_sql(csv_path)
+        if csv_path is None:
+            return data
 
 CopyManager = models.Manager.from_queryset(CopyQuerySet)
