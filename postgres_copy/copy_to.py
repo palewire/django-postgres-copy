@@ -58,15 +58,16 @@ class SQLCopyToCompiler(SQLCompiler):
             # then execute
             logger.debug(copy_to_sql)
 
-            if csv_path is None:
-                stdout = BytesIO()
-                c.cursor.copy_expert(copy_to_sql, stdout)
-                return stdout.getvalue()
-            else:
-                # open file for writing
+            # If there is, write it out there.
+            if csv_path:
                 with open(csv_path, 'wb') as stdout:
                     c.cursor.copy_expert(copy_to_sql, stdout)
                     return
+            # If there's no csv_path, return the output as a string.
+            else:
+                stdout = BytesIO()
+                c.cursor.copy_expert(copy_to_sql, stdout)
+                return stdout.getvalue()
 
 
 class CopyToQuery(Query):
