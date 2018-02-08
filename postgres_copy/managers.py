@@ -175,7 +175,10 @@ class CopyQuerySet(ConstraintQuerySet):
         # Run the query
         compiler = query.get_compiler(self.db, connection=connection)
         data = compiler.execute_sql(csv_path)
+
+        # If no csv_path is provided, then the query will come back as a string.
         if csv_path is None:
+            # So return that.
             return data
 
 
