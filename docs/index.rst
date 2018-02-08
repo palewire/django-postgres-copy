@@ -133,7 +133,8 @@ How to export data
     class Command(BaseCommand):
 
         def handle(self, *args, **kwargs):
-            # All this method needs is the path to your CSV
+            # All this method needs is the path to your CSV.
+            # (If you don't provide one, the method will return the CSV as a string.)
             Person.objects.to_csv('/path/to/my/export.csv')
 
 Run your exporter and that's it.
@@ -460,13 +461,14 @@ The ``to_csv`` manager method only requires one argument, the path to where the 
 =================  =========================================================
 Argument           Description
 =================  =========================================================
-``csv_path``       The path to the delimited data source file
-                   (e.g., a CSV)
+``csv_path``       The path to a file to write out the CSV. Optional.
+                   If you don't provide one, the comma-delimited data is
+                   returned as a string.
 
-``fields``         Strings corresponding to
-                   the model fields to be exported. All fields on the model
-                   are exported by default. Fields on related models can be
-                   included with Django's double underscore notation.
+``fields``         Strings corresponding to the model fields to be exported.
+                   All fields on the model are exported by default. Fields
+                   on related models can be included with Django's double
+                   underscore notation.
 
 ``delimiter``      String that will be used as a delimiter for the CSV
                    file.
