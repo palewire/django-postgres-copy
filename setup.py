@@ -72,7 +72,7 @@ class TestCommand(Command):
 
 setup(
     name='django-postgres-copy',
-    version='2.3.0',
+    version='2.3.1',
     description="Quickly move comma-delimited data in and out of a Django model using PostgreSQL's COPY command",
     author='Ben Welsh',
     author_email='ben.welsh@gmail.com',
