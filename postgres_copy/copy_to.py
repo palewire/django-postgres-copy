@@ -67,7 +67,7 @@ class SQLCopyToCompiler(SQLCompiler):
                 with open(csv_path, 'wb') as stdout:
                     c.cursor.copy_expert(copy_to_sql, stdout)
                     return
-    
+
 
 class CopyToQuery(Query):
     """

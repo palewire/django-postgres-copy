@@ -178,4 +178,5 @@ class CopyQuerySet(ConstraintQuerySet):
         if csv_path is None:
             return data
 
+
 CopyManager = models.Manager.from_queryset(CopyQuerySet)
