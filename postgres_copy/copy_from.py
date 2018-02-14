@@ -402,7 +402,7 @@ class CopyMapping(object):
         cursor:
           A cursor object on the db
         """
-        logger.debug("Running INSERT command")
+        logger.debug("Running DROP command")
         drop_sql = self.prep_drop()
         logger.debug(drop_sql)
         cursor.execute(drop_sql)
