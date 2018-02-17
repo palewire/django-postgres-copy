@@ -23,6 +23,7 @@ class CopyMapping(object):
         model,
         csv_path_or_obj,
         mapping,
+        header_case,
         using=None,
         delimiter=',',
         quote_character=None,
@@ -144,6 +145,15 @@ class CopyMapping(object):
         headers = next(csv_reader)
         # Move back to the top of the file
         self.csv_file.seek(0)
+        # Modify header case to match database model fields
+        if self.header_case == 'upper':
+            headers = [h.upper() for h in headers]
+        elif self.header_case == 'lower':
+            headers = [h.lower() for h in headers]
+        elif self.header_case == 'capitalize':
+            headers = [h.capitalize() for h in headers]
+        else:
+            raise ValueError("'{}' is not a valid parameter. Please use upper, lower or capitalize").format(self.header_case)
         # Return the headers
         return headers
 
