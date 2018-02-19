@@ -23,7 +23,7 @@ class CopyMapping(object):
         model,
         csv_path_or_obj,
         mapping,
-        header_case,
+        case_sensitive=False,
         using=None,
         delimiter=',',
         quote_character=None,
@@ -45,9 +45,12 @@ class CopyMapping(object):
             if not os.path.exists(self.csv_path_or_obj):
                 raise ValueError("CSV path does not exist")
             # ... then open it up.
-            self.csv_file = open(self.csv_path_or_obj, 'rU')
+            # 'U' is deprecated as a parameter to 'open' and should be replaced with 'newline'
+            # (https://docs.python.org/3.5/library/functions.html#open)
+            self.csv_file = open(self.csv_path_or_obj, 'r', newline=None)
 
         # Hook in the other optional settings
+        self.case_sensitive = case_sensitive
         self.quote_character = quote_character
         self.delimiter = delimiter
         self.null = null
@@ -132,7 +135,10 @@ class CopyMapping(object):
         """
         if mapping:
             return OrderedDict(mapping)
-        return {name: name for name in self.headers}
+        if self.case_sensitive:
+            return {name: name for name in self.headers}
+        else:
+            return {name.lower(): name for name in self.headers}
 
     def get_headers(self):
         """
@@ -142,18 +148,12 @@ class CopyMapping(object):
         # Open it as a CSV
         csv_reader = csv.reader(self.csv_file, delimiter=self.delimiter)
         # Pop the headers
-        headers = next(csv_reader)
+        if self.case_sensitive:
+            headers = next(csv_reader)
+        else:
+            headers = [header.lower() for header in next(csv_reader)]
         # Move back to the top of the file
         self.csv_file.seek(0)
-        # Modify header case to match database model fields
-        if self.header_case == 'upper':
-            headers = [h.upper() for h in headers]
-        elif self.header_case == 'lower':
-            headers = [h.lower() for h in headers]
-        elif self.header_case == 'capitalize':
-            headers = [h.capitalize() for h in headers]
-        else:
-            raise ValueError("'{}' is not a valid parameter. Please use upper, lower or capitalize").format(self.header_case)
         # Return the headers
         return headers
 
