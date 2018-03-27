@@ -178,9 +178,14 @@ class CopyQuerySet(ConstraintQuerySet):
 
         # Force quote on columns
         force_quote = kwargs.get('force_quote', None)
-        query.copy_to_force_quote =
-            "FORCE QUOTE {}".format(", ".join(column for column in force_quote))
-            if force_quote else ""
+        if force_quote:
+            if type(force_quote) == list:
+                query.copy_to_force_quote = \
+                    "FORCE QUOTE {}".format(", ".join(column for column in force_quote))
+            else:
+                query.copy_to_force_quote = "FORCE QUOTE {}".format(force_quote)
+        else:
+            query.copy_to_force_quote = ""
 
         # Encoding
         set_encoding = kwargs.get('encoding', None)

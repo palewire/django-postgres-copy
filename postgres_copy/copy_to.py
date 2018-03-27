@@ -49,7 +49,7 @@ class SQLCopyToCompiler(SQLCompiler):
             # compile the SELECT query
             select_sql = self.as_sql()[0] % adapted_params
             # then the COPY TO query
-            copy_to_sql =
+            copy_to_sql = \
                 "COPY ({0}) TO STDOUT DELIMITER '{1}' CSV {2} {3} {4} {5} {6} {7}"
             copy_to_sql = copy_to_sql.format(
                 select_sql,                     #0
