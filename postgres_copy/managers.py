@@ -182,6 +182,10 @@ class CopyQuerySet(ConstraintQuerySet):
             "FORCE QUOTE {}".format(", ".join(column for column in force_quote))
             if force_quote else ""
 
+        # Encoding
+        set_encoding = kwargs.get('encoding', None)
+        query.copy_to_encoding = "ENCODING '{}'".format(set_encoding) if set_encoding else ""
+
         # Run the query
         compiler = query.get_compiler(self.db, connection=connection)
         data = compiler.execute_sql(csv_path)
