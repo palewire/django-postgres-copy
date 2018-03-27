@@ -170,7 +170,7 @@ class CopyQuerySet(ConstraintQuerySet):
 
         # Null string
         null_string = kwargs.get('null', None)
-        query.copy_to_null_string = "" if null_string is None else "NULL '{}'".format(null_string)
+        query.copy_to_null_string = "NULL '{}'".format(null_string) if null_string else ""
 
         # Quote character
         quote_char = kwargs.get('quote', None)
