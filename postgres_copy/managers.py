@@ -176,6 +176,12 @@ class CopyQuerySet(ConstraintQuerySet):
         quote_char = kwargs.get('quote', None)
         query.copy_to_quote_char = "QUOTE '{}'".format(quote_char) if quote_char else ""
 
+        # Force quote on columns
+        force_quote = kwargs.get('force_quote', None)
+        query.copy_to_force_quote =
+            "FORCE QUOTE {}".format(", ".join(column for column in force_quote))
+            if force_quote else ""
+
         # Run the query
         compiler = query.get_compiler(self.db, connection=connection)
         data = compiler.execute_sql(csv_path)
