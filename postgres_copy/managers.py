@@ -186,6 +186,10 @@ class CopyQuerySet(ConstraintQuerySet):
         set_encoding = kwargs.get('encoding', None)
         query.copy_to_encoding = "ENCODING '{}'".format(set_encoding) if set_encoding else ""
 
+        # Escape character
+        escape_char = kwargs.get('escape', None)
+        query.copy_to_escape = "ESCAPE '{}'".format(escape_char) if escape_char else ""
+
         # Run the query
         compiler = query.get_compiler(self.db, connection=connection)
         data = compiler.execute_sql(csv_path)
