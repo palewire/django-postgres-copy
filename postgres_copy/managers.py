@@ -172,6 +172,10 @@ class CopyQuerySet(ConstraintQuerySet):
         null_string = kwargs.get('null', None)
         query.copy_to_null_string = "" if null_string is None else "NULL '{}'".format(null_string)
 
+        # Quote character
+        quote_char = kwargs.get('quote', None)
+        query.copy_to_quote_char = "QUOTE '{}'".format(quote_char) if quote_char else ""
+
         # Run the query
         compiler = query.get_compiler(self.db, connection=connection)
         data = compiler.execute_sql(csv_path)

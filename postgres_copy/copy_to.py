@@ -49,12 +49,13 @@ class SQLCopyToCompiler(SQLCompiler):
             # compile the SELECT query
             select_sql = self.as_sql()[0] % adapted_params
             # then the COPY TO query
-            copy_to_sql = "COPY ({}) TO STDOUT DELIMITER '{}' CSV {} {}"
+            copy_to_sql = "COPY ({}) TO STDOUT DELIMITER '{}' CSV {} {} {}"
             copy_to_sql = copy_to_sql.format(
                 select_sql,
                 self.query.copy_to_delimiter,
                 self.query.copy_to_header,
-                self.query.copy_to_null_string
+                self.query.copy_to_null_string,
+                self.query.copy_to_quote_char,
             )
             # then execute
             logger.debug(copy_to_sql)
