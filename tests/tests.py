@@ -133,6 +133,7 @@ class PostgresCopyToTest(BaseTest):
     def test_quote_character_and_force_quoting(self):
         self._load_objects(self.name_path)
 
+        # Single column being force_quoted with pipes
         MockObject.objects.to_csv(self.export_path, quote='|', force_quote='NAME')
         self.assertTrue(os.path.exists(self.export_path))
         reader = csv.DictReader(open(self.export_path, 'r'))
@@ -141,6 +142,7 @@ class PostgresCopyToTest(BaseTest):
             [i['name'] for i in reader]
         )
 
+        # Multiple columns passed as a list and force_quoted with pipes
         MockObject.objects.to_csv(self.export_path, quote='|', force_quote=['NAME', 'NUMBER'])
         self.assertTrue(os.path.exists(self.export_path))
         reader = csv.DictReader(open(self.export_path, 'r'))
@@ -149,13 +151,14 @@ class PostgresCopyToTest(BaseTest):
             [(i['name'], i['number']) for i in reader]
         )
 
+        # All columns force_quoted with pipes
         MockObject.objects.to_csv(self.export_path, quote='|', force_quote='*')
         self.assertTrue(os.path.exists(self.export_path))
         reader = csv.DictReader(open(self.export_path, 'r'))
         reader = next(reader)
         self.assertTrue(
             ['|BEN|', '|1|', '|2012-01-01|'],
-            list(reader.values())
+            list(reader.values())[1:]
         )
 
     def test_filter(self):
