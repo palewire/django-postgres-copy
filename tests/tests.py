@@ -143,12 +143,12 @@ class PostgresCopyToTest(BaseTest):
         )
 
         # Multiple columns passed as a list and force_quoted with pipes
-        MockObject.objects.to_csv(self.export_path, quote='|', force_quote=['NAME', 'NUMBER'])
+        MockObject.objects.to_csv(self.export_path, quote='|', force_quote=['NAME', 'DT'])
         self.assertTrue(os.path.exists(self.export_path))
         reader = csv.DictReader(open(self.export_path, 'r'))
         self.assertTrue(
-            [('|BEN|', '|1|'), ('|JOE|', '|2|'), ('|JANE|', '|3|')],
-            [(i['name'], i['number']) for i in reader]
+            [('|BEN|', '|2012-01-01|'), ('|JOE|', '|2012-01-02|'), ('|JANE|', '|2012-01-03|')],
+            [(i['name'], i['dt']) for i in reader]
         )
 
         # All columns force_quoted with pipes
@@ -171,9 +171,8 @@ class PostgresCopyToTest(BaseTest):
         MockObject.objects.to_csv(self.export_path, encoding='LATIN2')
 
         # Function should fail on known invalid inputs ('ASCII', 'utf-16')
-        with self.assertRaises(Exception):
-            MockObject.objects.to_csv(self.export_path, encoding='utf-16')
-            MockObject.objects.to_csv(self.export_path, encoding='ASCII')
+        self.assertRaises(Exception, MockObject.objects.to_csv(self.export_path), encoding='utf-16')
+        self.assertRaises(Exception, MockObject.objects.to_csv(self.export_path), encoding='ASCII')
 
     def test_export_escape_character(self):
         self._load_objects(self.name_path)
@@ -182,8 +181,7 @@ class PostgresCopyToTest(BaseTest):
         MockObject.objects.to_csv(self.export_path, escape='-')
 
         # Function should fail on known invalid inputs
-        with self.assertRaises(Exception):
-            MockObject.objects.to_csv(self.export_path, escape='--')
+        self.assertRaises(Exception, MockObject.objects.to_csv(self.export_path), escape='--')
 
     def test_filter(self):
         self._load_objects(self.name_path)
