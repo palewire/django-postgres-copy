@@ -130,7 +130,7 @@ class PostgresCopyToTest(BaseTest):
             [i['num'] for i in reader]
         )
 
-    def test_quote_character_and_force_quoting(self):
+    def test_export_quote_character_and_force_quoting(self):
         self._load_objects(self.name_path)
 
         # Single column being force_quoted with pipes
@@ -160,6 +160,30 @@ class PostgresCopyToTest(BaseTest):
             ['|BEN|', '|1|', '|2012-01-01|'],
             list(reader.values())[1:]
         )
+
+    def test_export_encoding(self):
+        self._load_objects(self.name_path)
+
+        # Function should pass on valid inputs ('utf-8', 'Unicode', 'LATIN2')
+        # If these don't raise an error, then they passed nicely
+        MockObject.objects.to_csv(self.export_path, encoding='utf-8')
+        MockObject.objects.to_csv(self.export_path, encoding='Unicode')
+        MockObject.objects.to_csv(self.export_path, encoding='LATIN2')
+
+        # Function should fail on known invalid inputs ('ASCII', 'utf-16')
+        with self.assertRaises(Exception):
+            MockObject.objects.to_csv(self.export_path, encoding='utf-16')
+            MockObject.objects.to_csv(self.export_path, encoding='ASCII')
+
+    def test_export_escape_character(self):
+        self._load_objects(self.name_path)
+
+        # Function should not fail on known valid inputs
+        MockObject.objects.to_csv(self.export_path, escape='-')
+
+        # Function should fail on known invalid inputs
+        with self.assertRaises(Exception):
+            MockObject.objects.to_csv(self.export_path, escape='--')
 
     def test_filter(self):
         self._load_objects(self.name_path)
