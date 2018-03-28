@@ -130,6 +130,34 @@ class PostgresCopyToTest(BaseTest):
             [i['num'] for i in reader]
         )
 
+    def test_quote_character_and_force_quoting(self):
+        self._load_objects(self.name_path)
+
+        MockObject.objects.to_csv(self.export_path, quote='|', force_quote='NAME')
+        self.assertTrue(os.path.exists(self.export_path))
+        reader = csv.DictReader(open(self.export_path, 'r'))
+        self.assertTrue(
+            ['|BEN|', '|JOE|', '|JANE|'],
+            [i['name'] for i in reader]
+        )
+
+        MockObject.objects.to_csv(self.export_path, quote='|', force_quote=['NAME', 'NUMBER'])
+        self.assertTrue(os.path.exists(self.export_path))
+        reader = csv.DictReader(open(self.export_path, 'r'))
+        self.assertTrue(
+            [('|BEN|', '|1|'), ('|JOE|', '|2|'), ('|JANE|', '|3|')],
+            [(i['name'], i['number']) for i in reader]
+        )
+
+        MockObject.objects.to_csv(self.export_path, quote='|', force_quote='*')
+        self.assertTrue(os.path.exists(self.export_path))
+        reader = csv.DictReader(open(self.export_path, 'r'))
+        reader = next(reader)
+        self.assertTrue(
+            ['|BEN|', '|1|', '|2012-01-01|'],
+            list(reader.values())
+        )
+
     def test_filter(self):
         self._load_objects(self.name_path)
         MockObject.objects.filter(name="BEN").to_csv(self.export_path)
