@@ -455,7 +455,7 @@ Export options
 
 The ``to_csv`` manager method only requires one argument, the path to where the CSV should be exported. It also allows users to optionally limit or expand the fields written out by providing them as additional parameters.
 
-.. method:: to_csv(csv_path [, *fields, delimiter=',', with_header=True])
+.. method:: to_csv(csv_path [, *fields, delimiter=',', with_header=True, null=None, encoding=None, escape=None, quote=None, force_quote=None])
 
 
 =================  =========================================================
