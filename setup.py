@@ -73,7 +73,7 @@ class TestCommand(Command):
 setup(
     name='django-postgres-copy',
     version='2.3.2',
-    description="Quickly import and export comma-delimited data via Django models using PostgreSQL's COPY command",
+    description="Quickly import and export delimited data with Django support for PostgreSQL's COPY command",
     author='Ben Welsh',
     author_email='ben.welsh@gmail.com',
     url='http://django-postgres-copy.californiacivicdata.org/',

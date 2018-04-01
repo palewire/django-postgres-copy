@@ -1,6 +1,6 @@
 # django-postgres-copy
 
-Quickly move comma-delimited data in and out of a Django model using PostgreSQL's COPY command.
+Quickly import and export delimited data with Django support for PostgreSQL's COPY command
 
 [![Build Status](https://travis-ci.org/california-civic-data-coalition/django-postgres-copy.svg?branch=master)](https://travis-ci.org/california-civic-data-coalition/django-postgres-copy)
 [![PyPI version](https://badge.fury.io/py/django-postgres-copy.svg)](http://badge.fury.io/py/django-postgres-copy)
