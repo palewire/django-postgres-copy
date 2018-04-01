@@ -468,15 +468,27 @@ Argument           Description
 ``fields``         Strings corresponding to the model fields to be exported.
                    All fields on the model are exported by default. Fields
                    on related models can be included with Django's double
-                   underscore notation.
+                   underscore notation. Optional.
 
 ``delimiter``      String that will be used as a delimiter for the CSV
-                   file.
+                   file. Optional.
 
-``header``         Boolean determines if the header should be exported
+``header``         Boolean determines if the header should be exported.
+                   Optional.
 
 ``null``           String to populate exported null values with. Default
-                   is an empty string.
+                   is an empty string. Optional.
+
+``encoding``       The character encoding that should be used for the file
+                   being written. Optional.
+
+``escape``         The escape character to be used. Optional.
+
+``quote``          The quote character to be used. Optional.
+
+``force_quote``    Force fields to be quoted in the CSV. Default is None.
+                   A field name or list of field names can be submitted.
+                   Pass in True or "*" to quote all fields. Optional.
 =================  =========================================================
 
 Reducing the exported fields

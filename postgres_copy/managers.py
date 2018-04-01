@@ -162,9 +162,9 @@ class CopyQuerySet(ConstraintQuerySet):
         query.copy_to_fields = fields
 
         # Delimiter
-        query.copy_to_delimiter = kwargs.get('delimiter', ',')
+        query.copy_to_delimiter = "DELIMITER '{}'".format(kwargs.get('delimiter', ','))
 
-        # Header?
+        # Header
         with_header = kwargs.get('header', True)
         query.copy_to_header = "HEADER" if with_header else ""
 
@@ -179,9 +179,14 @@ class CopyQuerySet(ConstraintQuerySet):
         # Force quote on columns
         force_quote = kwargs.get('force_quote', None)
         if force_quote:
+            # If it's a list of fields, pass them in with commas
             if type(force_quote) == list:
                 query.copy_to_force_quote = \
                     "FORCE QUOTE {}".format(", ".join(column for column in force_quote))
+            # If it's True or a * force quote everything
+            elif force_quote is True or force_quote == "*":
+                query.copy_to_force_quote = "FORCE QUOTE *"
+            # Otherwise, assume it's a string and pass it through
             else:
                 query.copy_to_force_quote = "FORCE QUOTE {}".format(force_quote)
         else:

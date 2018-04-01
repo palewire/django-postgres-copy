@@ -74,9 +74,9 @@ class PostgresCopyToTest(BaseTest):
         self._load_objects(self.name_path)
         export = MockObject.objects.to_csv()
         self.assertEqual(export, b"""id,name,num,dt,parent_id
-74,BEN,1,2012-01-01,
-75,JOE,2,2012-01-02,
-76,JANE,3,2012-01-03,
+83,BEN,1,2012-01-01,
+84,JOE,2,2012-01-02,
+85,JANE,3,2012-01-03,
 """)
 
     def test_export_header_setting(self):
@@ -152,7 +152,7 @@ class PostgresCopyToTest(BaseTest):
         )
 
         # All columns force_quoted with pipes
-        MockObject.objects.to_csv(self.export_path, quote='|', force_quote='*')
+        MockObject.objects.to_csv(self.export_path, quote='|', force_quote=True)
         self.assertTrue(os.path.exists(self.export_path))
         reader = csv.DictReader(open(self.export_path, 'r'))
         reader = next(reader)
