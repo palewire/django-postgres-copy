@@ -5,6 +5,7 @@ Handlers for working with PostgreSQL's COPY TO command.
 """
 from __future__ import unicode_literals
 import logging
+from io import BytesIO
 from django.db import connections
 from psycopg2.extensions import adapt
 from django.db.models.sql.query import Query
@@ -26,13 +27,14 @@ class SQLCopyToCompiler(SQLCompiler):
             for field in self.query.copy_to_fields:
                 # raises error if field is not available
                 expression = self.query.resolve_ref(field)
-                if field in self.query.annotations:
-                    selection = (expression, self.compile(expression), field)
-                else:
-                    selection = (expression, self.compile(expression), None)
+                selection = (
+                    expression,
+                    self.compile(expression),
+                    field if field in self.query.annotations else None,
+                )
                 self.select.append(selection)
 
-    def execute_sql(self, csv_path):
+    def execute_sql(self, csv_path=None):
         """
         Run the COPY TO query.
         """
@@ -42,23 +44,38 @@ class SQLCopyToCompiler(SQLCompiler):
         params = self.as_sql()[1]
         adapted_params = tuple(adapt(p) for p in params)
 
-        # open file for writing
         # use stdout to avoid file permission issues
-        with open(csv_path, 'wb') as stdout:
-            with connections[self.using].cursor() as c:
-                # compile the SELECT query
-                select_sql = self.as_sql()[0] % adapted_params
-                # then the COPY TO query
-                copy_to_sql = "COPY ({}) TO STDOUT DELIMITER '{}' CSV {} {}"
-                copy_to_sql = copy_to_sql.format(
-                    select_sql,
-                    self.query.copy_to_delimiter,
-                    self.query.copy_to_header,
-                    self.query.copy_to_null_string
-                )
-                # then execute
-                logger.debug(copy_to_sql)
+        with connections[self.using].cursor() as c:
+            # compile the SELECT query
+            select_sql = self.as_sql()[0] % adapted_params
+            # then the COPY TO query
+            copy_to_sql = "COPY ({}) TO STDOUT {} CSV"
+            copy_to_sql = copy_to_sql.format(select_sql, self.query.copy_to_delimiter)
+            # Optional extras
+            options_list = [
+                self.query.copy_to_header,
+                self.query.copy_to_null_string,
+                self.query.copy_to_quote_char,
+                self.query.copy_to_force_quote,
+                self.query.copy_to_encoding,
+                self.query.copy_to_escape
+            ]
+            options_sql = " ".join([o for o in options_list if o]).strip()
+            if options_sql:
+                copy_to_sql = copy_to_sql + " " + options_sql
+            # then execute
+            logger.debug(copy_to_sql)
+
+            # If there is, write it out there.
+            if csv_path:
+                with open(csv_path, 'wb') as stdout:
+                    c.cursor.copy_expert(copy_to_sql, stdout)
+                    return
+            # If there's no csv_path, return the output as a string.
+            else:
+                stdout = BytesIO()
                 c.cursor.copy_expert(copy_to_sql, stdout)
+                return stdout.getvalue()
 
 
 class CopyToQuery(Query):

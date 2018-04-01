@@ -70,6 +70,15 @@ class PostgresCopyToTest(BaseTest):
             [i['name'] for i in reader]
         )
 
+    def test_export_to_str(self):
+        self._load_objects(self.name_path)
+        export = MockObject.objects.to_csv()
+        self.assertEqual(export, b"""id,name,num,dt,parent_id
+83,BEN,1,2012-01-01,
+84,JOE,2,2012-01-02,
+85,JANE,3,2012-01-03,
+""")
+
     def test_export_header_setting(self):
         self._load_objects(self.name_path)
         MockObject.objects.to_csv(self.export_path)
@@ -120,6 +129,59 @@ class PostgresCopyToTest(BaseTest):
             ['1', '2', '3', 'NULL', ''],
             [i['num'] for i in reader]
         )
+
+    def test_export_quote_character_and_force_quoting(self):
+        self._load_objects(self.name_path)
+
+        # Single column being force_quoted with pipes
+        MockObject.objects.to_csv(self.export_path, quote='|', force_quote='NAME')
+        self.assertTrue(os.path.exists(self.export_path))
+        reader = csv.DictReader(open(self.export_path, 'r'))
+        self.assertTrue(
+            ['|BEN|', '|JOE|', '|JANE|'],
+            [i['name'] for i in reader]
+        )
+
+        # Multiple columns passed as a list and force_quoted with pipes
+        MockObject.objects.to_csv(self.export_path, quote='|', force_quote=['NAME', 'DT'])
+        self.assertTrue(os.path.exists(self.export_path))
+        reader = csv.DictReader(open(self.export_path, 'r'))
+        self.assertTrue(
+            [('|BEN|', '|2012-01-01|'), ('|JOE|', '|2012-01-02|'), ('|JANE|', '|2012-01-03|')],
+            [(i['name'], i['dt']) for i in reader]
+        )
+
+        # All columns force_quoted with pipes
+        MockObject.objects.to_csv(self.export_path, quote='|', force_quote=True)
+        self.assertTrue(os.path.exists(self.export_path))
+        reader = csv.DictReader(open(self.export_path, 'r'))
+        reader = next(reader)
+        self.assertTrue(
+            ['|BEN|', '|1|', '|2012-01-01|'],
+            list(reader.values())[1:]
+        )
+
+    def test_export_encoding(self):
+        self._load_objects(self.name_path)
+
+        # Function should pass on valid inputs ('utf-8', 'Unicode', 'LATIN2')
+        # If these don't raise an error, then they passed nicely
+        MockObject.objects.to_csv(self.export_path, encoding='utf-8')
+        MockObject.objects.to_csv(self.export_path, encoding='Unicode')
+        MockObject.objects.to_csv(self.export_path, encoding='LATIN2')
+
+        # Function should fail on known invalid inputs ('ASCII', 'utf-16')
+        self.assertRaises(Exception, MockObject.objects.to_csv(self.export_path), encoding='utf-16')
+        self.assertRaises(Exception, MockObject.objects.to_csv(self.export_path), encoding='ASCII')
+
+    def test_export_escape_character(self):
+        self._load_objects(self.name_path)
+
+        # Function should not fail on known valid inputs
+        MockObject.objects.to_csv(self.export_path, escape='-')
+
+        # Function should fail on known invalid inputs
+        self.assertRaises(Exception, MockObject.objects.to_csv(self.export_path), escape='--')
 
     def test_filter(self):
         self._load_objects(self.name_path)
