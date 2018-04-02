@@ -49,8 +49,7 @@ class SQLCopyToCompiler(SQLCompiler):
             # compile the SELECT query
             select_sql = self.as_sql()[0] % adapted_params
             # then the COPY TO query
-            copy_to_sql = "COPY ({}) TO STDOUT {} CSV"
-            copy_to_sql = copy_to_sql.format(select_sql, self.query.copy_to_delimiter)
+            copy_to_sql = "COPY ({}) TO STDOUT {} CSV {}"
             # Optional extras
             options_list = [
                 self.query.copy_to_header,
@@ -60,9 +59,12 @@ class SQLCopyToCompiler(SQLCompiler):
                 self.query.copy_to_encoding,
                 self.query.copy_to_escape
             ]
-            options_sql = " ".join([o for o in options_list if o]).strip()
-            if options_sql:
-                copy_to_sql = copy_to_sql + " " + options_sql
+            # Construct the copy_to_sql string
+            copy_to_sql = copy_to_sql.format(
+                select_sql,
+                self.query.copy_to_delimiter,
+                " ".join(option for option in options_list if True),
+                )
             # then execute
             logger.debug(copy_to_sql)
 
