@@ -149,12 +149,12 @@ class CopyQuerySet(ConstraintQuerySet):
 
     def to_csv(self, csv_path=None, *fields,
         delimiter=',',
-        header = True,
-        null = None,
-        quote = None,
-        force_quote = None,
-        encoding = None,
-        escape = None,
+        header=True,
+        null=None,
+        quote=None,
+        force_quote=None,
+        encoding=None,
+        escape=None,
         ):
         """
         Copy current QuerySet to CSV at provided path.
