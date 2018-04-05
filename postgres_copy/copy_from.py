@@ -165,20 +165,54 @@ class CopyMapping(object):
 
         Raises errors if something goes wrong. Returns nothing if everything is kosher.
         """
+        # Get the model name for a more verbose output on error
+        _model_name = str(self.model._meta).split(sep='.')[1]
+
         # Make sure all of the CSV headers in the mapping actually exist
+        failing_headers = []
         for map_header in self.mapping.values():
             if map_header not in self.headers:
-                raise ValueError("Header '{}' not found in CSV file".format(map_header))
+                failing_headers.append(map_header)
+        if len(failing_headers) == 1:
+            raise ValueError("Header '{}' not found in CSV file.".format(failing_headers[0]))
+        elif len(failing_headers) > 1:
+            raise ValueError("Headers '{}' not found in CSV file.".format(
+                "', '".join(h for h in failing_headers)
+                ))
+        else:
+            pass
 
         # Make sure all the model fields in the mapping actually exist
+        failing_fields = []
         for map_field in self.mapping.keys():
             if not self.get_field(map_field):
-                raise FieldDoesNotExist("Model does not include {} field".format(map_field))
+                failing_fields.append(map_field)
+        if len(failing_fields) == 1:
+            raise FieldDoesNotExist("Model '{}' does not include field '{}'.".format(
+                _model_name, failing_fields[0]
+                ))
+        elif len(failing_fields) > 1:
+            raise FieldDoesNotExist("Model '{}' does not include fields '{}'.".format(
+                _model_name, "', '".join(f for f in failing_fields)
+                ))
+        else:
+            pass
 
         # Make sure any static mapping columns exist
+        failing_static = []
         for static_field in self.static_mapping.keys():
             if not self.get_field(static_field):
-                raise ValueError("Model does not include {} field".format(static_field))
+                failing_static.append(static_field)
+        if len(failing_static) == 1:
+            raise ValueError("Model '{}' does not include field '{}'.".format(
+                _model_name, failing_static[0]
+                ))
+        elif len(failing_static) > 1:
+            raise ValueError("Model '{}' does not include fields '{}'.".format(
+                _model_name, "', '".join(s for s in failing_static)
+                ))
+        else:
+            pass
 
     #
     # CREATE commands
