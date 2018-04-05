@@ -147,7 +147,15 @@ class CopyQuerySet(ConstraintQuerySet):
 
         return insert_count
 
-    def to_csv(self, csv_path=None, *fields, **kwargs):
+    def to_csv(self, csv_path=None, *fields,
+        delimiter=',',
+        header = True,
+        null = None,
+        quote = None,
+        force_quote = None,
+        encoding = None,
+        escape = None,
+        ):
         """
         Copy current QuerySet to CSV at provided path.
         """
@@ -162,22 +170,18 @@ class CopyQuerySet(ConstraintQuerySet):
         query.copy_to_fields = fields
 
         # Delimiter
-        query.copy_to_delimiter = "DELIMITER '{}'".format(kwargs.get('delimiter', ','))
+        query.copy_to_delimiter = "DELIMITER '{}'".format(delimiter)
 
         # Header
-        with_header = kwargs.get('header', True)
-        query.copy_to_header = "HEADER" if with_header else ""
+        query.copy_to_header = "HEADER" if header else ""
 
         # Null string
-        null_string = kwargs.get('null', None)
-        query.copy_to_null_string = "NULL '{}'".format(null_string) if null_string else ""
+        query.copy_to_null_string = "NULL '{}'".format(null) if null else ""
 
         # Quote character
-        quote_char = kwargs.get('quote', None)
-        query.copy_to_quote_char = "QUOTE '{}'".format(quote_char) if quote_char else ""
+        query.copy_to_quote_char = "QUOTE '{}'".format(quote) if quote else ""
 
         # Force quote on columns
-        force_quote = kwargs.get('force_quote', None)
         if force_quote:
             # If it's a list of fields, pass them in with commas
             if type(force_quote) == list:
@@ -193,12 +197,10 @@ class CopyQuerySet(ConstraintQuerySet):
             query.copy_to_force_quote = ""
 
         # Encoding
-        set_encoding = kwargs.get('encoding', None)
-        query.copy_to_encoding = "ENCODING '{}'".format(set_encoding) if set_encoding else ""
+        query.copy_to_encoding = "ENCODING '{}'".format(encoding) if encoding else ""
 
         # Escape character
-        escape_char = kwargs.get('escape', None)
-        query.copy_to_escape = "ESCAPE '{}'".format(escape_char) if escape_char else ""
+        query.copy_to_escape = "ESCAPE '{}'".format(escape) if escape else ""
 
         # Run the query
         compiler = query.get_compiler(self.db, connection=connection)
