@@ -166,7 +166,7 @@ class CopyMapping(object):
         Raises errors if something goes wrong. Returns nothing if everything is kosher.
         """
         # Get the model name for a more verbose output on error
-        _model_name = str(self.model._meta).split(sep='.')[1]
+        _model_name = str(self.model._meta).split('.')[1]
 
         # Make sure all of the CSV headers in the mapping actually exist
         failing_headers = []
