@@ -154,8 +154,7 @@ class CopyQuerySet(ConstraintQuerySet):
         quote=None,
         force_quote=None,
         encoding=None,
-        escape=None,
-        ):
+        escape=None):
         """
         Copy current QuerySet to CSV at provided path.
         """
