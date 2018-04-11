@@ -321,12 +321,44 @@ class PostgresCopyFromTest(BaseTest):
                 dict(name='NAME1', number='NUMBER', dt='DATE'),
             )
 
+    def test_bad_header_error_msg(self):
+        with self.assertRaisesRegex(ValueError, "Header 'NAME1' not found in CSV file."):
+            CopyMapping(
+                MockObject,
+                self.name_path,
+                dict(name='NAME1', number='NUMBER', dt='DATE'),
+            )
+
+    def test_multiple_bad_headers_error_msg(self):
+        with self.assertRaisesRegex(ValueError, "Headers 'NAME1', 'NUMBER1' not found in CSV file."):
+            CopyMapping(
+                MockObject,
+                self.name_path,
+                dict(name='NAME1', number='NUMBER1', dt='DATE'),
+            )
+
     def test_bad_field(self):
         with self.assertRaises(FieldDoesNotExist):
             CopyMapping(
                 MockObject,
                 self.name_path,
                 dict(name1='NAME', number='NUMBER', dt='DATE'),
+            )
+
+    def test_bad_field_error_msg(self):
+        with self.assertRaisesRegex(FieldDoesNotExist, "Model 'mockobject' does not include field 'name1'."):
+            CopyMapping(
+                MockObject,
+                self.name_path,
+                dict(name1='NAME', number='NUMBER', dt='DATE'),
+            )
+
+    def test_multiple_bad_fields_error_msg(self):
+        with self.assertRaisesRegex(FieldDoesNotExist, "Model 'mockobject' does not include fields 'name1', 'number1'."):
+            CopyMapping(
+                MockObject,
+                self.name_path,
+                dict(name1='NAME', number1='NUMBER', dt='DATE'),
             )
 
     def test_limited_fields(self):
@@ -524,7 +556,7 @@ class PostgresCopyFromTest(BaseTest):
             date(2012, 1, 1)
         )
 
-    @mock.patch("django.db.connection.validate_no_atomic_block")                   
+    @mock.patch("django.db.connection.validate_no_atomic_block")
     def test_backwards_save(self, _):
         MockObject.objects.from_csv(
             self.backwards_path,
@@ -601,6 +633,22 @@ class PostgresCopyFromTest(BaseTest):
                 dict(name='NAME', number='NUMBER', dt='DATE'),
                 encoding='UTF-8',
                 static_mapping=dict(static_bad=1)
+            )
+
+    def test_bad_static_values_error_msg(self):
+        with self.assertRaisesRegex(ValueError, "Model 'extendedmockobject' does not include field 'static_bad'."):
+            ExtendedMockObject.objects.from_csv(
+                self.name_path,
+                dict(name='NAME', number='NUMBER', dt='DATE'),
+                static_mapping=dict(static_bad=1)
+            )
+
+    def test_multiple_bad_static_values_error_msg(self):
+        with self.assertRaisesRegex(ValueError, "Model 'extendedmockobject' does not include fields 'static_bad1', 'static_bad2'."):
+            ExtendedMockObject.objects.from_csv(
+                self.name_path,
+                dict(name='NAME', number='NUMBER', dt='DATE'),
+                static_mapping=dict(static_bad1=1, static_bad2=2)
             )
 
     @mock.patch("django.db.connection.validate_no_atomic_block")
@@ -687,7 +735,7 @@ class PostgresCopyFromTest(BaseTest):
 
 
 class MultiDbTest(BaseTest):
-    @mock.patch("django.db.connection.validate_no_atomic_block") 
+    @mock.patch("django.db.connection.validate_no_atomic_block")
     def test_from_csv(self, _):
         MockObject.objects.from_csv(
             self.name_path,
