@@ -2,6 +2,8 @@ import io
 import mock
 import os
 import csv
+import sys
+from collections import OrderedDict
 from datetime import date
 from .models import (
     MockObject,
@@ -24,6 +26,9 @@ from django.core.exceptions import FieldDoesNotExist
 
 
 class BaseTest(TestCase):
+
+    if sys.version_info.major == 2:
+        assertRaisesRegex = unittest.TestCase.assertRaisesRegexp
 
     def setUp(self):
         self.data_dir = os.path.join(os.path.dirname(__file__), 'data')
@@ -334,7 +339,7 @@ class PostgresCopyFromTest(BaseTest):
             CopyMapping(
                 MockObject,
                 self.name_path,
-                dict(name='NAME1', number='NUMBER1', dt='DATE'),
+                OrderedDict(name='NAME1', number='NUMBER1', dt='DATE'),
             )
 
     def test_bad_field(self):
@@ -358,7 +363,7 @@ class PostgresCopyFromTest(BaseTest):
             CopyMapping(
                 MockObject,
                 self.name_path,
-                dict(name1='NAME', number1='NUMBER', dt='DATE'),
+                OrderedDict(name1='NAME', number1='NUMBER', dt='DATE'),
             )
 
     def test_limited_fields(self):
@@ -648,7 +653,7 @@ class PostgresCopyFromTest(BaseTest):
             ExtendedMockObject.objects.from_csv(
                 self.name_path,
                 dict(name='NAME', number='NUMBER', dt='DATE'),
-                static_mapping=dict(static_bad1=1, static_bad2=2)
+                static_mapping=OrderedDict(static_bad1=1, static_bad2=2)
             )
 
     @mock.patch("django.db.connection.validate_no_atomic_block")
