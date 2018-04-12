@@ -28,6 +28,7 @@ from django.core.exceptions import FieldDoesNotExist
 class BaseTest(TestCase):
 
     if sys.version_info.major == 2:
+        import unittest
         assertRaisesRegex = unittest.TestCase.assertRaisesRegexp
 
     def setUp(self):
@@ -335,12 +336,14 @@ class PostgresCopyFromTest(BaseTest):
             )
 
     def test_multiple_bad_headers_error_msg(self):
-        with self.assertRaisesRegex(ValueError, "Headers 'NAME1', 'NUMBER1' not found in CSV file."):
-            CopyMapping(
-                MockObject,
-                self.name_path,
-                OrderedDict(name='NAME1', number='NUMBER1', dt='DATE'),
-            )
+        check_words = ['NAME1', 'NUMBER1']
+        for word in check_words:
+            with self.assertRaisesRegex(ValueError, "{}".format(word)):
+                CopyMapping(
+                    MockObject,
+                    self.name_path,
+                    OrderedDict(name='NAME1', number='NUMBER1', dt='DATE'),
+                )
 
     def test_bad_field(self):
         with self.assertRaises(FieldDoesNotExist):
@@ -359,12 +362,14 @@ class PostgresCopyFromTest(BaseTest):
             )
 
     def test_multiple_bad_fields_error_msg(self):
-        with self.assertRaisesRegex(FieldDoesNotExist, "Model 'mockobject' does not include fields 'name1', 'number1'."):
-            CopyMapping(
-                MockObject,
-                self.name_path,
-                OrderedDict(name1='NAME', number1='NUMBER', dt='DATE'),
-            )
+        check_words = ['mockobject', 'name1', 'number1']
+        for word in check_words:
+            with self.assertRaisesRegex(FieldDoesNotExist, "{}".format(word)):
+                CopyMapping(
+                    MockObject,
+                    self.name_path,
+                    OrderedDict(name1='NAME', number1='NUMBER', dt='DATE'),
+                )
 
     def test_limited_fields(self):
         CopyMapping(
@@ -649,12 +654,14 @@ class PostgresCopyFromTest(BaseTest):
             )
 
     def test_multiple_bad_static_values_error_msg(self):
-        with self.assertRaisesRegex(ValueError, "Model 'extendedmockobject' does not include fields 'static_bad1', 'static_bad2'."):
-            ExtendedMockObject.objects.from_csv(
-                self.name_path,
-                dict(name='NAME', number='NUMBER', dt='DATE'),
-                static_mapping=OrderedDict(static_bad1=1, static_bad2=2)
-            )
+        check_words = ['extendedmockobject', 'static_bad1', 'static_bad2']
+        for word in check_words:
+            with self.assertRaisesRegex(ValueError, "{}".format(word)):
+                ExtendedMockObject.objects.from_csv(
+                    self.name_path,
+                    dict(name='NAME', number='NUMBER', dt='DATE'),
+                    static_mapping=OrderedDict(static_bad1=1, static_bad2=2)
+                )
 
     @mock.patch("django.db.connection.validate_no_atomic_block")
     def test_overload_save(self, _):
