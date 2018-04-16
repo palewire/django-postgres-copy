@@ -1,6 +1,6 @@
 # Dependencies
 Django
-psycopg2
+psycopg2-binary
 
 # Docs
 sphinx

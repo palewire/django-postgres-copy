@@ -79,7 +79,7 @@ setup(
     url='http://django-postgres-copy.californiacivicdata.org/',
     license="MIT",
     packages=("postgres_copy",),
-    install_requires=("psycopg2>=2.7.3",),
+    install_requires=("psycopg2-binary>=2.7.3",),
     cmdclass={'test': TestCommand},
     classifiers=[
         'Development Status :: 5 - Production/Stable',
