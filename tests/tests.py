@@ -1,6 +1,7 @@
 import os
 import csv
 from datetime import date
+import io
 from .models import (
     MockObject,
     MockFKObject,
@@ -48,6 +49,7 @@ class PostgresCopyToTest(BaseTest):
     def setUp(self):
         super(PostgresCopyToTest, self).setUp()
         self.export_path = os.path.join(os.path.dirname(__file__), 'export.csv')
+        self.export_file = io.StringIO()
 
     def tearDown(self):
         super(PostgresCopyToTest, self).tearDown()
@@ -70,13 +72,22 @@ class PostgresCopyToTest(BaseTest):
             [i['name'] for i in reader]
         )
 
+    def test_export_to_file(self):
+        self._load_objects(self.name_path)
+        MockObject.objects.to_csv(self.export_file)
+        reader = csv.DictReader(self.export_file)
+        self.assertTrue(
+            ['BEN', 'JOE', 'JANE'],
+            [i['name'] for i in reader]
+        )
+
     def test_export_to_str(self):
         self._load_objects(self.name_path)
         export = MockObject.objects.to_csv()
         self.assertEqual(export, b"""id,name,num,dt,parent_id
-83,BEN,1,2012-01-01,
-84,JOE,2,2012-01-02,
-85,JANE,3,2012-01-03,
+86,BEN,1,2012-01-01,
+87,JOE,2,2012-01-02,
+88,JANE,3,2012-01-03,
 """)
 
     def test_export_header_setting(self):
