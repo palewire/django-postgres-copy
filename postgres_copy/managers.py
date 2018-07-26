@@ -149,7 +149,7 @@ class CopyQuerySet(ConstraintQuerySet):
 
     def to_csv(self, csv_path=None, *fields, **kwargs):
         """
-        Copy current QuerySet to CSV at provided path.
+        Copy current QuerySet to CSV at provided path or file-like object.
         """
         try:
             # For Django 2.0 forward

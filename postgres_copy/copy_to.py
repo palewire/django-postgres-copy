@@ -66,8 +66,12 @@ class SQLCopyToCompiler(SQLCompiler):
             # then execute
             logger.debug(copy_to_sql)
 
-            # If there is, write it out there.
-            if csv_path:
+            # If a file-like object was provided, write it out there.
+            if hasattr(csv_path, 'write'):
+                c.cursor.copy_expert(copy_to_sql, csv_path)
+                return
+            # If a file path was provided, write it out there.
+            elif csv_path:
                 with open(csv_path, 'wb') as stdout:
                     c.cursor.copy_expert(copy_to_sql, stdout)
                     return
