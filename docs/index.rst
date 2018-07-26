@@ -461,9 +461,9 @@ The ``to_csv`` manager method only requires one argument, the path to where the 
 =================  =========================================================
 Argument           Description
 =================  =========================================================
-``csv_path``       The path to a file to write out the CSV. Optional.
-                   If you don't provide one, the comma-delimited data is
-                   returned as a string.
+``csv_path``       The path to a file to write out the CSV. Also accepts
+                   file-like objects. Optional. If you don't provide one,
+                   the comma-delimited data is returned as a string.
 
 ``fields``         Strings corresponding to the model fields to be exported.
                    All fields on the model are exported by default. Fields

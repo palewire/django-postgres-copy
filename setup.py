@@ -72,7 +72,7 @@ class TestCommand(Command):
 
 setup(
     name='django-postgres-copy',
-    version='2.3.2',
+    version='2.3.3',
     description="Quickly import and export delimited data with Django support for PostgreSQL's COPY command",
     author='Ben Welsh',
     author_email='ben.welsh@gmail.com',
@@ -85,7 +85,6 @@ setup(
         'Development Status :: 5 - Production/Stable',
         'Programming Language :: Python',
         'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Framework :: Django',

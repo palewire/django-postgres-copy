@@ -34,11 +34,11 @@ class SQLCopyToCompiler(SQLCompiler):
                 )
                 self.select.append(selection)
 
-    def execute_sql(self, csv_path=None):
+    def execute_sql(self, csv_path_or_obj=None):
         """
         Run the COPY TO query.
         """
-        logger.debug("Copying data to {}".format(csv_path))
+        logger.debug("Copying data to {}".format(csv_path_or_obj))
 
         # adapt SELECT query parameters to SQL syntax
         params = self.as_sql()[1]
@@ -67,12 +67,12 @@ class SQLCopyToCompiler(SQLCompiler):
             logger.debug(copy_to_sql)
 
             # If a file-like object was provided, write it out there.
-            if hasattr(csv_path, 'write'):
-                c.cursor.copy_expert(copy_to_sql, csv_path)
+            if hasattr(csv_path_or_obj, 'write'):
+                c.cursor.copy_expert(copy_to_sql, csv_path_or_obj)
                 return
             # If a file path was provided, write it out there.
-            elif csv_path:
-                with open(csv_path, 'wb') as stdout:
+            elif csv_path_or_obj:
+                with open(csv_path_or_obj, 'wb') as stdout:
                     c.cursor.copy_expert(copy_to_sql, stdout)
                     return
             # If there's no csv_path, return the output as a string.

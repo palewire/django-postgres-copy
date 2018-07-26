@@ -1,0 +1,20 @@
+[[source]]
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+Django = "*"
+"psycopg2" = "*"
+Sphinx = "*"
+sphinx-autobuild = "*"
+twine = "*"
+"flake8" = "*"
+coverage = "*"
+python-coveralls = "*"
+tox = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.6"
