@@ -85,9 +85,9 @@ class PostgresCopyToTest(BaseTest):
         self._load_objects(self.name_path)
         export = MockObject.objects.to_csv()
         self.assertEqual(export, b"""id,name,num,dt,parent_id
-83,BEN,1,2012-01-01,
-84,JOE,2,2012-01-02,
-85,JANE,3,2012-01-03,
+86,BEN,1,2012-01-01,
+87,JOE,2,2012-01-02,
+88,JANE,3,2012-01-03,
 """)
 
     def test_export_header_setting(self):
