@@ -8,6 +8,7 @@ import sys
 import csv
 import logging
 from collections import OrderedDict
+from django.db import NotSupportedError
 from django.db import connections, router
 from django.core.exceptions import FieldDoesNotExist
 from django.contrib.humanize.templatetags.humanize import intcomma
@@ -30,6 +31,7 @@ class CopyMapping(object):
         force_not_null=None,
         force_null=None,
         encoding=None,
+        ignore_conflicts=False,
         static_mapping=None
     ):
         # Set the required arguments
@@ -53,6 +55,8 @@ class CopyMapping(object):
         self.force_not_null = force_not_null
         self.force_null = force_null
         self.encoding = encoding
+        self.supports_ignore_conflicts = True
+        self.ignore_conflicts = ignore_conflicts
         if static_mapping is not None:
             self.static_mapping = OrderedDict(static_mapping)
         else:
@@ -69,6 +73,11 @@ class CopyMapping(object):
         # Verify it is PostgreSQL
         if self.conn.vendor != 'postgresql':
             raise TypeError("Only PostgreSQL backends supported")
+
+        # Check if it is PSQL 9.5 or greater, which determines if ignore_conflicts is supported
+        self.supports_ignore_conflicts = self.is_postgresql_9_5()
+        if self.ignore_conflicts and not self.supports_ignore_conflicts:
+            raise NotSupportedError('This database backend does not support ignoring conflicts.')
 
         # Pull the CSV headers
         self.headers = self.get_headers()
@@ -115,6 +124,9 @@ class CopyMapping(object):
             stream.write("{} records loaded\n".format(intcomma(insert_count)))
 
         return insert_count
+
+    def is_postgresql_9_5(self):
+        return self.conn.pg_version >= 90500
 
     def get_field(self, name):
         """
@@ -280,6 +292,17 @@ class CopyMapping(object):
     # INSERT commands
     #
 
+    def insert_suffix(self):
+        """
+        Preps the suffix to the insert query.
+        """
+        if self.ignore_conflicts:
+            return """
+                ON CONFLICT DO NOTHING;
+            """
+        else:
+            return ";"
+
     def prep_insert(self):
         """
         Creates a INSERT statement that reorders and cleans up
@@ -291,11 +314,12 @@ class CopyMapping(object):
         sql = """
             INSERT INTO "%(model_table)s" (%(model_fields)s) (
             SELECT %(temp_fields)s
-            FROM "%(temp_table)s");
+            FROM "%(temp_table)s")%(insert_suffix)s
         """
         options = dict(
             model_table=self.model._meta.db_table,
             temp_table=self.temp_table_name,
+            insert_suffix=self.insert_suffix()
         )
 
         #

@@ -10,7 +10,8 @@ from .models import (
     LimitedMockObject,
     OverloadMockObject,
     HookedCopyMapping,
-    SecondaryMockObject
+    SecondaryMockObject,
+    UniqueMockObject
 )
 from django.test import TestCase
 from django.db.models import Count
@@ -508,6 +509,18 @@ class PostgresCopyFromTest(BaseTest):
         self.assertEqual(
             MockObject.objects.get(name='BEN').dt,
             date(2012, 1, 1)
+        )
+
+    def test_ignore_conflicts(self):
+        UniqueMockObject.objects.from_csv(
+            self.name_path,
+            dict(name='NAME'),
+            ignore_conflicts=True
+        )
+        UniqueMockObject.objects.from_csv(
+            self.name_path,
+            dict(name='NAME'),
+            ignore_conflicts=True
         )
 
     def test_static_values(self):

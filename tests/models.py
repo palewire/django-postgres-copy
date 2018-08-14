@@ -112,3 +112,8 @@ class HookedCopyMapping(CopyMapping):
 class SecondaryMockObject(models.Model):
     text = models.CharField(max_length=500)
     objects = CopyManager()
+
+
+class UniqueMockObject(models.Model):
+    name = models.CharField(max_length=500, unique=True)
+    objects = CopyManager()

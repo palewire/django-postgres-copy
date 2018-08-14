@@ -220,6 +220,9 @@ Keyword Argument       Description
                        ``'utf-8'``, and ``'cp437'`` are all valid encoding
                        parameters.
 
+``ignore_conflicts``   Specify True to ignore unique constraint or exclusion
+                       constraint violation errors. The default is False.
+
 ``using``              Sets the database to use when importing data.
                        Default is None, which will use the ``'default'``
                        database.
