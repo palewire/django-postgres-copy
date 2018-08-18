@@ -1,4 +1,4 @@
-    import os
+import os
 from setuptools import setup
 from distutils.core import Command
 
