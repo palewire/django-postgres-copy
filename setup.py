@@ -3,6 +3,11 @@ from setuptools import setup
 from distutils.core import Command
 
 
+def read(fname):
+    with open(os.path.join(os.path.dirname(__file__), fname)) as f:
+        return f.read()
+
+
 class TestCommand(Command):
     user_options = []
 
@@ -72,25 +77,31 @@ class TestCommand(Command):
 
 setup(
     name='django-postgres-copy',
-    version='2.3.5',
-    description="Quickly import and export delimited data with Django support for PostgreSQL's COPY command",
+    version='2.3.6',
     author='Ben Welsh',
     author_email='ben.welsh@gmail.com',
     url='http://django-postgres-copy.californiacivicdata.org/',
+    description="Quickly import and export delimited data with Django support for PostgreSQL's COPY command",
+    long_description=read('README.rst'),
     license="MIT",
     packages=("postgres_copy",),
     install_requires=("psycopg2>=2.7.3",),
     cmdclass={'test': TestCommand},
     classifiers=[
         'Development Status :: 5 - Production/Stable',
+        'Operating System :: OS Independent',
+        'Intended Audience :: Developers',
         'Programming Language :: Python',
+        'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Framework :: Django',
         'Framework :: Django :: 1.11',
         'Framework :: Django :: 2.0',
+        'Framework :: Django :: 2.1',
         'License :: OSI Approved :: MIT License',
     ],
 )
