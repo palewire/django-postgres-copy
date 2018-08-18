@@ -46,7 +46,7 @@ class CopyMapping(object):
             if not os.path.exists(self.csv_path_or_obj):
                 raise ValueError("CSV path does not exist")
             # ... then open it up.
-            self.csv_file = open(self.csv_path_or_obj, 'rU')
+            self.csv_file = open(self.csv_path_or_obj, 'r')
 
         # Hook in the other optional settings
         self.quote_character = quote_character
