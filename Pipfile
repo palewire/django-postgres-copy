@@ -6,6 +6,8 @@ name = "pypi"
 [packages]
 Django = "*"
 "psycopg2" = "*"
+
+[dev-packages]
 Sphinx = "*"
 sphinx-autobuild = "*"
 twine = "*"
@@ -13,8 +15,6 @@ twine = "*"
 coverage = "*"
 python-coveralls = "*"
 tox = "*"
-
-[dev-packages]
 
 [requires]
 python_version = "3.6"
