@@ -1,4 +1,4 @@
-import os
+    import os
 from setuptools import setup
 from distutils.core import Command
 
@@ -77,7 +77,7 @@ class TestCommand(Command):
 
 setup(
     name='django-postgres-copy',
-    version='2.3.6',
+    version='2.3.7',
     author='Ben Welsh',
     author_email='ben.welsh@gmail.com',
     url='http://django-postgres-copy.californiacivicdata.org/',
@@ -102,6 +102,13 @@ setup(
         'Framework :: Django :: 1.11',
         'Framework :: Django :: 2.0',
         'Framework :: Django :: 2.1',
-        'License :: OSI Approved :: MIT License',
+        'License :: OSI Approved :: MIT License'
     ],
+    project_urls={
+        'Documentation': 'http://django-postgres-copy.californiacivicdata.org',
+        'Funding': 'https://www.californiacivicdata.org/about/',
+        'Source': 'https://github.com/california-civic-data-coalition/django-postgres-copy',
+        'Coverage': 'https://coveralls.io/github/california-civic-data-coalition/django-postgres-copy?branch=master',
+        'Tracker': 'https://github.com/california-civic-data-coalition/django-postgres-copy/issues'
+    },
 )
