@@ -217,6 +217,7 @@ class PostgresCopyToTest(BaseTest):
         # Function should fail on known invalid inputs
         self.assertRaises(Exception, MockObject.objects.to_csv(self.export_path), escape='--')
 
+    @mock.patch("django.db.connection.validate_no_atomic_block")
     def test_filter(self):
         self._load_objects(self.name_path)
         MockObject.objects.filter(name="BEN").to_csv(self.export_path)
@@ -508,6 +509,7 @@ class PostgresCopyFromTest(BaseTest):
             date(2012, 1, 1)
         )
 
+    @mock.patch("django.db.connection.validate_no_atomic_block")
     def test_force_null_save(self):
         MockObject.objects.from_csv(
             self.null_path,
