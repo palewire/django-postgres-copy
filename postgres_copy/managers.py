@@ -131,6 +131,13 @@ class CopyQuerySet(ConstraintQuerySet):
         """
         Copy CSV file from the provided path to the current model using the provided mapping.
         """
+        # Dropping constraints or indices will fail with an opaque error for all but
+        # very trivial databases (e.g., those with no constraints or indices), if 
+        # we are in a transaction block and throw an opaque error.  So, we prevent
+        # the user from even trying to avoid confusion.
+        if drop_constraints or drop_indexes:
+          connection.validate_no_atomic_block()
+
         mapping = CopyMapping(self.model, csv_path, mapping, **kwargs)
 
         if drop_constraints:

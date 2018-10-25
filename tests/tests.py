@@ -14,6 +14,7 @@ from .models import (
     UniqueMockObject
 )
 from django.test import TestCase
+from django.db.transaction import TransactionManagementError
 from django.db.models import Count
 from postgres_copy import CopyMapping
 from django.core.exceptions import FieldDoesNotExist
@@ -325,6 +326,19 @@ class PostgresCopyFromTest(BaseTest):
             date(2012, 1, 1)
         )
 
+    def test_atomic_block:(self):
+        with transaction.atomic():
+            try:
+                f = open(self.name_path, 'r')
+                MockObject.objects.from_csv(
+                    f,
+                    dict(name='NAME', number='NUMBER', dt='DATE')
+                )
+                self.fail("Expected TransactionManagementError.")
+            except TransactionManagementError:
+                # Expected
+                pass
+
     def test_simple_save(self):
         insert_count = MockObject.objects.from_csv(
             self.name_path,
@@ -630,7 +644,6 @@ class PostgresCopyFromTest(BaseTest):
 
 
 class MultiDbTest(BaseTest):
-
     def test_from_csv(self):
         MockObject.objects.from_csv(
             self.name_path,
