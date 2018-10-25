@@ -70,6 +70,11 @@ class PostgresCopyToTest(BaseTest):
     def _load_secondary_objects(self, file_path, mapping=dict(text='TEXT')):
         SecondaryMockObject.objects.from_csv(file_path, mapping)
 
+    # These tests are using simple enough databases that they can safely proceed
+    # with uploading objects from CSV despite being within a transaction block.
+    # In particular, Django wraps all tests in a transaction so that database
+    # changes can be rolled back.  Therefore, we bypass validate_no_atomic_block
+    # here and elsewhere.
     @mock.patch("django.db.connection.validate_no_atomic_block")
     def test_export(self, _):
         self._load_objects(self.name_path)
