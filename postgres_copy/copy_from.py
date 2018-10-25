@@ -286,7 +286,7 @@ class CopyMapping(object):
         if not self.max_rows:
             cursor.copy_expert(copy_sql, self.csv_file)
         else:  # Split the CSV up into smaller tables.
-               # This header will be shared across many smaller temp files.
+            # This header will be shared across many smaller temp files.
             header = self.csv_file.readline()
 
             # Keep going through the whole source file.
@@ -306,7 +306,7 @@ class CopyMapping(object):
                             line_count += 1
 
                     chunk_file.close()
- 
+
                     with open(chunk_file.name, "r") as chunk_stream:
                         cursor.copy_expert(copy_sql, chunk_stream)
 
