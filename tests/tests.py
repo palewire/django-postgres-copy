@@ -326,7 +326,7 @@ class PostgresCopyFromTest(BaseTest):
             date(2012, 1, 1)
         )
 
-    def test_atomic_block:(self):
+    def test_atomic_block(self):
         with transaction.atomic():
             try:
                 f = open(self.name_path, 'r')
