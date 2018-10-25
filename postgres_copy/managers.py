@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import logging
 from django.db import models
 from django.db import connection
+from django.db.transaction import TransactionManagementError
 from .copy_to import CopyToQuery
 from .copy_from import CopyMapping
 logger = logging.getLogger(__name__)
@@ -135,7 +136,15 @@ class CopyQuerySet(ConstraintQuerySet):
         # very trivial databases which wouldn't benefit from this optimization anyway.
         # So, we prevent the user from even trying to avoid confusion.
         if drop_constraints or drop_indexes:
-            connection.validate_no_atomic_block()
+            try:
+                connection.validate_no_atomic_block()
+            except TransactionManagementError:
+                raise TransactionManagementError("You are attempting to drop constraints or "
+                                                 "indexes inside a transaction block, which is "
+                                                 "very likely to fail.  If it doesn't fail, you "
+                                                 "wouldn't gain any significant benefit from it "
+                                                 "anyway.  Either remove the transaction block, or set "
+                                                 "drop_constraints=False and drop_indexes=False.")
 
         mapping = CopyMapping(self.model, csv_path, mapping, **kwargs)
 
