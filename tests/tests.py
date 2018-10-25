@@ -1,4 +1,5 @@
 import io
+import mock
 import os
 import csv
 from datetime import date
@@ -14,6 +15,8 @@ from .models import (
     UniqueMockObject
 )
 from django.test import TestCase
+from django.db import connection
+from django.db import transaction
 from django.db.transaction import TransactionManagementError
 from django.db.models import Count
 from postgres_copy import CopyMapping
@@ -67,7 +70,8 @@ class PostgresCopyToTest(BaseTest):
     def _load_secondary_objects(self, file_path, mapping=dict(text='TEXT')):
         SecondaryMockObject.objects.from_csv(file_path, mapping)
 
-    def test_export(self):
+    @mock.patch("django.db.connection.validate_no_atomic_block")
+    def test_export(self, _):
         self._load_objects(self.name_path)
         MockObject.objects.to_csv(self.export_path)
         self.assertTrue(os.path.exists(self.export_path))
@@ -77,7 +81,8 @@ class PostgresCopyToTest(BaseTest):
             [i['name'] for i in reader]
         )
 
-    def test_export_to_file(self):
+    @mock.patch("django.db.connection.validate_no_atomic_block")
+    def test_export_to_file(self, _):
         self._load_objects(self.name_path)
         for f in self.export_files:
             MockObject.objects.to_csv(f)
@@ -87,7 +92,8 @@ class PostgresCopyToTest(BaseTest):
                 [i['name'] for i in reader]
             )
 
-    def test_export_to_str(self):
+    @mock.patch("django.db.connection.validate_no_atomic_block")
+    def test_export_to_str(self, _):
         self._load_objects(self.name_path)
         export = MockObject.objects.to_csv()
         self.assertEqual(export, b"""id,name,num,dt,parent_id
@@ -96,7 +102,8 @@ class PostgresCopyToTest(BaseTest):
 88,JANE,3,2012-01-03,
 """)
 
-    def test_export_header_setting(self):
+    @mock.patch("django.db.connection.validate_no_atomic_block")
+    def test_export_header_setting(self, _):
         self._load_objects(self.name_path)
         MockObject.objects.to_csv(self.export_path)
         reader = csv.DictReader(open(self.export_path, 'r'))
@@ -119,7 +126,8 @@ class PostgresCopyToTest(BaseTest):
             [i['BEN'] for i in reader]
         )
 
-    def test_export_delimiter(self):
+    @mock.patch("django.db.connection.validate_no_atomic_block")
+    def test_export_delimiter(self, _):
         self._load_objects(self.name_path)
         MockObject.objects.to_csv(self.export_path, delimiter=';')
         self.assertTrue(os.path.exists(self.export_path))
@@ -129,7 +137,8 @@ class PostgresCopyToTest(BaseTest):
             [i['name'] for i in reader]
         )
 
-    def test_export_null_string(self):
+    @mock.patch("django.db.connection.validate_no_atomic_block")
+    def test_export_null_string(self, _):
         self._load_objects(self.blank_null_path)
         MockObject.objects.to_csv(self.export_path)
         self.assertTrue(os.path.exists(self.export_path))
@@ -147,7 +156,8 @@ class PostgresCopyToTest(BaseTest):
             [i['num'] for i in reader]
         )
 
-    def test_export_quote_character_and_force_quoting(self):
+    @mock.patch("django.db.connection.validate_no_atomic_block")
+    def test_export_quote_character_and_force_quoting(self, _):
         self._load_objects(self.name_path)
 
         # Single column being force_quoted with pipes
@@ -178,7 +188,8 @@ class PostgresCopyToTest(BaseTest):
             list(reader.values())[1:]
         )
 
-    def test_export_encoding(self):
+    @mock.patch("django.db.connection.validate_no_atomic_block")
+    def test_export_encoding(self, _):
         self._load_objects(self.name_path)
 
         # Function should pass on valid inputs ('utf-8', 'Unicode', 'LATIN2')
@@ -191,7 +202,8 @@ class PostgresCopyToTest(BaseTest):
         self.assertRaises(Exception, MockObject.objects.to_csv(self.export_path), encoding='utf-16')
         self.assertRaises(Exception, MockObject.objects.to_csv(self.export_path), encoding='ASCII')
 
-    def test_export_escape_character(self):
+    @mock.patch("django.db.connection.validate_no_atomic_block")
+    def test_export_escape_character(self, _):
         self._load_objects(self.name_path)
 
         # Function should not fail on known valid inputs
@@ -209,7 +221,8 @@ class PostgresCopyToTest(BaseTest):
             [i['name'] for i in reader]
         )
 
-    def test_fewer_fields(self):
+    @mock.patch("django.db.connection.validate_no_atomic_block")
+    def test_fewer_fields(self, _):
         self._load_objects(self.name_path)
         MockObject.objects.to_csv(self.export_path, 'name')
         reader = csv.DictReader(open(self.export_path, 'r'))
@@ -217,7 +230,8 @@ class PostgresCopyToTest(BaseTest):
             self.assertTrue(row['name'] in ['BEN', 'JOE', 'JANE'])
             self.assertTrue(len(row.keys()), 1)
 
-    def test_related_fields(self):
+    @mock.patch("django.db.connection.validate_no_atomic_block")
+    def test_related_fields(self, _):
         MockFKObject.objects.from_csv(
             self.foreign_path,
             mapping=dict(id="NUMBER", name='NAME', number='NUMBER', dt='DATE', parent='PARENT')
@@ -228,7 +242,8 @@ class PostgresCopyToTest(BaseTest):
             self.assertTrue(row['parent_id'] in ['1', '2', '3'])
             self.assertTrue(len(row.keys()), 3)
 
-    def test_annotate(self):
+    @mock.patch("django.db.connection.validate_no_atomic_block")
+    def test_annotate(self, _):
         self._load_objects(self.name_path)
         MockObject.objects.annotate(name_count=Count('name')).to_csv(self.export_path)
         reader = csv.DictReader(open(self.export_path, 'r'))
@@ -236,14 +251,16 @@ class PostgresCopyToTest(BaseTest):
             self.assertTrue('name_count' in row)
             self.assertTrue(row['name_count'] == '1')
 
-    def test_extra(self):
+    @mock.patch("django.db.connection.validate_no_atomic_block")
+    def test_extra(self, _):
         self._load_objects(self.name_path)
         MockObject.objects.extra(select={'lower': 'LOWER("name")'}).to_csv(self.export_path)
         reader = csv.DictReader(open(self.export_path, 'r'))
         for row in reader:
             self.assertTrue('lower' in row)
 
-    def test_export_multi_db(self):
+    @mock.patch("django.db.connection.validate_no_atomic_block")
+    def test_export_multi_db(self, _):
         self._load_objects(self.name_path)
         self._load_secondary_objects(self.secondarydb_path)
 
@@ -313,7 +330,8 @@ class PostgresCopyFromTest(BaseTest):
             dict(name='NAME', dt='DATE'),
         )
 
-    def test_simple_save_with_fileobject(self):
+    @mock.patch("django.db.connection.validate_no_atomic_block")
+    def test_simple_save_with_fileobject(self, _):
         f = open(self.name_path, 'r')
         MockObject.objects.from_csv(
             f,
@@ -339,7 +357,8 @@ class PostgresCopyFromTest(BaseTest):
                 # Expected
                 pass
 
-    def test_simple_save(self):
+    @mock.patch("django.db.connection.validate_no_atomic_block")
+    def test_simple_save(self, _):
         insert_count = MockObject.objects.from_csv(
             self.name_path,
             dict(name='NAME', number='NUMBER', dt='DATE')
@@ -352,14 +371,16 @@ class PostgresCopyFromTest(BaseTest):
         )
         self.assertEqual(insert_count, 3)
 
-    def test_loud_save(self):
+    @mock.patch("django.db.connection.validate_no_atomic_block")
+    def test_loud_save(self, _):
         MockObject.objects.from_csv(
             self.name_path,
             mapping=dict(name='NAME', number='NUMBER', dt='DATE'),
             silent=False
         )
 
-    def test_match_heading(self):
+    @mock.patch("django.db.connection.validate_no_atomic_block")
+    def test_match_heading(self, _):
         MockObject.objects.from_csv(self.matching_headers_path)
         self.assertEqual(MockObject.objects.count(), 3)
         self.assertEqual(MockObject.objects.get(name='BEN').number, 1)
@@ -368,11 +389,13 @@ class PostgresCopyFromTest(BaseTest):
             date(2012, 1, 1)
         )
 
-    def test_bad_match_heading(self):
+    @mock.patch("django.db.connection.validate_no_atomic_block")
+    def test_bad_match_heading(self, _):
         with self.assertRaises(FieldDoesNotExist):
             MockObject.objects.from_csv(self.name_path)
 
-    def test_limited_save(self):
+    @mock.patch("django.db.connection.validate_no_atomic_block")
+    def test_limited_save(self, _):
         LimitedMockObject.objects.from_csv(
             self.name_path,
             dict(name='NAME', dt='DATE')
@@ -383,7 +406,8 @@ class PostgresCopyFromTest(BaseTest):
             date(2012, 1, 1)
         )
 
-    def test_save_foreign_key(self):
+    @mock.patch("django.db.connection.validate_no_atomic_block")
+    def test_save_foreign_key(self, _):
         MockFKObject.objects.from_csv(
             self.foreign_path,
             dict(id="NUMBER", name='NAME', number='NUMBER', dt='DATE', parent='PARENT')
@@ -395,7 +419,8 @@ class PostgresCopyFromTest(BaseTest):
             date(2012, 1, 1)
         )
 
-    def test_save_foreign_key_by_id(self):
+    @mock.patch("django.db.connection.validate_no_atomic_block")
+    def test_save_foreign_key_by_id(self, _):
         MockFKObject.objects.from_csv(
             self.foreign_path,
             dict(id="NUMBER", name='NAME', number='NUMBER', dt='DATE', parent_id='PARENT')
@@ -421,7 +446,8 @@ class PostgresCopyFromTest(BaseTest):
             date(2012, 1, 1)
         )
 
-    def test_pipe_save(self):
+    @mock.patch("django.db.connection.validate_no_atomic_block")
+    def test_pipe_save(self, _):
         MockObject.objects.from_csv(
             self.pipe_path,
             dict(name='NAME', number='NUMBER', dt='DATE'),
@@ -434,7 +460,8 @@ class PostgresCopyFromTest(BaseTest):
             date(2012, 1, 1)
         )
 
-    def test_quote_save(self):
+    @mock.patch("django.db.connection.validate_no_atomic_block")
+    def test_quote_save(self, _):
         MockObject.objects.from_csv(
             self.quote_path,
             dict(name='NAME', number='NUMBER', dt='DATE'),
@@ -446,7 +473,8 @@ class PostgresCopyFromTest(BaseTest):
         self.assertEqual(MockObject.objects.get(number=2).name, 'JO\tE')
         self.assertEqual(MockObject.objects.get(number=3).name, 'JAN"E')
 
-    def test_null_save(self):
+    @mock.patch("django.db.connection.validate_no_atomic_block")
+    def test_null_save(self, _):
         MockObject.objects.from_csv(
             self.null_path,
             dict(name='NAME', number='NUMBER', dt='DATE'),
@@ -460,7 +488,8 @@ class PostgresCopyFromTest(BaseTest):
             date(2012, 1, 1)
         )
 
-    def test_force_not_null_save(self):
+    @mock.patch("django.db.connection.validate_no_atomic_block")
+    def test_force_not_null_save(self, _):
         MockBlankObject.objects.from_csv(
             self.blank_null_path,
             dict(name='NAME', number='NUMBER', dt='DATE', color='COLOR'),
@@ -488,7 +517,8 @@ class PostgresCopyFromTest(BaseTest):
             date(2012, 1, 1)
         )
 
-    def test_backwards_save(self):
+    @mock.patch("django.db.connection.validate_no_atomic_block")                   
+    def test_backwards_save(self, _):
         MockObject.objects.from_csv(
             self.backwards_path,
             dict(name='NAME', number='NUMBER', dt='DATE'),
@@ -500,7 +530,8 @@ class PostgresCopyFromTest(BaseTest):
             date(2012, 1, 1)
         )
 
-    def test_field_override_save(self):
+    @mock.patch("django.db.connection.validate_no_atomic_block")
+    def test_field_override_save(self, _):
         MockObject.objects.from_csv(
             self.null_path,
             dict(name='NAME', number='NUMBER', dt='DATE'),
@@ -512,7 +543,8 @@ class PostgresCopyFromTest(BaseTest):
             date(2012, 1, 1)
         )
 
-    def test_encoding_save(self):
+    @mock.patch("django.db.connection.validate_no_atomic_block")
+    def test_encoding_save(self, _):
         MockObject.objects.from_csv(
             self.null_path,
             dict(name='NAME', number='NUMBER', dt='DATE'),
@@ -525,7 +557,8 @@ class PostgresCopyFromTest(BaseTest):
             date(2012, 1, 1)
         )
 
-    def test_ignore_conflicts(self):
+    @mock.patch("django.db.connection.validate_no_atomic_block")
+    def test_ignore_conflicts(self, _):
         UniqueMockObject.objects.from_csv(
             self.name_path,
             dict(name='NAME'),
@@ -537,7 +570,8 @@ class PostgresCopyFromTest(BaseTest):
             ignore_conflicts=True
         )
 
-    def test_static_values(self):
+    @mock.patch("django.db.connection.validate_no_atomic_block")
+    def test_static_values(self, _):
         ExtendedMockObject.objects.from_csv(
             self.name_path,
             dict(name='NAME', number='NUMBER', dt='DATE'),
@@ -552,7 +586,8 @@ class PostgresCopyFromTest(BaseTest):
             3
         )
 
-    def test_bad_static_values(self):
+    @mock.patch("django.db.connection.validate_no_atomic_block")
+    def test_bad_static_values(self, _):
         with self.assertRaises(ValueError):
             ExtendedMockObject.objects.from_csv(
                 self.name_path,
@@ -561,7 +596,8 @@ class PostgresCopyFromTest(BaseTest):
                 static_mapping=dict(static_bad=1)
             )
 
-    def test_overload_save(self):
+    @mock.patch("django.db.connection.validate_no_atomic_block")
+    def test_overload_save(self, _):
         OverloadMockObject.objects.from_csv(
             self.name_path,
             dict(name='NAME', lower_name='NAME', upper_name='NAME', number='NUMBER', dt='DATE'),
@@ -644,7 +680,8 @@ class PostgresCopyFromTest(BaseTest):
 
 
 class MultiDbTest(BaseTest):
-    def test_from_csv(self):
+    @mock.patch("django.db.connection.validate_no_atomic_block") 
+    def test_from_csv(self, _):
         MockObject.objects.from_csv(
             self.name_path,
             dict(name='NAME', number='NUMBER', dt='DATE'),
@@ -659,7 +696,8 @@ class MultiDbTest(BaseTest):
         )
         MockObject.objects.using("alternative").all().delete()
 
-    def test_to_csv(self):
+    @mock.patch("django.db.connection.validate_no_atomic_block")
+    def test_to_csv(self, _):
         # First with the default database
         mapping = dict(name='NAME', number='NUMBER', dt='DATE')
         MockObject.objects.from_csv(self.name_path, mapping)
@@ -673,7 +711,8 @@ class MultiDbTest(BaseTest):
         )
         os.remove(export_path)
 
-    def test_to_csv_from_alt_db(self):
+    @mock.patch("django.db.connection.validate_no_atomic_block")
+    def test_to_csv_from_alt_db(self, _):
         # Next with the alternative database
         mapping = dict(name='NAME', number='NUMBER', dt='DATE')
         MockObject.objects.from_csv(self.name_path, mapping, using="alternative")
