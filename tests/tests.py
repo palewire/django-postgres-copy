@@ -218,7 +218,7 @@ class PostgresCopyToTest(BaseTest):
         self.assertRaises(Exception, MockObject.objects.to_csv(self.export_path), escape='--')
 
     @mock.patch("django.db.connection.validate_no_atomic_block")
-    def test_filter(self):
+    def test_filter(self, _):
         self._load_objects(self.name_path)
         MockObject.objects.filter(name="BEN").to_csv(self.export_path)
         reader = csv.DictReader(open(self.export_path, 'r'))
@@ -510,7 +510,7 @@ class PostgresCopyFromTest(BaseTest):
         )
 
     @mock.patch("django.db.connection.validate_no_atomic_block")
-    def test_force_null_save(self):
+    def test_force_null_save(self, _):
         MockObject.objects.from_csv(
             self.null_path,
             dict(name='NAME', number='NUMBER', dt='DATE'),
