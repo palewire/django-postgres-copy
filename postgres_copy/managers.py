@@ -39,7 +39,7 @@ class ConstraintQuerySet(models.QuerySet):
         try:
             getattr(schema_editor, method_name)(*args)
         except Exception:
-            logger.debug("Edit of {}.{} failedi with message {}. Skipped".format(schema_editor, method_name, str(err)))
+            logger.debug("Edit of {}.{} failed with message {}. Skipped".format(schema_editor, method_name, str(err)))
             pass
 
     def drop_constraints(self):
