@@ -5,6 +5,7 @@ Handlers for working with PostgreSQL's COPY command.
 """
 import os
 import sys
+import tempfile
 import csv
 import logging
 from collections import OrderedDict
@@ -32,7 +33,8 @@ class CopyMapping(object):
         force_null=None,
         encoding=None,
         ignore_conflicts=False,
-        static_mapping=None
+        static_mapping=None,
+        max_rows=None
     ):
         # Set the required arguments
         self.model = model
@@ -57,6 +59,8 @@ class CopyMapping(object):
         self.encoding = encoding
         self.supports_ignore_conflicts = True
         self.ignore_conflicts = ignore_conflicts
+        self.max_rows = max_rows
+
         if static_mapping is not None:
             self.static_mapping = OrderedDict(static_mapping)
         else:
@@ -267,12 +271,10 @@ class CopyMapping(object):
     def copy(self, cursor):
         """
         Generate and run the COPY command to copy data from csv to temp table.
-
         Calls `self.pre_copy(cursor)` and `self.post_copy(cursor)` respectively
         before and after running copy
-
         cursor:
-          A cursor object on the db
+            A cursor object on the db
         """
         # Run pre-copy hook
         self.pre_copy(cursor)
@@ -280,7 +282,36 @@ class CopyMapping(object):
         logger.debug("Running COPY command")
         copy_sql = self.prep_copy()
         logger.debug(copy_sql)
-        cursor.copy_expert(copy_sql, self.csv_file)
+
+        if not self.max_rows:
+            cursor.copy_expert(copy_sql, self.csv_file)
+        else:  # Split the CSV up into smaller tables.
+               # This header will be shared across many smaller temp files.
+            header = self.csv_file.readline()
+
+            # Keep going through the whole source file.
+            line = True
+            while line:
+                line_count = 0
+                # Create a temp file with the prescribed number of rows from
+                # the source file.
+                with tempfile.NamedTemporaryFile(
+                        "w", encoding='utf-8', delete=False) as chunk_file:
+                    chunk_file.write(header)
+
+                    while line_count < self.max_rows and line:
+                        line = self.csv_file.readline()
+                        if line:
+                            chunk_file.write(line)
+                            line_count += 1
+
+                    chunk_file.close()
+ 
+                    with open(chunk_file.name, "r") as chunk_stream:
+                        cursor.copy_expert(copy_sql, chunk_stream)
+
+                    # We're done with the temp file now, go ahead and get rid of it.
+                    os.remove(chunk_file.name)
 
         # Run post-copy hook
         self.post_copy(cursor)

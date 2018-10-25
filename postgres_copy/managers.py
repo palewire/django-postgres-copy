@@ -39,7 +39,7 @@ class ConstraintQuerySet(models.QuerySet):
         try:
             getattr(schema_editor, method_name)(*args)
         except Exception:
-            logger.debug("Edit of {}.{} failed. Skipped".format(schema_editor, method_name))
+            logger.debug("Edit of {}.{} failedi with message {}. Skipped".format(schema_editor, method_name, str(err)))
             pass
 
     def drop_constraints(self):
@@ -127,11 +127,11 @@ class CopyQuerySet(ConstraintQuerySet):
     """
     Subclass of QuerySet that adds from_csv and to_csv methods.
     """
-    def from_csv(self, csv_path, mapping=None, drop_constraints=True, drop_indexes=True, silent=True, **kwargs):
+    def from_csv(self, csv_path, mapping=None, drop_constraints=True, drop_indexes=True, silent=True, batch_size=None, **kwargs):
         """
         Copy CSV file from the provided path to the current model using the provided mapping.
         """
-        mapping = CopyMapping(self.model, csv_path, mapping, **kwargs)
+        mapping = CopyMapping(self.model, csv_path, mapping, max_rows=batch_size, **kwargs)
 
         if drop_constraints:
             self.drop_constraints()
