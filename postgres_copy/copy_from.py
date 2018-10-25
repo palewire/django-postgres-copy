@@ -4,6 +4,7 @@
 Handlers for working with PostgreSQL's COPY command.
 """
 import os
+import six
 import sys
 import tempfile
 import csv
@@ -295,8 +296,13 @@ class CopyMapping(object):
                 line_count = 0
                 # Create a temp file with the prescribed number of rows from
                 # the source file.
+                encoding_args = {}
+                if six.PY3:
+                    # Postgres COPY expects UTF-8 format, only.
+                    encoding_args = {'encoding': 'utf-8'}
+
                 with tempfile.NamedTemporaryFile(
-                        "w", encoding='utf-8', delete=False) as chunk_file:
+                        "w", delete=False, **encoding_args) as chunk_file:
                     chunk_file.write(header)
 
                     while line_count < self.max_rows and line:
