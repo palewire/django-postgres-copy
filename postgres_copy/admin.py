@@ -11,7 +11,6 @@ from io import TextIOWrapper
 from .managers import CopyManager
 
 
-
 class CopyImportForm(forms.Form):
     file = forms.FileField()
 
@@ -44,10 +43,8 @@ class CopyAdmin(admin.ModelAdmin):
 
         return url_patterns + super_urls
 
-
     def get_copy_import_form(self):
         return self.copy_import_form
-
 
     def import_view(self, request):
 
@@ -71,9 +68,9 @@ class CopyAdmin(admin.ModelAdmin):
                                    (self.model._meta.app_label, self.model._meta.model_name),
                                    current_app=self.admin_site.name)
             redirect_url = add_preserved_filters({'preserved_filters': preserved_filters,
-                                                    'opts': self.model._meta}, redirect_url)
+                                                 'opts': self.model._meta}, redirect_url)
             return HttpResponseRedirect(redirect_url)
-        
+
         # this form might need to be override-able? give them the option.
         form = self.get_copy_import_form()(data=request.POST or None, files=request.FILES or None)
 
@@ -86,23 +83,23 @@ class CopyAdmin(admin.ModelAdmin):
             })
 
         if request.method == 'POST':
-            
+
             if form.is_valid():
 
                 insert_count = self.model.objects.from_csv(TextIOWrapper(form.cleaned_data['file']),
-                                                    dict(**self.copy_mapped_fields),
-                                                    static_mapping=self.copy_static_mapping)
+                                                           dict(**self.copy_mapped_fields),
+                                                           static_mapping=self.copy_static_mapping)
 
                 self.message_user(request, "Added %s %s." %
-                            (insert_count, self.model._meta.verbose_name_plural),
-                            messages.SUCCESS)
+                                  (insert_count, self.model._meta.verbose_name_plural),
+                                  messages.SUCCESS)
 
         return TemplateResponse(request, 'admin/upload.html', context)
 
     def export_view(self, request, queryset):
-        
+
         filename_slug = self.model._meta.verbose_name_plural.replace(' ', '-')
-        
+
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="export-%s.csv"' % filename_slug
         queryset.to_csv(response)
