@@ -15,6 +15,7 @@ twine = "*"
 coverage = "*"
 python-coveralls = "*"
 tox = "*"
+requests = ">=2.20.0"
 
 [requires]
 python_version = "3.6"
