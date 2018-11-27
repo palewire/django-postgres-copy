@@ -282,6 +282,9 @@ class CopyMapping(object):
         logger.debug(copy_sql)
         cursor.copy_expert(copy_sql, self.csv_file)
 
+        # At this point all data has been loaded to the temp table
+        self.csv_file.close()
+
         # Run post-copy hook
         self.post_copy(cursor)
 
