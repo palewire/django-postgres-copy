@@ -102,7 +102,7 @@ class PostgresCopyToTest(BaseTest):
         self._load_objects(self.name_path)
         export = MockObject.objects.to_csv()
         lines = export.decode('utf-8').split('\n')
-        self.assertEqual(4, len(lines))
+        self.assertEqual(5, len(lines))
         self.assertEqual(lines[0], "id,name,num,dt,parent_id")
 
         # Because the id field can vary depending on other tests,
@@ -111,6 +111,9 @@ class PostgresCopyToTest(BaseTest):
         self.assertTrue(lines[1].endswith(",BEN,1,2012-01-01,"))
         self.assertTrue(lines[2].endswith(",JOE,2,2012-01-02,"))
         self.assertTrue(lines[3].endswith(",JANE,3,2012-01-03,"))
+
+        # We end with a newline.
+        self.assertEqual(lines[4], '')
 
     @mock.patch("django.db.connection.validate_no_atomic_block")
     def test_export_header_setting(self, _):
