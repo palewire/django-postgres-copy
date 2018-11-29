@@ -108,9 +108,9 @@ class PostgresCopyToTest(BaseTest):
         # Because the id field can vary depending on other tests,
         # we only check that the individual data lines in the CSV
         # end with the appropriate fields
-        self.assertTrue(lines[1].endswith(",BEN,1,2012-01-01,")
-        self.assertTrue(lines[2].endswith(",JOE,2,2012-01-02,")
-        self.assertTrue(lines[3].endswith(",JANE,3,2012-01-03,")
+        self.assertTrue(lines[1].endswith(",BEN,1,2012-01-01,"))
+        self.assertTrue(lines[2].endswith(",JOE,2,2012-01-02,"))
+        self.assertTrue(lines[3].endswith(",JANE,3,2012-01-03,"))
 
     @mock.patch("django.db.connection.validate_no_atomic_block")
     def test_export_header_setting(self, _):
