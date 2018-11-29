@@ -359,7 +359,7 @@ class PostgresCopyFromTest(BaseTest):
         )
 
     @mock.patch("django.db.connection.validate_no_atomic_block")
-    def test_simple_save_with_fileobject_and_batches(self):
+    def test_simple_save_with_fileobject_and_batches(self, _):
         f = open(self.name_path, 'r')
         MockObject.objects.from_csv(
             f,
