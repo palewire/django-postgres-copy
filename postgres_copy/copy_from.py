@@ -319,6 +319,9 @@ class CopyMapping(object):
                     # We're done with the temp file now, go ahead and get rid of it.
                     os.remove(chunk_file.name)
 
+        # At this point all data has been loaded to the temp table
+        self.csv_file.close()
+
         # Run post-copy hook
         self.post_copy(cursor)
 

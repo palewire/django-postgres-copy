@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import logging
 from django.db import models
 from django.db import connection
+from django.db.transaction import TransactionManagementError
 from .copy_to import CopyToQuery
 from .copy_from import CopyMapping
 logger = logging.getLogger(__name__)
@@ -132,6 +133,20 @@ class CopyQuerySet(ConstraintQuerySet):
         """
         Copy CSV file from the provided path to the current model using the provided mapping.
         """
+        # Dropping constraints or indices will fail with an opaque error for all but
+        # very trivial databases which wouldn't benefit from this optimization anyway.
+        # So, we prevent the user from even trying to avoid confusion.
+        if drop_constraints or drop_indexes:
+            try:
+                connection.validate_no_atomic_block()
+            except TransactionManagementError:
+                raise TransactionManagementError("You are attempting to drop constraints or "
+                                                 "indexes inside a transaction block, which is "
+                                                 "very likely to fail.  If it doesn't fail, you "
+                                                 "wouldn't gain any significant benefit from it "
+                                                 "anyway.  Either remove the transaction block, or set "
+                                                 "drop_constraints=False and drop_indexes=False.")
+
         mapping = CopyMapping(self.model, csv_path, mapping, max_rows=batch_size, **kwargs)
 
         if drop_constraints:
