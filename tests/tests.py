@@ -328,7 +328,7 @@ class PostgresCopyFromTest(BaseTest):
             )
 
     def test_bad_header_error_msg(self):
-        with self.assertRaisesRegex(ValueError, "Header 'NAME1' not found in CSV file."):
+        with self.assertRaisesRegex(ValueError, "Headers 'NAME1' not found in CSV file."):
             CopyMapping(
                 MockObject,
                 self.name_path,
@@ -354,7 +354,7 @@ class PostgresCopyFromTest(BaseTest):
             )
 
     def test_bad_field_error_msg(self):
-        with self.assertRaisesRegex(FieldDoesNotExist, "Model 'mockobject' does not include field 'name1'."):
+        with self.assertRaisesRegex(FieldDoesNotExist, "Model 'mockobject' does not include fields 'name1'."):
             CopyMapping(
                 MockObject,
                 self.name_path,
@@ -646,7 +646,7 @@ class PostgresCopyFromTest(BaseTest):
             )
 
     def test_bad_static_values_error_msg(self):
-        with self.assertRaisesRegex(ValueError, "Model 'extendedmockobject' does not include field 'static_bad'."):
+        with self.assertRaisesRegex(ValueError, "Model 'extendedmockobject' does not include fields 'static_bad'."):
             ExtendedMockObject.objects.from_csv(
                 self.name_path,
                 dict(name='NAME', number='NUMBER', dt='DATE'),
