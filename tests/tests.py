@@ -645,7 +645,8 @@ class PostgresCopyFromTest(BaseTest):
                 static_mapping=dict(static_bad=1)
             )
 
-    def test_bad_static_values_error_msg(self):
+    @mock.patch("django.db.connection.validate_no_atomic_block")
+    def test_bad_static_values_error_msg(self, _):
         with self.assertRaisesRegex(ValueError, "Model 'extendedmockobject' does not include fields 'static_bad'."):
             ExtendedMockObject.objects.from_csv(
                 self.name_path,
@@ -653,7 +654,8 @@ class PostgresCopyFromTest(BaseTest):
                 static_mapping=dict(static_bad=1)
             )
 
-    def test_multiple_bad_static_values_error_msg(self):
+    @mock.patch("django.db.connection.validate_no_atomic_block")
+    def test_multiple_bad_static_values_error_msg(self, _):
         check_words = ['extendedmockobject', 'static_bad1', 'static_bad2']
         for word in check_words:
             with self.assertRaisesRegex(ValueError, "{}".format(word)):
