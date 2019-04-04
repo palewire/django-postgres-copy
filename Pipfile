@@ -5,7 +5,7 @@ name = "pypi"
 
 [packages]
 django = ">=2.0.8"
-"psycopg2" = "*"
+"psycopg2-binary" = "*"
 
 [dev-packages]
 Sphinx = "*"
