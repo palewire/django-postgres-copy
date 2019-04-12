@@ -34,7 +34,6 @@ matrix:
 
 install:
  - pip install flake8 coverage coveralls
- - pip install sqlite3 --upgrade
  - pip install psycopg2>=2.8.1
  - pip install -q Django==$DJANGO_VERSION
 
