@@ -4,8 +4,8 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-django = ">=2.0.8"
-"psycopg2" = "*"
+django = ">=2.2.0"
+"psycopg2" = ">=2.8.1"
 
 [dev-packages]
 Sphinx = "*"
@@ -16,6 +16,7 @@ coverage = "*"
 python-coveralls = "*"
 tox = "*"
 requests = ">=2.20.0"
+mock = "*"
 
 [requires]
 python_version = "3.6"

@@ -15,7 +15,6 @@ from .models import (
     UniqueMockObject
 )
 from django.test import TestCase
-from django.db import connection
 from django.db import transaction
 from django.db.transaction import TransactionManagementError
 from django.db.models import Count
@@ -524,7 +523,7 @@ class PostgresCopyFromTest(BaseTest):
             date(2012, 1, 1)
         )
 
-    @mock.patch("django.db.connection.validate_no_atomic_block")                   
+    @mock.patch("django.db.connection.validate_no_atomic_block")
     def test_backwards_save(self, _):
         MockObject.objects.from_csv(
             self.backwards_path,
@@ -687,7 +686,7 @@ class PostgresCopyFromTest(BaseTest):
 
 
 class MultiDbTest(BaseTest):
-    @mock.patch("django.db.connection.validate_no_atomic_block") 
+    @mock.patch("django.db.connection.validate_no_atomic_block")
     def test_from_csv(self, _):
         MockObject.objects.from_csv(
             self.name_path,
