@@ -85,7 +85,7 @@ setup(
     long_description=read('README.rst'),
     license="MIT",
     packages=("postgres_copy",),
-    install_requires=("psycopg2>=2.7.3",),
+    install_requires=("psycopg2>=2.8.1",),
     cmdclass={'test': TestCommand},
     classifiers=[
         'Development Status :: 5 - Production/Stable',
@@ -102,6 +102,7 @@ setup(
         'Framework :: Django :: 1.11',
         'Framework :: Django :: 2.0',
         'Framework :: Django :: 2.1',
+        'Framework :: Django :: 2.2',
         'License :: OSI Approved :: MIT License'
     ],
     project_urls={
