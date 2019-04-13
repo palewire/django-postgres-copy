@@ -23,6 +23,7 @@ from django.core.exceptions import FieldDoesNotExist
 
 
 class BaseTest(TestCase):
+    databases = ["default", "sqlite", "other", "secondary"]
 
     def setUp(self):
         self.data_dir = os.path.join(os.path.dirname(__file__), 'data')
@@ -691,16 +692,16 @@ class MultiDbTest(BaseTest):
         MockObject.objects.from_csv(
             self.name_path,
             dict(name='NAME', number='NUMBER', dt='DATE'),
-            using='alternative'
+            using='other'
         )
         self.assertEqual(MockObject.objects.count(), 0)
-        self.assertEqual(MockObject.objects.using('alternative').count(), 3)
-        self.assertEqual(MockObject.objects.using('alternative').get(name='BEN').number, 1)
+        self.assertEqual(MockObject.objects.using('other').count(), 3)
+        self.assertEqual(MockObject.objects.using('other').get(name='BEN').number, 1)
         self.assertEqual(
-            MockObject.objects.using('alternative').get(name='BEN').dt,
+            MockObject.objects.using('other').get(name='BEN').dt,
             date(2012, 1, 1)
         )
-        MockObject.objects.using("alternative").all().delete()
+        MockObject.objects.using("other").all().delete()
 
     @mock.patch("django.db.connection.validate_no_atomic_block")
     def test_to_csv(self, _):
@@ -719,16 +720,16 @@ class MultiDbTest(BaseTest):
 
     @mock.patch("django.db.connection.validate_no_atomic_block")
     def test_to_csv_from_alt_db(self, _):
-        # Next with the alternative database
+        # Next with the other database
         mapping = dict(name='NAME', number='NUMBER', dt='DATE')
-        MockObject.objects.from_csv(self.name_path, mapping, using="alternative")
-        export_path = os.path.join(os.path.dirname(__file__), 'alternative.csv')
-        MockObject.objects.using('alternative').to_csv(export_path)
+        MockObject.objects.from_csv(self.name_path, mapping, using="other")
+        export_path = os.path.join(os.path.dirname(__file__), 'other.csv')
+        MockObject.objects.using('other').to_csv(export_path)
         self.assertTrue(os.path.exists(export_path))
         reader = csv.DictReader(open(export_path, 'r'))
         self.assertTrue(
             ['BEN', 'JOE', 'JANE'],
             [i['name'] for i in reader]
         )
-        MockObject.objects.using("alternative").all().delete()
+        MockObject.objects.using("other").all().delete()
         os.remove(export_path)

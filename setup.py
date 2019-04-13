@@ -28,7 +28,7 @@ class TestCommand(Command):
                     'USER': 'postgres',
                     'ENGINE': 'django.db.backends.postgresql_psycopg2'
                 },
-                'alternative': {
+                'other': {
                     'NAME': 'test_alternative',
                     'USER': 'postgres',
                     'ENGINE': 'django.db.backends.postgresql_psycopg2'
