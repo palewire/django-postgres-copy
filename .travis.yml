@@ -1,26 +1,19 @@
 dist: xenial
-
 language: python
-
 sudo: false
-
 cache:
   - pip
-
 python:
  - "2.7"
  - "3.6"
  - "3.7-dev"
-
 addons:
- postgresql: "9.6"
-
+ postgresql: "10.0"
 env:
  - DJANGO_VERSION=1.11.*
  - DJANGO_VERSION=2.0.*
  - DJANGO_VERSION=2.1.*
  - DJANGO_VERSION=2.2.*
-
 matrix:
   exclude:
   - python: "2.7"
@@ -31,16 +24,11 @@ matrix:
     env: DJANGO_VERSION=2.2.*
   - python: "3.7-dev"
     env: DJANGO_VERSION=1.11.*
-
 install:
  - pip install flake8 coverage coveralls
  - pip install psycopg2>=2.8.1
  - pip install -q Django==$DJANGO_VERSION
-
 script:
- - flake8 postgres_copy
- - coverage run setup.py test
- - coverage report -m
-
+ - make test
 after_success:
  - coveralls
