@@ -350,6 +350,20 @@ class PostgresCopyFromTest(BaseTest):
             date(2012, 1, 1)
         )
 
+    @mock.patch("django.db.connection.validate_no_atomic_block")
+    def test_save_with_binary_fileobject(self, _):
+        f = open(self.name_path, 'rb')
+        MockObject.objects.from_csv(
+            f,
+            dict(name='NAME', number='NUMBER', dt='DATE')
+        )
+        self.assertEqual(MockObject.objects.count(), 3)
+        self.assertEqual(MockObject.objects.get(name='BEN').number, 1)
+        self.assertEqual(
+            MockObject.objects.get(name='BEN').dt,
+            date(2012, 1, 1)
+        )
+
     def test_atomic_block(self):
         with transaction.atomic():
             try:

@@ -5,7 +5,6 @@ Handlers for working with PostgreSQL's COPY command.
 """
 import os
 import sys
-import csv
 import logging
 from collections import OrderedDict
 from django.db import NotSupportedError
@@ -151,13 +150,30 @@ class CopyMapping(object):
         Returns the column headers from the csv as a list.
         """
         logger.debug("Retrieving headers from {}".format(self.csv_file))
-        # Open it as a CSV
-        csv_reader = csv.reader(self.csv_file, delimiter=self.delimiter)
-        # Pop the headers
-        headers = next(csv_reader)
+
+        # determine what mode the file is opened in
+        file_mode = getattr(
+            self.csv_file, 'mode', getattr(
+                self.csv_file, '_mode', None
+            )
+        )
+        # take the user-defined encoding, or assume utf-8
+        encoding = self.encoding or 'utf-8'
+        # if file is in binary mode, make sure the delimiter is cast as bytes
+        if 'b' in file_mode and isinstance(self.delimiter, str):
+            delimiter = bytes(
+                self.delimiter, encoding=encoding
+            )
+        else:
+            delimiter = self.delimiter
+        # make sure each headers item is a str with whitespace stripped
+        headers = [
+            str(h, encoding=encoding).strip()
+            for h in self.csv_file.readline().split(delimiter)
+        ]
         # Move back to the top of the file
         self.csv_file.seek(0)
-        # Return the headers
+
         return headers
 
     def validate_mapping(self):
