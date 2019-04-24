@@ -161,12 +161,9 @@ class CopyMapping(object):
         # if file is in binary mode...
         if 'b' in file_mode:
             # ...make sure the delimiter is cast as bytes...
-            if isinstance(self.delimiter, str):
-                delimiter = bytes(
-                    self.delimiter, encoding=encoding
-                )
-            else:
-                delimiter = self.delimiter
+            delimiter = bytes(
+                self.delimiter, encoding=encoding
+            )
             # ...and each header item is a str (whitespace stripped)
             headers = [
                 str(h, encoding=encoding).strip()
