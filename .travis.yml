@@ -7,10 +7,12 @@ python:
  - "2.7"
  - "3.6"
  - "3.7-dev"
-services:
-  - postgresql
 addons:
- postgresql: "10.0"
+ postgresql: "10"
+  apt:
+    packages:
+    - postgresql-10
+    - postgresql-client-10
 env:
  - DJANGO_VERSION=1.11.*
  - DJANGO_VERSION=2.0.*
