@@ -158,18 +158,28 @@ class CopyMapping(object):
         )
         # take the user-defined encoding, or assume utf-8
         encoding = self.encoding or 'utf-8'
-        # if file is in binary mode, make sure the delimiter is cast as bytes
-        if 'b' in file_mode and isinstance(self.delimiter, str):
-            delimiter = bytes(
-                self.delimiter, encoding=encoding
-            )
+        # if file is in binary mode...
+        if 'b' in file_mode:
+            # ...make sure the delimiter is cast as bytes...
+            if isinstance(self.delimiter, str):
+                delimiter = bytes(
+                    self.delimiter, encoding=encoding
+                )
+            else:
+                delimiter = self.delimiter
+            # ...and each header item is a str (whitespace stripped)
+            headers = [
+                str(h, encoding=encoding).strip()
+                for h in self.csv_file.readline().split(delimiter)
+            ]
+        # if not in binary mode...
         else:
             delimiter = self.delimiter
-        # make sure each headers item is a str with whitespace stripped
-        headers = [
-            str(h, encoding=encoding).strip()
-            for h in self.csv_file.readline().split(delimiter)
-        ]
+            # ...just strip whitespace on each header item
+            headers = [
+                h.strip()
+                for h in self.csv_file.readline().split(delimiter)
+            ]
         # Move back to the top of the file
         self.csv_file.seek(0)
 
