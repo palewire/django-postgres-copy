@@ -6,6 +6,7 @@ Handlers for working with PostgreSQL's COPY command.
 import os
 import sys
 import logging
+from six import ensure_binary, ensure_str
 from collections import OrderedDict
 from django.db import NotSupportedError
 from django.db import connections, router
@@ -160,13 +161,11 @@ class CopyMapping(object):
         encoding = self.encoding or 'utf-8'
         # if file is in binary mode...
         if 'b' in file_mode:
-            # ...make sure the delimiter is cast as bytes...
-            delimiter = bytes(
-                self.delimiter, encoding=encoding
-            )
-            # ...and each header item is a str (whitespace stripped)
+            # ...coerce delimiter to binary...
+            delimiter = ensure_binary(self.delimiter, encoding=encoding)
+            # ...and coerce each header item to str (and strip whitespace)
             headers = [
-                str(h, encoding=encoding).strip()
+                ensure_str(h, encoding=encoding).strip()
                 for h in self.csv_file.readline().split(delimiter)
             ]
         # if not in binary mode...
