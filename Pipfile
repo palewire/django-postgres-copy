@@ -14,7 +14,6 @@ twine = "*"
 "flake8" = "*"
 coverage = "*"
 python-coveralls = "*"
-tox = "*"
 requests = ">=2.20.0"
 mock = "*"
 
