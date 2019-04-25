@@ -8,7 +8,7 @@ python:
  - "3.6"
  - "3.7-dev"
 addons:
- postgresql: "10.0"
+  postgresql: "10"
 env:
  - DJANGO_VERSION=1.11.*
  - DJANGO_VERSION=2.0.*
