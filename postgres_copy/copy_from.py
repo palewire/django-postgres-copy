@@ -5,13 +5,13 @@ Handlers for working with PostgreSQL's COPY command.
 """
 import os
 import sys
-import csv
 import logging
 from collections import OrderedDict
 from django.db import NotSupportedError
 from django.db import connections, router
 from django.core.exceptions import FieldDoesNotExist
 from django.contrib.humanize.templatetags.humanize import intcomma
+from django.utils.encoding import force_bytes, force_text
 logger = logging.getLogger(__name__)
 
 
@@ -150,13 +150,35 @@ class CopyMapping(object):
         Returns the column headers from the csv as a list.
         """
         logger.debug("Retrieving headers from {}".format(self.csv_file))
-        # Open it as a CSV
-        csv_reader = csv.reader(self.csv_file, delimiter=self.delimiter)
-        # Pop the headers
-        headers = next(csv_reader)
+
+        # determine what mode the file is opened in
+        file_mode = getattr(
+            self.csv_file, 'mode', getattr(
+                self.csv_file, '_mode', None
+            )
+        )
+        # take the user-defined encoding, or assume utf-8
+        encoding = self.encoding or 'utf-8'
+        # if file is in binary mode...
+        if 'b' in file_mode:
+            # ...coerce delimiter to binary...
+            delimiter = force_bytes(self.delimiter, encoding=encoding)
+            # ...and coerce each header item to str (and strip whitespace)
+            headers = [
+                force_text(h, encoding=encoding).strip()
+                for h in self.csv_file.readline().split(delimiter)
+            ]
+        # if not in binary mode...
+        else:
+            delimiter = self.delimiter
+            # ...just strip whitespace on each header item
+            headers = [
+                h.strip()
+                for h in self.csv_file.readline().split(delimiter)
+            ]
         # Move back to the top of the file
         self.csv_file.seek(0)
-        # Return the headers
+
         return headers
 
     def validate_mapping(self):

@@ -102,9 +102,9 @@ class PostgresCopyToTest(BaseTest):
         self._load_objects(self.name_path)
         export = MockObject.objects.to_csv()
         self.assertEqual(export, b"""id,name,num,dt,parent_id
-86,BEN,1,2012-01-01,
-87,JOE,2,2012-01-02,
-88,JANE,3,2012-01-03,
+89,BEN,1,2012-01-01,
+90,JOE,2,2012-01-02,
+91,JANE,3,2012-01-03,
 """)
 
     @mock.patch("django.db.connection.validate_no_atomic_block")
@@ -339,6 +339,20 @@ class PostgresCopyFromTest(BaseTest):
     @mock.patch("django.db.connection.validate_no_atomic_block")
     def test_simple_save_with_fileobject(self, _):
         f = open(self.name_path, 'r')
+        MockObject.objects.from_csv(
+            f,
+            dict(name='NAME', number='NUMBER', dt='DATE')
+        )
+        self.assertEqual(MockObject.objects.count(), 3)
+        self.assertEqual(MockObject.objects.get(name='BEN').number, 1)
+        self.assertEqual(
+            MockObject.objects.get(name='BEN').dt,
+            date(2012, 1, 1)
+        )
+
+    @mock.patch("django.db.connection.validate_no_atomic_block")
+    def test_save_with_binary_fileobject(self, _):
+        f = open(self.name_path, 'rb')
         MockObject.objects.from_csv(
             f,
             dict(name='NAME', number='NUMBER', dt='DATE')
