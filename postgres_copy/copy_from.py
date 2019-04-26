@@ -3,15 +3,16 @@
 """
 Handlers for working with PostgreSQL's COPY command.
 """
+import csv
 import os
 import sys
 import logging
 from collections import OrderedDict
+from io import TextIOWrapper
 from django.db import NotSupportedError
 from django.db import connections, router
 from django.core.exceptions import FieldDoesNotExist
 from django.contrib.humanize.templatetags.humanize import intcomma
-from django.utils.encoding import force_bytes, force_text
 logger = logging.getLogger(__name__)
 
 
@@ -151,32 +152,26 @@ class CopyMapping(object):
         Returns the column headers from the csv as a list.
         """
         logger.debug("Retrieving headers from {}".format(self.csv_file))
+        # set up a csv reader
+        csv_reader = csv.reader(self.csv_file, delimiter=self.delimiter)
+        try:
+            # Pop the headers
+            headers = next(csv_reader)
+        except csv.Error:
+            # this error is thrown in Python 3 when the file is in binary mode
+            # first, rewind the file
+            self.csv_file.seek(0)
+            # take the user-defined encoding, or assume utf-8
+            encoding = self.encoding or 'utf-8'
+            # wrap the binary file...
+            text_file = TextIOWrapper(self.csv_file, encoding=encoding)
+            # ...so the csv reader can treat it as text
+            csv_reader = csv.reader(text_file, delimiter=self.delimiter)
+            # now pop the headers
+            headers = next(csv_reader)
+            # detach the open csv_file so it will stay open
+            text_file.detach()
 
-        # determine what mode the file is opened in
-        file_mode = getattr(
-            self.csv_file, 'mode', getattr(
-                self.csv_file, '_mode', None
-            )
-        )
-        # take the user-defined encoding, or assume utf-8
-        encoding = self.encoding or 'utf-8'
-        # if file is in binary mode...
-        if 'b' in file_mode:
-            # ...coerce delimiter to binary...
-            delimiter = force_bytes(self.delimiter, encoding=encoding)
-            # ...and coerce each header item to str (and strip whitespace)
-            headers = [
-                force_text(h, encoding=encoding).strip()
-                for h in self.csv_file.readline().split(delimiter)
-            ]
-        # if not in binary mode...
-        else:
-            delimiter = self.delimiter
-            # ...just strip whitespace on each header item
-            headers = [
-                h.strip()
-                for h in self.csv_file.readline().split(delimiter)
-            ]
         # Move back to the top of the file
         self.csv_file.seek(0)
 
