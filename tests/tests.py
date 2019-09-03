@@ -452,6 +452,15 @@ class PostgresCopyFromTest(BaseTest):
             date(2012, 1, 1)
         )
 
+    @mock.patch("django.db.connection.validate_no_atomic_block")
+    def test_save_pk_field_type(self, _):
+        # Django casts PK fields to "serial"
+        MockObject.objects.from_csv(
+            self.name_path,
+            dict(id='NUMBER', name='NAME', dt='DATE'),
+        )
+        self.assertEqual(MockObject.objects.count(), 3)
+
     def test_silent_save(self):
         c = CopyMapping(
             MockObject,
