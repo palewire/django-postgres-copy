@@ -20,7 +20,6 @@ class CopyMapping(object):
     """
     Maps comma-delimited file to Django model and loads it into PostgreSQL database using COPY command.
     """
-
     def __init__(
         self,
         model,
