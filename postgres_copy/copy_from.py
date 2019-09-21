@@ -365,6 +365,8 @@ class CopyMapping(object):
             # Pull the field object from the model
             field = self.get_field(field_name)
             field_type = field.db_type(self.conn)
+            if field_type == "serial":
+                field_type = "integer"
 
             # Format the SQL
             string = 'cast("%s" as %s)' % (header, field_type)
