@@ -3,11 +3,12 @@
 """
 Handlers for working with PostgreSQL's COPY command.
 """
+import csv
 import os
 import sys
-import csv
 import logging
 from collections import OrderedDict
+from io import TextIOWrapper
 from django.db import NotSupportedError
 from django.db import connections, router
 from django.core.exceptions import FieldDoesNotExist
@@ -150,13 +151,29 @@ class CopyMapping(object):
         Returns the column headers from the csv as a list.
         """
         logger.debug("Retrieving headers from {}".format(self.csv_file))
-        # Open it as a CSV
+        # set up a csv reader
         csv_reader = csv.reader(self.csv_file, delimiter=self.delimiter)
-        # Pop the headers
-        headers = next(csv_reader)
+        try:
+            # Pop the headers
+            headers = next(csv_reader)
+        except csv.Error:
+            # this error is thrown in Python 3 when the file is in binary mode
+            # first, rewind the file
+            self.csv_file.seek(0)
+            # take the user-defined encoding, or assume utf-8
+            encoding = self.encoding or 'utf-8'
+            # wrap the binary file...
+            text_file = TextIOWrapper(self.csv_file, encoding=encoding)
+            # ...so the csv reader can treat it as text
+            csv_reader = csv.reader(text_file, delimiter=self.delimiter)
+            # now pop the headers
+            headers = next(csv_reader)
+            # detach the open csv_file so it will stay open
+            text_file.detach()
+
         # Move back to the top of the file
         self.csv_file.seek(0)
-        # Return the headers
+
         return headers
 
     def validate_mapping(self):
@@ -282,6 +299,9 @@ class CopyMapping(object):
         logger.debug(copy_sql)
         cursor.copy_expert(copy_sql, self.csv_file)
 
+        # At this point all data has been loaded to the temp table
+        self.csv_file.close()
+
         # Run post-copy hook
         self.post_copy(cursor)
 
@@ -345,6 +365,8 @@ class CopyMapping(object):
             # Pull the field object from the model
             field = self.get_field(field_name)
             field_type = field.db_type(self.conn)
+            if field_type == "serial":
+                field_type = "integer"
 
             # Format the SQL
             string = 'cast("%s" as %s)' % (header, field_type)

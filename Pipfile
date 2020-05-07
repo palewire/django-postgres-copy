@@ -4,8 +4,8 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-Django = "*"
-"psycopg2" = "*"
+django = ">=2.2.4"
+"psycopg2" = ">=2.8.1"
 
 [dev-packages]
 Sphinx = "*"
@@ -14,7 +14,9 @@ twine = "*"
 "flake8" = "*"
 coverage = "*"
 python-coveralls = "*"
-tox = "*"
+requests = ">=2.20.0"
+mock = "*"
+urllib3 = ">=1.24.2"
 
 [requires]
 python_version = "3.6"
