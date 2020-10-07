@@ -85,7 +85,6 @@ setup(
     long_description=read('README.rst'),
     license="MIT",
     packages=("postgres_copy",),
-    install_requires=("psycopg2>=2.8.1",),
     cmdclass={'test': TestCommand},
     classifiers=[
         'Development Status :: 5 - Production/Stable',
