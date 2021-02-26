@@ -6,23 +6,27 @@ cache:
 python:
  - "2.7"
  - "3.6"
- - "3.7-dev"
+ - "3.7"
+ - "3.8"
 addons:
   postgresql: "10"
 env:
  - DJANGO_VERSION=1.11.*
- - DJANGO_VERSION=2.0.*
- - DJANGO_VERSION=2.1.*
  - DJANGO_VERSION=2.2.*
+ - DJANGO_VERSION=3.1.*
 matrix:
   exclude:
   - python: "2.7"
-    env: DJANGO_VERSION=2.0.*
-  - python: "2.7"
-    env: DJANGO_VERSION=2.1.*
-  - python: "2.7"
     env: DJANGO_VERSION=2.2.*
-  - python: "3.7-dev"
+  - python: "2.7"
+    env: DJANGO_VERSION=3.1.*
+  - python: "3.7"
+    env: DJANGO_VERSION=1.11.*
+  - python: "3.7"
+    env: DJANGO_VERSION=1.11.*
+  - python: "3.8"
+    env: DJANGO_VERSION=1.11.*
+  - python: "3.8"
     env: DJANGO_VERSION=1.11.*
 install:
  - pip install flake8 coverage coveralls
