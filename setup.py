@@ -77,7 +77,7 @@ class TestCommand(Command):
 
 setup(
     name='django-postgres-copy',
-    version='2.4.2',
+    version='2.5.0',
     author='Ben Welsh',
     author_email='ben.welsh@gmail.com',
     url='http://django-postgres-copy.californiacivicdata.org/',
@@ -85,7 +85,6 @@ setup(
     long_description=read('README.rst'),
     license="MIT",
     packages=("postgres_copy",),
-    install_requires=("psycopg2>=2.8.1",),
     cmdclass={'test': TestCommand},
     classifiers=[
         'Development Status :: 5 - Production/Stable',
@@ -97,11 +96,11 @@ setup(
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
         'Framework :: Django',
         'Framework :: Django :: 1.11',
-        'Framework :: Django :: 2.0',
-        'Framework :: Django :: 2.1',
         'Framework :: Django :: 2.2',
+        'Framework :: Django :: 3.1',
         'License :: OSI Approved :: MIT License'
     ],
     project_urls={
