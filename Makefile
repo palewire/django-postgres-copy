@@ -8,7 +8,7 @@ ship:
 
 test:
 	clear;
-	flake8 postgres_copy;
-	flake8 tests;
-	coverage run setup.py test;
-	coverage report -m;
+	pipenv run flake8 postgres_copy;
+	pipenv run flake8 tests;
+	pipenv run coverage run setup.py test;
+	pipenv run coverage report -m;
