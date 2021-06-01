@@ -26,7 +26,7 @@ jobs:
         uses: huaxk/postgis-action@v1
         with:
           postgresql version: '11'
-          postgresql db: test
+          postgresql db: postgres
           postgresql user: test
           postgresql password: test
 
