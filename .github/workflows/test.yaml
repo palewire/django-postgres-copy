@@ -19,16 +19,13 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
 
-      - name: Install GIS packages
-        run: sudo apt-get install binutils libproj-dev gdal-bin
-
-      - name: Set up PostGIS
-        uses: huaxk/postgis-action@v1
+      - name: Set up PostgreSQL
+        uses: harmon758/postgresql-action@v1
         with:
           postgresql version: '11'
-          postgresql db: postgres
-          postgresql user: test
-          postgresql password: test
+          postgresql: postgres_copy
+          postgresql user: postgres
+          postgresql password: postgres
 
       - id: install-pipenv
         name: Install pipenv
