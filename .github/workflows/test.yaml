@@ -31,7 +31,7 @@ jobs:
           python-version: ${{ matrix.python }}
 
       - name: psycopg2 prerequisites
-        run: sudo apt-get install libpq-dev
+        run: sudo apt-get install libpq-dev postgresql-client
 
       - name: Query database
         run: psql -h postgres -d postgres -U postgres -c 'SELECT 1;'
