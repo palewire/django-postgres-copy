@@ -51,6 +51,7 @@ class TestCommand(Command):
             },
             INSTALLED_APPS=("tests",),
             DATABASE_ROUTERS=['tests.router.CustomRouter'],
+            DEFAULT_AUTO_FIELD='django.db.models.BigAutoField',
             LOGGING = {
                 'version': 1,
                 'disable_existing_loggers': False,

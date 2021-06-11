@@ -367,6 +367,8 @@ class CopyMapping(object):
             field_type = field.db_type(self.conn)
             if field_type == "serial":
                 field_type = "integer"
+            elif field_type == "bigserial":
+                field_type = "integer"
 
             # Format the SQL
             string = 'cast("%s" as %s)' % (header, field_type)

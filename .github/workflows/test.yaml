@@ -33,16 +33,6 @@ jobs:
       - name: psycopg2 prerequisites
         run: sudo apt-get install libpq-dev postgresql-client
 
-      - name: Query database
-        run: psql -h localhost -d postgres -U postgres -c 'SELECT 1;'
-        env:
-          PGPASSWORD: postgres
-
-      - name: Create databases
-        run: createdb -h localhost -d postgres -U postgres test;
-        env:
-          PGPASSWORD: postgres
-
       - id: install-pipenv
         name: Install pipenv
         run: |
