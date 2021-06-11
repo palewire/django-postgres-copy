@@ -17,6 +17,3 @@ Quickly import and export delimited data with Django support for PostgreSQL's CO
     :target: https://badge.fury.io/py/django-postgres-copy
 .. |Documentation Status| image:: https://readthedocs.org/projects/django-postgres-copy/badge/
    :target: http://django-postgres-copy.californiacivicdata.org
-   
-   
-   [![Tests]()]()
