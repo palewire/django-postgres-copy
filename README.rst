@@ -1,6 +1,6 @@
-Quickly import and export delimited data with Django support for PostgreSQL's COPY command
+Quickly import and export delimited data with Django support for PostgreSQL’s COPY command
 
-|Build Status| |PyPI version| |Coverage Status| |Documentation Status|
+|Build Status| |PyPI version| |Documentation Status|
 
 -  Documentation:
    `django-postgres-copy.californiacivicdata.org <http://django-postgres-copy.californiacivicdata.org>`__

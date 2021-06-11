@@ -87,7 +87,7 @@ setup(
     author='Ben Welsh',
     author_email='b@palewi.re',
     url='http://django-postgres-copy.californiacivicdata.org/',
-    description="Quickly import and export delimited data with Django support for PostgreSQL's COPY command",
+    description="Quickly import and export delimited data with Django support for PostgreSQL’s COPY command",
     long_description=read('README.rst'),
     license="MIT",
     packages=("postgres_copy",),
