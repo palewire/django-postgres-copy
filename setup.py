@@ -25,12 +25,14 @@ class TestCommand(Command):
             DATABASES={
                 'default': {
                     'HOST': 'localhost',
+                    'PORT': 5432,
                     'NAME': 'test',
                     'USER': 'postgres',
                     'ENGINE': 'django.db.backends.postgresql_psycopg2'
                 },
                 'other': {
                     'HOST': 'localhost',
+                    'PORT': 5432,
                     'NAME': 'test_alternative',
                     'USER': 'postgres',
                     'ENGINE': 'django.db.backends.postgresql_psycopg2'
@@ -41,6 +43,7 @@ class TestCommand(Command):
                 },
                 'secondary': {
                     'HOST': 'localhost',
+                    'PORT': 5432,
                     'NAME': 'test_secondary',
                     'USER': 'postgres',
                     'ENGINE': 'django.db.backends.postgresql_psycopg2'
