@@ -34,7 +34,7 @@ jobs:
         run: sudo apt-get install libpq-dev postgresql-client
 
       - name: Query database
-        run: psql -h postgres -d postgres -U postgres -c 'SELECT 1;'
+        run: psql -h localhost -d postgres -U postgres -c 'SELECT 1;'
         env:
           PGPASSWORD: postgres
 
