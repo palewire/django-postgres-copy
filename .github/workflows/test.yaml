@@ -40,18 +40,9 @@ jobs:
           python -m pip install --no-cache-dir pipenv
         shell: bash
 
-      - id: cache-pipenv
-        name: Cache pipenv
-        uses: actions/cache@v2
-        with:
-          path: ~/.local/share/virtualenvs
-          key: ${{ runner.os }}-pipenv-${{ hashFiles('Pipfile.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-pipenv-
-
       - id: sync-pipfile
         name: Sync pipfile
-        run: pipenv sync --dev --python ${{ matrix.python }}
+        run: pipenv install --dev --python ${{ matrix.python }}
         shell: bash
 
       - name: Test
