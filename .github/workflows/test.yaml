@@ -9,11 +9,11 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:10.8
+        image: postgres:latest
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: github_actions
+          POSTGRES_DB: postgres
         ports:
           - 5432:5432
         # needed because the postgres container does not provide a healthcheck
@@ -32,6 +32,11 @@ jobs:
 
       - name: psycopg2 prerequisites
         run: sudo apt-get install libpq-dev
+
+      - name: Query database
+        run: psql -h postgres -d postgres -U postgres -c 'SELECT 1;'
+        env:
+          PGPASSWORD: postgres
 
       - id: install-pipenv
         name: Install pipenv
