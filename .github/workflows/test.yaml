@@ -38,6 +38,11 @@ jobs:
         env:
           PGPASSWORD: postgres
 
+      - name: Create databases
+        run: createdb -h localhost -d postgres -U postgres test;
+        env:
+          PGPASSWORD: postgres
+
       - id: install-pipenv
         name: Install pipenv
         run: |
