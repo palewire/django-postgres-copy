@@ -578,7 +578,6 @@ Open-source resources
 =====================
 
 * Code: `github.com/california-civic-data-coalition/django-postgres-copy <https://github.com/california-civic-data-coalition/django-postgres-copy>`_
-* Documentation: `django-postgres-copy.californiacivicdata.org <http://django-postgres-copy.californiacivicdata.org>`_
 * Issues: `github.com/california-civic-data-coalition/django-postgres-copy/issues <https://github.com/california-civic-data-coalition/django-postgres-copy/issues>`_
 * Packaging: `pypi.python.org/pypi/django-postgres-copy <https://pypi.python.org/pypi/django-postgres-copy>`_
 * Testing: `github.com/california-civic-data-coalition/django-postgres-copy/actions <https://github.com/california-civic-data-coalition/django-postgres-copy/actions/workflows/test.yaml>`_

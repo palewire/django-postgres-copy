@@ -86,7 +86,7 @@ setup(
     version='2.6.0',
     author='Ben Welsh',
     author_email='b@palewi.re',
-    url='http://django-postgres-copy.californiacivicdata.org/',
+    url='https://django-postgres-copy.californiacivicdata.org/',
     description="Quickly import and export delimited data with Django support for PostgreSQL’s COPY command",
     long_description=read('README.rst'),
     license="MIT",
@@ -108,7 +108,7 @@ setup(
         'License :: OSI Approved :: MIT License'
     ],
     project_urls={
-        'Documentation': 'http://django-postgres-copy.californiacivicdata.org',
+        'Documentation': 'https://django-postgres-copy.readthedocs.io/',
         'Funding': 'https://www.californiacivicdata.org/about/',
         'Source': 'https://github.com/california-civic-data-coalition/django-postgres-copy',
         'Tracker': 'https://github.com/california-civic-data-coalition/django-postgres-copy/issues',
