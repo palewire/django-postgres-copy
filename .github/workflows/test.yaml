@@ -7,6 +7,17 @@ jobs:
   tests:
     name: "Tests"
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:10.8
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: github_actions
+        ports:
+          - 5432:5432
+        # needed because the postgres container does not provide a healthcheck
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     strategy:
       matrix:
         python: [3.9]
@@ -19,13 +30,8 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
 
-      - name: Set up PostgreSQL
-        uses: harmon758/postgresql-action@v1
-        with:
-          postgresql version: '11'
-          postgresql: postgres_copy
-          postgresql user: postgres
-          postgresql password: postgres
+      - name: psycopg2 prerequisites
+        run: sudo apt-get install libpq-dev
 
       - id: install-pipenv
         name: Install pipenv
