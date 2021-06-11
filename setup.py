@@ -83,7 +83,7 @@ class TestCommand(Command):
 
 setup(
     name='django-postgres-copy',
-    version='2.5.0',
+    version='2.6.0',
     author='Ben Welsh',
     author_email='b@palewi.re',
     url='http://django-postgres-copy.californiacivicdata.org/',
@@ -99,7 +99,7 @@ setup(
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',        
+        'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Framework :: Django',
@@ -111,6 +111,7 @@ setup(
         'Documentation': 'http://django-postgres-copy.californiacivicdata.org',
         'Funding': 'https://www.californiacivicdata.org/about/',
         'Source': 'https://github.com/california-civic-data-coalition/django-postgres-copy',
-        'Tracker': 'https://github.com/california-civic-data-coalition/django-postgres-copy/issues'
+        'Tracker': 'https://github.com/california-civic-data-coalition/django-postgres-copy/issues',
+        'Tests': 'https://github.com/california-civic-data-coalition/django-postgres-copy/actions/workflows/test.yaml',
     },
 )
