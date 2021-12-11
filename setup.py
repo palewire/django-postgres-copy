@@ -83,7 +83,7 @@ class TestCommand(Command):
 
 setup(
     name='django-postgres-copy',
-    version='2.6.0',
+    version='2.6.1',
     author='Ben Welsh',
     author_email='b@palewi.re',
     url='https://django-postgres-copy.californiacivicdata.org/',
@@ -108,7 +108,7 @@ setup(
         'License :: OSI Approved :: MIT License'
     ],
     project_urls={
-        'Documentation': 'https://django-postgres-copy.readthedocs.io/',
+        'Documentation': 'https://palewi.re/docs/django-postgres-copy/',
         'Source': 'https://github.com/palewire/django-postgres-copy',
         'Tracker': 'https://github.com/palewire/django-postgres-copy/issues',
         'Tests': 'https://github.com/palewire/django-postgres-copy/actions/workflows/test.yaml',
