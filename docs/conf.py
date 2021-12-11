@@ -129,6 +129,7 @@ html_theme_options = {
     "textcolor": "#000000",
     "linkcolor": "#686868",
     "visitedlinkcolor": "#000000",
+    "codebgcolor": "#eeeeee",
     "bodyfont": '"Libre Franklin","Helvetica","Liberation Sans",Arial,sans-serif;',
     "headfont": '"Libre Franklin","Helvetica","Liberation Sans",Arial,sans-serif;',
 }
