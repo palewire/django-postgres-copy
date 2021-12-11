@@ -100,7 +100,7 @@ How to import data
 Here's how to create a script to import CSV data into the model. Our favorite way to do this is to write a `custom Django management command <https://docs.djangoproject.com/en/2.2/howto/custom-management-commands/>`_.
 
 .. code-block:: python
-    :emphasize-lines: 1,8-14
+    :emphasize-lines: 1,8-11
 
     from myapp.models import Person
     from django.core.management.base import BaseCommand
