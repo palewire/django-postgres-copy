@@ -108,31 +108,12 @@ todo_include_todos = False
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'classic'
+html_theme = 'alabaster'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-html_theme_options = {
-    "bgcolor": "#ffffff",
-    "textcolor": "#000000",
-    "sidebarbgcolor": "#ffffff",
-    "sidebartextcolor": "#000000",
-    "sidebarlinkcolor": "#686868",
-    "relbarbgcolor": "#ffffff",
-    "relbartextcolor": "#000000",
-    "relbarlinkcolor": "#686868",
-    "footerbgcolor": "#ffffff",
-    "footertextcolor": "#000000",
-    "headbgcolor": "#ffffff",
-    "headtextcolor": "#000000",
-    "textcolor": "#000000",
-    "linkcolor": "#686868",
-    "visitedlinkcolor": "#000000",
-    "codebgcolor": "#eeeeee",
-    "bodyfont": '"Libre Franklin","Helvetica","Liberation Sans",Arial,sans-serif;',
-    "headfont": '"Libre Franklin","Helvetica","Liberation Sans",Arial,sans-serif;',
-}
+html_theme_options = {}
 
 # Add any paths that contain custom themes here, relative to this directory.
 #html_theme_path = []
