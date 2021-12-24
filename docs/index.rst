@@ -4,6 +4,8 @@ django-postgres-copy
 
 Quickly import and export delimited data with Django support for PostgreSQL's COPY command
 
+.. toctree::
+   :maxdepth: 2
 
 Why and what for?
 =================
