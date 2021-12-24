@@ -4,8 +4,6 @@ django-postgres-copy
 
 Quickly import and export delimited data with Django support for PostgreSQL's COPY command
 
-.. toctree::
-   :maxdepth: 2
 
 Why and what for?
 =================
@@ -63,6 +61,7 @@ The package can be installed from the Python Package Index with `pip`.
 
 You will of course have to have Django, PostgreSQL and an adapter between the two (like `psycopg2 <http://initd.org/psycopg/docs/>`_) already installed to put this library to use.
 
+
 An example
 ==========
 
@@ -96,6 +95,7 @@ If the model hasn't been created in your database, that needs to happen.
 
     $ python manage.py migrate
 
+
 How to import data
 ------------------
 
@@ -121,6 +121,7 @@ Run your loader.
 .. code-block:: bash
 
     $ python manage.py myimportcommand
+
 
 How to export data
 ------------------
@@ -355,6 +356,7 @@ Here's another example of a common issue, transforming the CSV's date format to 
 
 It's important to handle empty strings (by converting them to NULL) in this example. PostgreSQL will accept empty strings, but Django won't be able to ingest the field and you'll get a strange "year out of range" error when you call something like ``MyModel.objects.all()``.
 
+
 Inserting static values
 -----------------------
 
@@ -496,6 +498,7 @@ Argument           Description
                    Pass in True or "*" to quote all fields. Optional.
 =================  =========================================================
 
+
 Reducing the exported fields
 ----------------------------
 
@@ -530,6 +533,7 @@ You could export only the name field by providing it as an extra parameter.
                 '/path/to/my/export.csv',
                 'name'
             )
+
 
 Increasing the exported fields
 ------------------------------

@@ -14,7 +14,7 @@ exclude_patterns = ["_build"]
 html_theme = "alabaster"
 html_sidebars = {
     '**': [
-        'about.html',
+        # 'about.html',
         # 'navigation.html',
         'relations.html',
         'searchbox.html',
