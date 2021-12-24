@@ -27,6 +27,7 @@ html_theme_options = {
     "github_repo": "django-postgres-copy",
     'show_powered_by': False,
 }
+html_title = "django-postgres-copy'
 html_short_title = 'a'
 
 pygments_style = 'sphinx'
