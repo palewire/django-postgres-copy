@@ -25,7 +25,8 @@ html_theme_options = {
     "canonical_url": f"https://palewi.re/docs/{project}/",
     "github_user": "palewire",
     "github_repo": project,
-    'show_powered_by': False,
+    "donate_url": "https://github.com/sponsors/palewire",
+    "show_powered_by": False,
 }
 
 pygments_style = 'sphinx'
