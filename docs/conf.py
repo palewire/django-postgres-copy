@@ -22,12 +22,10 @@ html_sidebars = {
     ]
 }
 html_theme_options = {
-    "canonical_url": "https://palewi.re/docs/django-postgres-copy/",
+    "canonical_url": f"https://palewi.re/docs/{project}/",
     "github_user": "palewire",
     "github_repo": project,
     'show_powered_by': False,
 }
-html_title = project
-html_short_title = 'a'
 
 pygments_style = 'sphinx'
