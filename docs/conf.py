@@ -12,8 +12,17 @@ copyright = f'{year} Ben Welsh'
 exclude_patterns = ["_build"]
 
 html_theme = "alabaster"
+html_sidebars = {
+    '**': [
+        'about.html',
+        'navigation.html',
+        'relations.html',
+        'searchbox.html',
+        'donate.html',
+    ]
+}
 html_theme_options = {
-    "description": "Quickly import and export delimited data with Django support for PostgreSQL’s COPY command",
+    "canonical_url": "https://palewi.re/docs/django-postgres-copy/",
     "github_user": "palewire",
     "github_repo": "django-postgres-copy",
     'show_powered_by': False,
