@@ -5,7 +5,7 @@ templates_path = ["_templates"]
 source_suffix = ".rst"
 master_doc = "index"
 
-project = 'django-postgres-copy'
+project = u'django-postgres-copy'
 year = datetime.now().year
 copyright = f'{year} Ben Welsh'
 
@@ -24,10 +24,10 @@ html_sidebars = {
 html_theme_options = {
     "canonical_url": "https://palewi.re/docs/django-postgres-copy/",
     "github_user": "palewire",
-    "github_repo": "django-postgres-copy",
+    "github_repo": project,
     'show_powered_by': False,
 }
-html_title = "django-postgres-copy'
+html_title = project
 html_short_title = 'a'
 
 pygments_style = 'sphinx'
