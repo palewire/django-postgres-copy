@@ -215,6 +215,14 @@ class CopyQuerySet(ConstraintQuerySet):
         escape_char = kwargs.get('escape', None)
         query.copy_to_escape = "ESCAPE '{}'".format(escape_char) if escape_char else ""
 
+        # Date fields
+        datetime_fields = kwargs.get('datetime_fields', None)
+        query.copy_to_datetime_fields = datetime_fields
+
+        # Timezone
+        timezone = kwargs.get('timezone', None)
+        query.copy_to_timezone = timezone
+
         # Run the query
         compiler = query.get_compiler(self.db, connection=connection)
         data = compiler.execute_sql(csv_path)

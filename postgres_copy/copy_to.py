@@ -4,7 +4,7 @@
 Handlers for working with PostgreSQL's COPY TO command.
 """
 from __future__ import unicode_literals
-import logging
+import logging, pytz, datetime
 from io import BytesIO
 from django.db import connections
 from psycopg2.extensions import adapt
@@ -17,22 +17,51 @@ class SQLCopyToCompiler(SQLCompiler):
     """
     Custom SQL compiler for creating a COPY TO query (postgres backend only).
     """
+    def tz_diff(self, timezone):
+        if timezone is None:
+            timezone = 'Asia/Jakarta'
+        today = datetime.datetime.today()
+        dt_utc = pytz.utc.localize(today)
+        dt_local = pytz.timezone(timezone).localize(today)
+        return (dt_utc - dt_local).total_seconds()
+
+    def get_default_field_names(self):
+        result = []
+        opts = self.query.get_meta()
+
+        for field in opts.concrete_fields:
+            result.append(field.name)
+        return result
+
     def setup_query(self):
         """
         Extend the default SQLCompiler.setup_query to add re-ordering of items in select.
         """
         super(SQLCopyToCompiler, self).setup_query()
         if self.query.copy_to_fields:
-            self.select = []
-            for field in self.query.copy_to_fields:
-                # raises error if field is not available
-                expression = self.query.resolve_ref(field)
-                selection = (
-                    expression,
-                    self.compile(expression),
-                    field if field in self.query.annotations else None,
-                )
-                self.select.append(selection)
+            fields = self.query.copy_to_fields
+        else:
+            fields = self.get_default_field_names()
+
+        self.select = []
+        for field in fields:
+            # raises error if field is not available
+            expression = self.query.resolve_ref(field)
+
+            if field in self.query.copy_to_datetime_fields:
+                timezone = self.query.copy_to_timezone
+                time_delta = self.tz_diff(timezone)
+                select_query = "((EXTRACT(EPOCH FROM "+self.compile(expression)[0]+f")+{time_delta})/86400+25569)"
+                sql_params = (select_query, self.compile(expression)[1])
+            else:
+                sql_params = self.compile(expression)
+
+            selection = (
+                expression,
+                sql_params,
+                field if field in self.query.annotations else None,
+            )
+            self.select.append(selection)
 
     def execute_sql(self, csv_path_or_obj=None):
         """
@@ -58,7 +87,7 @@ class SQLCopyToCompiler(SQLCompiler):
                 self.query.copy_to_quote_char,
                 self.query.copy_to_force_quote,
                 self.query.copy_to_encoding,
-                self.query.copy_to_escape
+                self.query.copy_to_escape,
             ]
             options_sql = " ".join([o for o in options_list if o]).strip()
             if options_sql:
