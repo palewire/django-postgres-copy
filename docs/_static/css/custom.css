@@ -5,3 +5,80 @@ div.body p, div.body li {
 div.body li {
     margin-bottom: 4px;
 }
+
+.row {
+    width: 100%;
+    max-width: 755px;
+    min-width: 755px;
+    margin: 0 auto;
+    overflow: hidden;
+}
+.row .fivecol {
+    width: 39.45%;
+    float: right;
+    min-height: 1px;
+}
+.row .sevencol {
+    width: 56.75%;
+    float: left;
+    min-height: 1px;
+}
+
+/* The header */
+nav {
+    display: block;
+    margin-top: 0.75em;
+    margin-bottom: 0.5em;
+    font-size: 1em;
+    line-height: 1.7em;
+}
+nav .shingle {
+    font-size: 1.7em;
+    font-weight: bold;
+    text-align: left;
+    padding-left: 0.15em;
+}
+nav .shingle a {
+    text-decoration: none;
+    font-weight: bold;
+    color: #000;
+}
+nav .shingle a:hover {
+    color: #686868;
+}
+@media (max-width: 550px) {
+    nav .shingle {
+        float: left;
+        margin-bottom: 5px;
+   }
+}
+nav .links {
+    text-align: right;
+}
+nav .links ul {
+    float: right;
+    list-style-type: none;
+    margin: 0;
+}
+nav .links li {
+    float: left;
+    list-style-position: inside;
+    margin-left: 0.5em;
+    font-size: 0.9em;
+    font-weight: 300;
+}
+nav .links li a {
+    text-decoration: none;
+}
+nav .links li a:hover {
+    text-decoration: underline;
+}
+.last {
+    margin-right: 0;
+}
+
+.topbar {
+    border-bottom: solid 10px #e5e5e5;
+    margin-bottom: 20px;
+    width: 100%;
+}
