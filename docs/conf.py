@@ -7,7 +7,7 @@ master_doc = "index"
 
 project = u'django-postgres-copy'
 year = datetime.now().year
-copyright = f'{year} Ben Welsh'
+copyright = f'{year}'
 
 exclude_patterns = ["_build"]
 
@@ -28,5 +28,10 @@ html_theme_options = {
     "donate_url": "https://github.com/sponsors/palewire",
     "show_powered_by": False,
 }
+
+html_static_path = ['_static']
+html_css_files = [
+    'css/custom.css',
+]
 
 pygments_style = 'sphinx'

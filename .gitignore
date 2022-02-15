@@ -6,3 +6,4 @@ dist
 .tox
 .python-version
 tests.log
+docs/_build

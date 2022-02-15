@@ -1,4 +1,4 @@
-.PHONY: ship test
+.PHONY: ship test docs
 
 
 ship:
@@ -11,3 +11,7 @@ test:
 	pipenv run flake8 tests
 	pipenv run coverage run setup.py test
 	pipenv run coverage report -m
+
+
+docs:
+	cd docs && pipenv run make livehtml
