@@ -1,3 +1,7 @@
+div.document {
+    margin-top: 0;
+}
+
 div.body p, div.body li {
     line-height: 1.45;
 }
@@ -6,10 +10,32 @@ div.body li {
     margin-bottom: 4px;
 }
 
+@import url('https://fonts.googleapis.com/css2?family=Libre+Franklin:ital,wght@0,400;0,700;0,800;1,400;1,800&display=swap');
+
+body {
+  font-family: 'Libre Franklin', "Helvetica", "Liberation Sans", Arial, sans-serif;
+  font-size: 20px;
+  line-height: 1.45;
+  text-align: left;
+}
+@media (max-width: 550px) {
+    body {
+        font-size: 0.85em;
+    }
+}
+
+div.body h1, div.body h2, div.body h3, div.body h4, div.body h5, div.body h6 {
+    font-family: 'Libre Franklin', "Helvetica", "Liberation Sans", Arial, sans-serif;
+    font-weight: 700;
+}
+
+div.body h1 {
+    font-weight: 800;
+}
+
 .row {
     width: 100%;
-    max-width: 755px;
-    min-width: 755px;
+    max-width: 660px;
     margin: 0 auto;
     overflow: hidden;
 }
@@ -58,7 +84,7 @@ nav .links {
 nav .links ul {
     float: right;
     list-style-type: none;
-    margin: 0;
+    margin: 4px 0 0 0;
 }
 nav .links li {
     float: left;
@@ -66,6 +92,7 @@ nav .links li {
     margin-left: 0.5em;
     font-size: 0.9em;
     font-weight: 300;
+    margin-bottom: 0;
 }
 nav .links li a {
     text-decoration: none;
@@ -82,3 +109,19 @@ nav .links li a:hover {
     margin-bottom: 20px;
     width: 100%;
 }
+
+a:link {
+    text-decoration: none;
+    color: #686868;
+  }
+  a:visited {
+    text-decoration: none;
+    color: #686868;
+  }
+  a:hover {
+    text-decoration: underline;
+  }
+  a:active {
+    text-decoration: underline;
+    color: #000;
+  }
