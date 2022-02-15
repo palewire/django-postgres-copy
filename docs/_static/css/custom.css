@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Libre+Franklin:ital,wght@0,400;0,700;0,800;1,400;1,800&display=swap');
+
 div.document {
     margin-top: 0;
 }
@@ -14,7 +16,18 @@ div.body li {
     margin-bottom: 4px;
 }
 
-@import url('https://fonts.googleapis.com/css2?family=Libre+Franklin:ital,wght@0,400;0,700;0,800;1,400;1,800&display=swap');
+div.topic {
+    margin: 0;
+    padding: 8px 12px;
+}
+
+p.topic-title {
+    margin: 0;
+}
+
+div.topic ul {
+    margin-top: 6px;
+}
 
 body {
   font-family: 'Libre Franklin', "Helvetica", "Liberation Sans", Arial, sans-serif;
@@ -22,6 +35,16 @@ body {
   line-height: 1.45;
   text-align: left;
 }
+@media screen and (max-width: 875px) {
+    body {
+        margin: 0;
+        padding: 0;
+    }
+    div.body > section {
+        padding: 0 20px;
+    }
+}
+
 @media (max-width: 550px) {
     body {
         font-size: 0.85em;
@@ -35,6 +58,7 @@ div.body h1, div.body h2, div.body h3, div.body h4, div.body h5, div.body h6 {
 
 div.body h1 {
     font-weight: 800;
+    font-size: 220%;
 }
 
 pre {
@@ -48,14 +72,19 @@ pre {
     overflow: hidden;
 }
 .row .fivecol {
-    width: 39.45%;
+    width: 40%;
     float: right;
     min-height: 1px;
 }
 .row .sevencol {
-    width: 56.75%;
+    width: 40%;
     float: left;
     min-height: 1px;
+}
+@media (max-width: 550px) {
+    .row .fivecol, .row .sevencol {
+        padding: 0 20px;
+    }
 }
 
 /* The header */
@@ -119,17 +148,17 @@ nav .links li a:hover {
 }
 
 a:link {
-    text-decoration: none;
-    color: #686868;
-  }
-  a:visited {
-    text-decoration: none;
-    color: #686868;
-  }
-  a:hover {
-    text-decoration: underline;
-  }
-  a:active {
-    text-decoration: underline;
-    color: #000;
-  }
+  text-decoration: none;
+  color: #686868;
+}
+a:visited {
+  text-decoration: none;
+  color: #686868;
+}
+a:hover {
+  text-decoration: underline;
+}
+a:active {
+  text-decoration: underline;
+  color: #000;
+}

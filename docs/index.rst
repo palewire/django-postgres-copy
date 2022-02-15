@@ -49,6 +49,9 @@ django-postgres-copy
 
 Quickly import and export delimited data with Django support for PostgreSQL's COPY command
 
+.. contents:: Table of contents
+    :depth: 1
+    :local:
 
 Why and what for?
 =================

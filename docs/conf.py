@@ -7,7 +7,7 @@ master_doc = "index"
 
 project = u'django-postgres-copy'
 year = datetime.now().year
-copyright = f'{year}'
+copyright = f'{year} Ben Welsh'
 
 exclude_patterns = ["_build"]
 
