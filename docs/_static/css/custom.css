@@ -2,6 +2,10 @@ div.document {
     margin-top: 0;
 }
 
+div.body {
+    min-width: 0 !important;
+}
+
 div.body p, div.body li {
     line-height: 1.45;
 }
@@ -31,6 +35,10 @@ div.body h1, div.body h2, div.body h3, div.body h4, div.body h5, div.body h6 {
 
 div.body h1 {
     font-weight: 800;
+}
+
+pre {
+    padding: 7px;
 }
 
 .row {

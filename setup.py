@@ -83,7 +83,7 @@ class TestCommand(Command):
 
 setup(
     name='django-postgres-copy',
-    version='2.6.1',
+    version='2.7.0',
     author='Ben Welsh',
     author_email='b@palewi.re',
     url='https://django-postgres-copy.californiacivicdata.org/',
