@@ -9,8 +9,7 @@ ship:
 test:
 	pipenv run flake8 postgres_copy
 	pipenv run flake8 tests
-	pipenv run coverage run setup.py test
-	pipenv run coverage report -m
+	pipenv run python setup.py test
 
 
 docs:
