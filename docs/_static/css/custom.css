@@ -34,6 +34,10 @@ div.topic ul {
     }
 }
 
+div.sphinxsidebar h3 {
+  font-family: 'Libre Franklin', "Helvetica", "Liberation Sans", Arial, sans-serif;
+}
+
 @media screen and (max-width: 875px) {
   div.sphinxsidebar {
     width: auto;
