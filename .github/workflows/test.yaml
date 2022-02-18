@@ -13,7 +13,7 @@ jobs:
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: McClatchy01
-          POSTGRES_DB: postgres
+          POSTGRES_DB: bln_local
         ports:
           - 5432:5432
         # needed because the postgres container does not provide a healthcheck
