@@ -33,7 +33,10 @@ class CopyMapping(object):
         force_null=None,
         encoding=None,
         ignore_conflicts=False,
-        static_mapping=None
+        static_mapping=None,
+        on_conflict=[],
+        static_mapping_on_conflict=None,
+        temp_table_name_suffix=""
     ):
         # Set the required arguments
         self.model = model
@@ -90,7 +93,10 @@ class CopyMapping(object):
         self.validate_mapping()
 
         # Configure the name of our temporary table to COPY into
-        self.temp_table_name = "temp_%s" % self.model._meta.db_table
+        self.temp_table_name = "temp_%s" % (self.model._meta.db_table + "_" + temp_table_name_suffix)
+
+        self.on_conflict = on_conflict
+        self.static_mapping_on_conflict = static_mapping_on_conflict
 
     def save(self, silent=False, stream=sys.stdout):
         """
@@ -316,10 +322,28 @@ class CopyMapping(object):
         """
         Preps the suffix to the insert query.
         """
-        if self.ignore_conflicts:
-            return """
-                ON CONFLICT DO NOTHING;
-            """
+        # If on_conflict is not an empty list
+        if self.on_conflict:
+            on_conflict = self.on_conflict.copy()
+            # First item on list - Operation
+            if on_conflict[0] == 'DO NOTHING':
+                return """
+                    ON CONFLICT DO NOTHING;
+                """
+            elif on_conflict[0] == 'DO UPDATE':
+                # Second item on list - Constraint
+                constraint = on_conflict[1]
+                # Delete first two items on list. Only columns to be updated remain
+                del on_conflict[0:2]
+                update_columns = ', '.join(["{0} = EXCLUDED.{0}".format(col) for col in on_conflict])
+                if self.static_mapping_on_conflict is not None:
+                    update_columns += ', '
+                    update_columns += ', '.join(["{0} = '{1}'".format(
+                        col, self.static_mapping_on_conflict[col]
+                    ) for col in self.static_mapping_on_conflict])
+                return """
+                    ON CONFLICT {0} DO UPDATE SET {1};
+                    """.format(constraint, update_columns)
         else:
             return ";"
 
