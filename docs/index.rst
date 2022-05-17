@@ -212,7 +212,7 @@ Import options
 
 The ``from_csv`` manager method has the following arguments and keywords options. Returns the number of records added.
 
-.. method:: from_csv(csv_path_or_obj[, mapping=None, drop_constraints=True, drop_indexes=True, using=None, delimiter=',', null=None, force_not_null=None, force_null=None, encoding=None, static_mapping=None])
+.. method:: from_csv(csv_path_or_obj[, mapping=None, drop_constraints=True, drop_indexes=True, using=None, delimiter=',', null=None, force_not_null=None, force_null=None, encoding=None, static_mapping=None, temp_table_name=None])
 
 
 ===================  =========================================================
@@ -282,6 +282,12 @@ Keyword Argument       Description
                        for every row in the database by providing a dictionary
                        with the name of the columns as keys and the static
                        inputs as values.
+
+``temp_table_name``    Set the name of the temporary database table name used
+                       to stage data during import. If not provided, a name
+                       will be generated on the fly. The generated name is
+                       not guaranteed to be unique, which could negatively
+                       impact parallel import operations.
 =====================  =======================================================
 
 
