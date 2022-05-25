@@ -679,6 +679,35 @@ class PostgresCopyFromTest(BaseTest):
         self.assertEquals(cursor.statusmessage, 'DROP TABLE')
         cursor.close()
 
+    def test_save_steps_with_temp_table_name_override(self):
+        c = CopyMapping(
+            MockObject,
+            self.name_path,
+            dict(name='NAME', number='NUMBER', dt='DATE'),
+            temp_table_name='overridden_temp_table_name'
+        )
+        cursor = c.conn.cursor()
+
+        c.create(cursor)
+        cursor.execute("""SELECT count(*) FROM %s;""" % c.temp_table_name)
+        self.assertEquals(cursor.fetchone()[0], 0)
+        cursor.execute("""SELECT count(*) FROM %s;""" % c.model._meta.db_table)
+        self.assertEquals(cursor.fetchone()[0], 0)
+
+        c.copy(cursor)
+        cursor.execute("""SELECT count(*) FROM %s;""" % c.temp_table_name)
+        self.assertEquals(cursor.fetchone()[0], 3)
+        cursor.execute("""SELECT count(*) FROM %s;""" % c.model._meta.db_table)
+        self.assertEquals(cursor.fetchone()[0], 0)
+
+        c.insert(cursor)
+        cursor.execute("""SELECT count(*) FROM %s;""" % c.model._meta.db_table)
+        self.assertEquals(cursor.fetchone()[0], 3)
+
+        c.drop(cursor)
+        self.assertEquals(cursor.statusmessage, 'DROP TABLE')
+        cursor.close()
+
     def test_hooks(self):
         c = HookedCopyMapping(
             MockObject,
