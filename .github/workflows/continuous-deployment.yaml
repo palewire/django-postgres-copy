@@ -69,14 +69,14 @@ jobs:
       - id: build
         name: Build release
         run: |
-            python setup.py sdist
-            python setup.py bdist_wheel
+            pipenv run python setup.py sdist
+            pipenv run python setup.py bdist_wheel
             ls -l dist
 
       - id: check
         name: Check release
         run: |
-            twine check dist/*
+            pipenv run twine check dist/*
 
       - id: save
         name: Save artifact
