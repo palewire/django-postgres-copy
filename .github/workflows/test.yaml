@@ -25,25 +25,20 @@ jobs:
       - name: Checkout the repo
         uses: actions/checkout@v2
 
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python }}
-
       - name: psycopg2 prerequisites
         run: sudo apt-get install libpq-dev postgresql-client
 
-      - id: install-pipenv
-        name: Install pipenv
-        run: |
-          python -m pip install --upgrade --no-cache-dir pip
-          python -m pip install --no-cache-dir pipenv
-        shell: bash
+      - name: Install pipenv
+        run: pipx install pipenv
 
-      - id: sync-pipfile
-        name: Sync pipfile
-        run: pipenv install --dev --python ${{ matrix.python }}
-        shell: bash
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+          cache: 'pipenv'
+
+      - id: pipenv-install
+        name: Install Python dependencies
+        run: pipenv install --dev --python `which python`
 
       - name: Test
         run: make test
