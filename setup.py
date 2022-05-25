@@ -8,6 +8,37 @@ def read(fname):
         return f.read()
 
 
+def version_scheme(version):
+    """
+    Version scheme hack for setuptools_scm.
+
+    Appears to be necessary to due to the bug documented here: https://github.com/pypa/setuptools_scm/issues/342
+
+    If that issue is resolved, this method can be removed.
+    """
+    import time
+
+    from setuptools_scm.version import guess_next_version
+
+    if version.exact:
+        return version.format_with("{tag}")
+    else:
+        _super_value = version.format_next_version(guess_next_version)
+        now = int(time.time())
+        return _super_value + str(now)
+
+
+def local_version(version):
+    """
+    Local version scheme hack for setuptools_scm.
+
+    Appears to be necessary to due to the bug documented here: https://github.com/pypa/setuptools_scm/issues/342
+
+    If that issue is resolved, this method can be removed.
+    """
+    return ""
+
+
 class TestCommand(Command):
     user_options = []
 
@@ -83,15 +114,17 @@ class TestCommand(Command):
 
 setup(
     name='django-postgres-copy',
-    version='2.7.0',
     author='Ben Welsh',
     author_email='b@palewi.re',
-    url='https://django-postgres-copy.californiacivicdata.org/',
+    url='https://palewi.re/docs/django-postgres-copy/',
     description="Quickly import and export delimited data with Django support for PostgreSQL’s COPY command",
-    long_description=read('README.rst'),
+    long_description=read("README.md"),
+    long_description_content_type="text/markdown",
     license="MIT",
     packages=("postgres_copy",),
     cmdclass={'test': TestCommand},
+    setup_requires=["setuptools_scm"],
+    use_scm_version={"version_scheme": version_scheme, "local_scheme": local_version},
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Operating System :: OS Independent',
@@ -102,7 +135,6 @@ setup(
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
         'Framework :: Django',
-        'Framework :: Django :: 2.2',
         'Framework :: Django :: 3.2',
         'Framework :: Django :: 4.0',
         'License :: OSI Approved :: MIT License'
