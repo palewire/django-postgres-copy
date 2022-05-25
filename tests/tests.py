@@ -102,9 +102,9 @@ class PostgresCopyToTest(BaseTest):
         self._load_objects(self.name_path)
         export = MockObject.objects.to_csv()
         self.assertEqual(export, b"""id,name,num,dt,parent_id
-89,BEN,1,2012-01-01,
-90,JOE,2,2012-01-02,
-91,JANE,3,2012-01-03,
+92,BEN,1,2012-01-01,
+93,JOE,2,2012-01-02,
+94,JANE,3,2012-01-03,
 """)
 
     @mock.patch("django.db.connection.validate_no_atomic_block")
