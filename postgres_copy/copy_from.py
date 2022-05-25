@@ -33,7 +33,8 @@ class CopyMapping(object):
         force_null=None,
         encoding=None,
         ignore_conflicts=False,
-        static_mapping=None
+        static_mapping=None,
+        temp_table_name=None
     ):
         # Set the required arguments
         self.model = model
@@ -90,7 +91,7 @@ class CopyMapping(object):
         self.validate_mapping()
 
         # Configure the name of our temporary table to COPY into
-        self.temp_table_name = "temp_%s" % self.model._meta.db_table
+        self.temp_table_name = temp_table_name or "temp_%s" % self.model._meta.db_table
 
     def save(self, silent=False, stream=sys.stdout):
         """
