@@ -14,7 +14,7 @@ jobs:
       with:
         docs-folder: "docs/"
         
-    - uses: actions/upload-artifact@v1
+    - uses: actions/upload-artifact@v3
       with:
         name: documentation-html
         path: docs/_build/html/
