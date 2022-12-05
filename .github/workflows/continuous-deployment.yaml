@@ -24,7 +24,7 @@ jobs:
         python: ["3.8", "3.9", "3.10"]
     steps:
       - name: Checkout the repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: psycopg2 prerequisites
         run: sudo apt-get install libpq-dev postgresql-client
@@ -52,12 +52,12 @@ jobs:
     needs: [test-python]
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install pipenv
         run: pipx install pipenv
 
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v3
         with:
           python-version: '3.9'
           cache: 'pipenv'
@@ -75,14 +75,13 @@ jobs:
 
       - id: check
         name: Check release
-        run: |
-            pipenv run twine check dist/*
+        run: pipenv run twine check dist/*
 
       - id: save
         name: Save artifact
         uses: actions/upload-artifact@v2
         with:
-          name: test-release-${{ github.run_number }}
+          name: release-candidate
           path: ./dist
           if-no-files-found: error
 
@@ -92,15 +91,11 @@ jobs:
     needs: [test-build]
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
     steps:
-      - uses: actions/setup-python@v2
-        with:
-          python-version: '3.9'
-
       - id: fetch
         name: Fetch artifact
         uses: actions/download-artifact@v2
         with:
-          name: test-release-${{ github.run_number }}
+          name: release-candidate
           path: ./dist
 
       - id: publish
