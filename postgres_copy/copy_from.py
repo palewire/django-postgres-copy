@@ -9,6 +9,7 @@ import sys
 import logging
 from collections import OrderedDict
 from io import TextIOWrapper
+import warnings
 from django.db import NotSupportedError
 from django.db import connections, router
 from django.core.exceptions import FieldDoesNotExist
@@ -33,6 +34,7 @@ class CopyMapping(object):
         force_null=None,
         encoding=None,
         ignore_conflicts=False,
+        on_conflict={},
         static_mapping=None,
         temp_table_name=None
     ):
@@ -57,8 +59,9 @@ class CopyMapping(object):
         self.force_not_null = force_not_null
         self.force_null = force_null
         self.encoding = encoding
-        self.supports_ignore_conflicts = True
+        self.supports_on_conflict = True
         self.ignore_conflicts = ignore_conflicts
+        self.on_conflict = on_conflict
         if static_mapping is not None:
             self.static_mapping = OrderedDict(static_mapping)
         else:
@@ -76,10 +79,18 @@ class CopyMapping(object):
         if self.conn.vendor != 'postgresql':
             raise TypeError("Only PostgreSQL backends supported")
 
-        # Check if it is PSQL 9.5 or greater, which determines if ignore_conflicts is supported
-        self.supports_ignore_conflicts = self.is_postgresql_9_5()
-        if self.ignore_conflicts and not self.supports_ignore_conflicts:
-            raise NotSupportedError('This database backend does not support ignoring conflicts.')
+        # Check if it is PSQL 9.5 or greater, which determines if on_conflict is supported
+        self.supports_on_conflict = self.is_postgresql_9_5()
+        if self.ignore_conflicts:
+            self.on_conflict = {
+              'action': 'ignore',
+            }
+            warnings.warn(
+              "The `ignore_conflicts` kwarg has been replaced with "
+              "on_conflict={'action': 'ignore'}."
+            )
+        if self.on_conflict and not self.supports_on_conflict:
+            raise NotSupportedError('This database backend does not support conflict logic.')
 
         # Pull the CSV headers
         self.headers = self.get_headers()
@@ -317,10 +328,35 @@ class CopyMapping(object):
         """
         Preps the suffix to the insert query.
         """
-        if self.ignore_conflicts:
-            return """
-                ON CONFLICT DO NOTHING;
-            """
+        if self.on_conflict:
+            try:
+                action = self.on_conflict['action']
+            except KeyError:
+                raise ValueError("Must specify an `action` when passing `on_conflict`.")
+            if action is None:
+                target, action = "", "DO NOTHING"
+            elif action == 'update':
+                try:
+                    target = self.on_conflict['target']
+                except KeyError:
+                    raise ValueError("Must specify `target` when action == 'update'.")
+                if target in [f.name for f in self.model._meta.fields]:
+                    target = "({0})".format(target)
+                elif target in [c.name for c in self.model._meta.constraints]:
+                    target = "ON CONSTRAINT {0}".format(target)
+                else:
+                    raise ValueError("`target` must be a field name or constraint name.")
+
+                if 'columns' in self.on_conflict:
+                    columns = ', '.join([
+                        "{0} = excluded.{0}".format(col)
+                        for col in self.on_conflict['columns']
+                    ])
+                else:
+                    raise ValueError("Must specify `columns` when action == 'update'.")
+
+                action = "DO UPDATE SET {0}".format(columns)
+            return "ON CONFLICT {0} {1};".format(target, action)
         else:
             return ";"
 
