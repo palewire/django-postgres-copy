@@ -170,6 +170,13 @@ class CopyQuerySet(ConstraintQuerySet):
                                                  "anyway.  Either remove the transaction block, or set "
                                                  "drop_constraints=False and drop_indexes=False.")
 
+        # NOTE: See GH Issue #117
+        #       We could remove this block if drop_constraints' default was False
+        if drop_constraints and (on_conflict := kwargs.get('on_conflict')):
+            if target := on_conflict.get('target'):
+                if target in [c.name for c in self.model._meta.constraints]:
+                    drop_constraints = False
+
         mapping = CopyMapping(self.model, csv_path, mapping, **kwargs)
 
         if drop_constraints:

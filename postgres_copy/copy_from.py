@@ -342,25 +342,31 @@ class CopyMapping(object):
                     target = self.on_conflict['target']
                 except KeyError:
                     raise ValueError("Must specify `target` when action == 'update'.")
+                try:
+                    columns = self.on_conflict['columns']
+                except KeyError:
+                    raise ValueError("Must specify `columns` when action == 'update'.")
+
                 if target in [f.name for f in self.model._meta.fields]:
                     target = "({0})".format(target)
                 elif target in [c.name for c in self.model._meta.constraints]:
-                    target = "ON CONSTRAINT {0}".format(target)
+                    target = "ON CONSTRAINT \"{0}\"".format(target)
                 else:
                     raise ValueError("`target` must be a field name or constraint name.")
 
-                if 'columns' in self.on_conflict:
-                    columns = ', '.join([
-                        "{0} = excluded.{0}".format(col)
-                        for col in self.on_conflict['columns']
-                    ])
-                else:
-                    raise ValueError("Must specify `columns` when action == 'update'.")
-
+                # Convert to db_column names and set values from the `excluded` table
+                columns = ', '.join([
+                    "{0} = excluded.{0}".format(
+                        self.model._meta.get_field(col).column
+                    )
+                    for col in columns
+                ])
                 action = "DO UPDATE SET {0}".format(columns)
             else:
                 raise ValueError("Action must be one of None, 'ignore', or 'update'.")
-            return "ON CONFLICT {0} {1};".format(target, action)
+            return """
+                ON CONFLICT {0} {1};
+            """.format(target, action)
         else:
             return ";"
 
