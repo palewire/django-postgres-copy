@@ -334,6 +334,8 @@ class CopyMapping(object):
             except KeyError:
                 raise ValueError("Must specify an `action` when passing `on_conflict`.")
             if action is None:
+                return ";"
+            elif action == 'ignore':
                 target, action = "", "DO NOTHING"
             elif action == 'update':
                 try:
@@ -356,6 +358,8 @@ class CopyMapping(object):
                     raise ValueError("Must specify `columns` when action == 'update'.")
 
                 action = "DO UPDATE SET {0}".format(columns)
+            else:
+                raise ValueError("Action must be one of None, 'ignore', or 'update'.")
             return "ON CONFLICT {0} {1};".format(target, action)
         else:
             return ";"
