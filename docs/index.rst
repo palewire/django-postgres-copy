@@ -272,7 +272,17 @@ Keyword Argument       Description
                        parameters.
 
 ``ignore_conflicts``   Specify True to ignore unique constraint or exclusion
-                       constraint violation errors. The default is False.
+                       constraint violation errors. The default is False. This
+                       is depreciated in favor of `on_conflict={'action': 'ignore'}`.
+
+``on_conflict``        Specifies how PostgreSQL handles conflicts. For example,
+                       `on_conflict={'action': 'ignore'}` will ignore any
+                       conflicts. If setting `'action'` to `'update'`, you
+                       must also specify `'target'` (the source of the
+                       constraint: either a model field name, a constraint name,
+                       or a list of model field names) as well as `'columns'`
+                       (a list of model fields to update). The default is None,
+                       which will raise conflict errors if they occur.
 
 ``using``              Sets the database to use when importing data.
                        Default is None, which will use the ``'default'``
