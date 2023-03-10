@@ -14,6 +14,7 @@ from .models import (
     SecondaryMockObject,
     UniqueFieldConstraintMockObject,
     UniqueModelConstraintMockObject,
+    UniqueModelConstraintAsIndexMockObject,
 )
 from django.test import TestCase
 from django.db import transaction
@@ -605,12 +606,12 @@ class PostgresCopyFromTest(BaseTest):
     def test_on_conflict_ignore(self, _):
         UniqueModelConstraintMockObject.objects.from_csv(
             self.name_path,
-            dict(name='NAME'),
+            dict(name='NAME', number='NUMBER'),
             on_conflict={'action': 'ignore'},
         )
         UniqueModelConstraintMockObject.objects.from_csv(
             self.name_path,
-            dict(name='NAME'),
+            dict(name='NAME', number='NUMBER'),
             on_conflict={'action': 'ignore'},
         )
 
@@ -655,6 +656,28 @@ class PostgresCopyFromTest(BaseTest):
                 'columns': ['name', 'number'],
             },
         )
+
+    @mock.patch("django.db.connection.validate_no_atomic_block")
+    def test_on_conflict_target_constraint_as_index_update(self, _):
+        UniqueModelConstraintAsIndexMockObject.objects.from_csv(
+            self.name_path,
+            dict(name='NAME', number='NUMBER'),
+            on_conflict={
+                'action': 'update',
+                'target': 'constraint_as_index',
+                'columns': ['name', 'number'],
+            },
+        )
+        UniqueModelConstraintAsIndexMockObject.objects.from_csv(
+            self.name_path,
+            dict(name='NAME', number='NUMBER'),
+            on_conflict={
+                'action': 'update',
+                'target': 'constraint_as_index',
+                'columns': ['name', 'number'],
+            },
+        )
+
 
     @mock.patch("django.db.connection.validate_no_atomic_block")
     def test_static_values(self, _):

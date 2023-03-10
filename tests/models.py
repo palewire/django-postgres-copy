@@ -128,6 +128,21 @@ class UniqueModelConstraintMockObject(models.Model):
         constraints = [
             models.UniqueConstraint(
                 name='constraint',
-                fields=['name', 'number']
+                fields=['name'],
+            ),
+        ]
+
+
+class UniqueModelConstraintAsIndexMockObject(models.Model):
+    name = models.CharField(max_length=500)
+    number = MyIntegerField(null=True, db_column='num')
+    objects = CopyManager()
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                name='constraint_as_index',
+                fields=['name'],
+                include=['number'],  # Converts Constraint to Index
             ),
         ]

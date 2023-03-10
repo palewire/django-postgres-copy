@@ -333,9 +333,7 @@ class CopyMapping(object):
                 action = self.on_conflict['action']
             except KeyError:
                 raise ValueError("Must specify an `action` when passing `on_conflict`.")
-            if action is None:
-                return ";"
-            elif action == 'ignore':
+            if action == 'ignore':
                 target, action = "", "DO NOTHING"
             elif action == 'update':
                 try:
@@ -347,12 +345,19 @@ class CopyMapping(object):
                 except KeyError:
                     raise ValueError("Must specify `columns` when action == 'update'.")
 
-                if target in [f.name for f in self.model._meta.fields]:
-                    target = "({0})".format(target)
-                elif target in [c.name for c in self.model._meta.constraints]:
-                    target = "ON CONSTRAINT \"{0}\"".format(target)
-                else:
-                    raise ValueError("`target` must be a field name or constraint name.")
+                # As recommended in PostgreSQL's INSERT documentation, we use "index inference"
+                # rather than naming a constraint directly. Currently, if an `include` param
+                # is provided to a django.models.Constraint, Django creates a UNIQUE INDEX instead
+                # of a CONSTRAINT, another eason to use "index inference" by just specifying columns.
+                constraints = {c.name: c for c in self.model._meta.constraints}
+                if isinstance(target, str):
+                    if constraint := constraints.get(target):
+                        target = constraint.fields
+                    else:
+                        target = [target]
+                elif not isinstance(target, list):
+                    raise ValueError("`target` must be a string or a list.")
+                target = "({0})".format(', '.join(target))
 
                 # Convert to db_column names and set values from the `excluded` table
                 columns = ', '.join([
@@ -363,7 +368,7 @@ class CopyMapping(object):
                 ])
                 action = "DO UPDATE SET {0}".format(columns)
             else:
-                raise ValueError("Action must be one of None, 'ignore', or 'update'.")
+                raise ValueError("Action must be one of 'ignore' or 'update'.")
             return """
                 ON CONFLICT {0} {1};
             """.format(target, action)
