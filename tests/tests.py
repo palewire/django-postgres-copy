@@ -678,7 +678,6 @@ class PostgresCopyFromTest(BaseTest):
             },
         )
 
-
     @mock.patch("django.db.connection.validate_no_atomic_block")
     def test_static_values(self, _):
         ExtendedMockObject.objects.from_csv(
