@@ -239,6 +239,12 @@ class PostgresCopyToTest(BaseTest):
         )
 
     @mock.patch("django.db.connection.validate_no_atomic_block")
+    def test_filter_special_names_encoding_error(self, _):
+        with self.assertRaises(ValueError):
+            self._load_objects(self.special_names_path)
+            MockObject.objects.filter(name="björn").to_csv(self.export_path, client_encoding='latin1')
+
+    @mock.patch("django.db.connection.validate_no_atomic_block")
     def test_fewer_fields(self, _):
         self._load_objects(self.name_path)
         MockObject.objects.to_csv(self.export_path, 'name')
