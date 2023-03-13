@@ -46,6 +46,10 @@ class SQLCopyToCompiler(SQLCompiler):
 
         # use stdout to avoid file permission issues
         with connections[self.using].cursor() as c:
+            # set client encoding to adapted params
+            client_encoding = c.connection.encoding
+            for p in adapted_params:
+                p.encoding = client_encoding if client_encoding else p.encoding
             # compile the SELECT query
             select_sql = self.as_sql()[0] % adapted_params
             # then the COPY TO query

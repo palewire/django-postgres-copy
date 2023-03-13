@@ -39,6 +39,7 @@ class BaseTest(TestCase):
             'matching_headers.csv'
         )
         self.secondarydb_path = os.path.join(self.data_dir, 'secondary_db.csv')
+        self.special_names_path = os.path.join(self.data_dir, 'special_names.csv')
 
     def tearDown(self):
         MockObject.objects.all().delete()
@@ -224,6 +225,16 @@ class PostgresCopyToTest(BaseTest):
         reader = csv.DictReader(open(self.export_path, 'r'))
         self.assertTrue(
             ['BEN'],
+            [i['name'] for i in reader]
+        )
+
+    @mock.patch("django.db.connection.validate_no_atomic_block")
+    def test_filter_special_names(self, _):
+        self._load_objects(self.special_names_path)
+        MockObject.objects.filter(name="björn").to_csv(self.export_path)
+        reader = csv.DictReader(open(self.export_path, 'r'))
+        self.assertTrue(
+            ['BJÖRN'],
             [i['name'] for i in reader]
         )
 
