@@ -245,6 +245,16 @@ class PostgresCopyToTest(BaseTest):
             MockObject.objects.filter(name="björn").to_csv(self.export_path, client_encoding='latin1')
 
     @mock.patch("django.db.connection.validate_no_atomic_block")
+    def test_filter_number(self, _):
+        # test filter by number (int), because adapted int parameters do not have an encoding attribute.
+        self._load_objects(self.name_path)
+        MockObject.objects.filter(number=3).to_csv(self.export_path)
+        reader = csv.DictReader(open(self.export_path, 'r'))
+        self.assertTrue(
+            ['JANE'],
+            [i['name'] for i in reader])
+
+    @mock.patch("django.db.connection.validate_no_atomic_block")
     def test_fewer_fields(self, _):
         self._load_objects(self.name_path)
         MockObject.objects.to_csv(self.export_path, 'name')
