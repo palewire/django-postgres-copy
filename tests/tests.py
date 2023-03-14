@@ -39,6 +39,7 @@ class BaseTest(TestCase):
             'matching_headers.csv'
         )
         self.secondarydb_path = os.path.join(self.data_dir, 'secondary_db.csv')
+        self.special_names_path = os.path.join(self.data_dir, 'special_names.csv')
 
     def tearDown(self):
         MockObject.objects.all().delete()
@@ -226,6 +227,32 @@ class PostgresCopyToTest(BaseTest):
             ['BEN'],
             [i['name'] for i in reader]
         )
+
+    @mock.patch("django.db.connection.validate_no_atomic_block")
+    def test_filter_special_names(self, _):
+        self._load_objects(self.special_names_path)
+        MockObject.objects.filter(name="björn").to_csv(self.export_path)
+        reader = csv.DictReader(open(self.export_path, 'r'))
+        self.assertTrue(
+            ['BJÖRN'],
+            [i['name'] for i in reader]
+        )
+
+    @mock.patch("django.db.connection.validate_no_atomic_block")
+    def test_filter_special_names_encoding_error(self, _):
+        with self.assertRaises(ValueError):
+            self._load_objects(self.special_names_path)
+            MockObject.objects.filter(name="björn").to_csv(self.export_path, client_encoding='latin1')
+
+    @mock.patch("django.db.connection.validate_no_atomic_block")
+    def test_filter_number(self, _):
+        # test filter by number (int), because adapted int parameters do not have an encoding attribute.
+        self._load_objects(self.name_path)
+        MockObject.objects.filter(number=3).to_csv(self.export_path)
+        reader = csv.DictReader(open(self.export_path, 'r'))
+        self.assertTrue(
+            ['JANE'],
+            [i['name'] for i in reader])
 
     @mock.patch("django.db.connection.validate_no_atomic_block")
     def test_fewer_fields(self, _):

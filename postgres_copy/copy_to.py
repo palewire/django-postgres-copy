@@ -10,6 +10,7 @@ from django.db import connections
 from psycopg2.extensions import adapt
 from django.db.models.sql.query import Query
 from django.db.models.sql.compiler import SQLCompiler
+
 logger = logging.getLogger(__name__)
 
 
@@ -17,6 +18,7 @@ class SQLCopyToCompiler(SQLCompiler):
     """
     Custom SQL compiler for creating a COPY TO query (postgres backend only).
     """
+
     def setup_query(self):
         """
         Extend the default SQLCompiler.setup_query to add re-ordering of items in select.
@@ -34,7 +36,7 @@ class SQLCopyToCompiler(SQLCompiler):
                 )
                 self.select.append(selection)
 
-    def execute_sql(self, csv_path_or_obj=None):
+    def execute_sql(self, csv_path_or_obj=None, client_encoding=None):
         """
         Run the COPY TO query.
         """
@@ -46,6 +48,15 @@ class SQLCopyToCompiler(SQLCompiler):
 
         # use stdout to avoid file permission issues
         with connections[self.using].cursor() as c:
+            # set client encoding to adapted params
+            if client_encoding is None:
+                client_encoding = c.connection.encoding
+            elif client_encoding != c.connection.encoding:
+                raise ValueError('client_encoding does not match'
+                                 ' db encoding: {} != {}'.format(client_encoding, c.connection.encoding))
+            for p in adapted_params:
+                if hasattr(p, 'encoding'):
+                    p.encoding = client_encoding if client_encoding else p.encoding
             # compile the SELECT query
             select_sql = self.as_sql()[0] % adapted_params
             # then the COPY TO query
@@ -86,6 +97,7 @@ class CopyToQuery(Query):
     """
     Represents a "copy to" SQL query.
     """
+
     def get_compiler(self, using=None, connection=None):
         """
         Return a SQLCopyToCompiler object.
