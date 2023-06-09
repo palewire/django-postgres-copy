@@ -4,6 +4,7 @@
 Handlers for working with PostgreSQL's COPY TO command.
 """
 from __future__ import unicode_literals
+import inspect
 import logging
 from io import BytesIO
 from django.db import connections
@@ -21,7 +22,16 @@ class SQLCopyToCompiler(SQLCompiler):
         """
         Extend the default SQLCompiler.setup_query to add re-ordering of items in select.
         """
-        super(SQLCopyToCompiler, self).setup_query(with_col_aliases=with_col_aliases)
+
+        # In older versions of Django, setup_query() does not accept in keyword args.
+        # Check if the overridden method accepts with_col_aliases before calling.
+        meth = super(SQLCopyToCompiler, self).setup_query
+        meth_spec = inspect.getfullargspec(meth)
+        if meth_spec.varkw == 'with_col_aliases':
+            meth(with_col_aliases=with_col_aliases)
+        else:
+            meth()
+
         if self.query.copy_to_fields:
             self.select = []
             for field in self.query.copy_to_fields:
