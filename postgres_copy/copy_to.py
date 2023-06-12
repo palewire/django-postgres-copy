@@ -17,11 +17,11 @@ class SQLCopyToCompiler(SQLCompiler):
     """
     Custom SQL compiler for creating a COPY TO query (postgres backend only).
     """
-    def setup_query(self):
+    def setup_query(self, **kwargs):
         """
         Extend the default SQLCompiler.setup_query to add re-ordering of items in select.
         """
-        super(SQLCopyToCompiler, self).setup_query()
+        super(SQLCopyToCompiler, self).setup_query(**kwargs)
         if self.query.copy_to_fields:
             self.select = []
             for field in self.query.copy_to_fields:
