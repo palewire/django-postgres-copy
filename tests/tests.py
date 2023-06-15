@@ -12,7 +12,9 @@ from .models import (
     OverloadMockObject,
     HookedCopyMapping,
     SecondaryMockObject,
-    UniqueMockObject
+    UniqueFieldConstraintMockObject,
+    UniqueModelConstraintMockObject,
+    UniqueModelConstraintAsIndexMockObject,
 )
 from django.test import TestCase
 from django.db import transaction
@@ -589,15 +591,91 @@ class PostgresCopyFromTest(BaseTest):
 
     @mock.patch("django.db.connection.validate_no_atomic_block")
     def test_ignore_conflicts(self, _):
-        UniqueMockObject.objects.from_csv(
+        UniqueFieldConstraintMockObject.objects.from_csv(
             self.name_path,
             dict(name='NAME'),
             ignore_conflicts=True
         )
-        UniqueMockObject.objects.from_csv(
+        UniqueFieldConstraintMockObject.objects.from_csv(
             self.name_path,
             dict(name='NAME'),
             ignore_conflicts=True
+        )
+
+    @mock.patch("django.db.connection.validate_no_atomic_block")
+    def test_on_conflict_ignore(self, _):
+        UniqueModelConstraintMockObject.objects.from_csv(
+            self.name_path,
+            dict(name='NAME', number='NUMBER'),
+            on_conflict={'action': 'ignore'},
+        )
+        UniqueModelConstraintMockObject.objects.from_csv(
+            self.name_path,
+            dict(name='NAME', number='NUMBER'),
+            on_conflict={'action': 'ignore'},
+        )
+
+    @mock.patch("django.db.connection.validate_no_atomic_block")
+    def test_on_conflict_target_field_update(self, _):
+        UniqueFieldConstraintMockObject.objects.from_csv(
+            self.name_path,
+            dict(name='NAME'),
+            on_conflict={
+                'action': 'update',
+                'target': 'name',
+                'columns': ['name'],
+            },
+        )
+        UniqueFieldConstraintMockObject.objects.from_csv(
+            self.name_path,
+            dict(name='NAME'),
+            on_conflict={
+                'action': 'update',
+                'target': 'name',
+                'columns': ['name'],
+            },
+        )
+
+    @mock.patch("django.db.connection.validate_no_atomic_block")
+    def test_on_conflict_target_constraint_update(self, _):
+        UniqueModelConstraintMockObject.objects.from_csv(
+            self.name_path,
+            dict(name='NAME', number='NUMBER'),
+            on_conflict={
+                'action': 'update',
+                'target': 'constraint',
+                'columns': ['name', 'number'],
+            },
+        )
+        UniqueModelConstraintMockObject.objects.from_csv(
+            self.name_path,
+            dict(name='NAME', number='NUMBER'),
+            on_conflict={
+                'action': 'update',
+                'target': 'constraint',
+                'columns': ['name', 'number'],
+            },
+        )
+
+    @mock.patch("django.db.connection.validate_no_atomic_block")
+    def test_on_conflict_target_constraint_as_index_update(self, _):
+        UniqueModelConstraintAsIndexMockObject.objects.from_csv(
+            self.name_path,
+            dict(name='NAME', number='NUMBER'),
+            on_conflict={
+                'action': 'update',
+                'target': 'constraint_as_index',
+                'columns': ['name', 'number'],
+            },
+        )
+        UniqueModelConstraintAsIndexMockObject.objects.from_csv(
+            self.name_path,
+            dict(name='NAME', number='NUMBER'),
+            on_conflict={
+                'action': 'update',
+                'target': 'constraint_as_index',
+                'columns': ['name', 'number'],
+            },
         )
 
     @mock.patch("django.db.connection.validate_no_atomic_block")
