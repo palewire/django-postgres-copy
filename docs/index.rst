@@ -523,6 +523,8 @@ Now you can run that subclass directly rather than via a manager. The only diffe
 For example, if you wish to return a QuerySet of the models imported into the database, you could do the following:
 
 .. code-block:: python
+
+
     from django.db import models
     from postgres_copy import CopyMapping, CopyQuerySet
 
