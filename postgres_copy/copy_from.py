@@ -348,7 +348,7 @@ class CopyMapping(object):
                 # As recommended in PostgreSQL's INSERT documentation, we use "index inference"
                 # rather than naming a constraint directly. Currently, if an `include` param
                 # is provided to a django.models.Constraint, Django creates a UNIQUE INDEX instead
-                # of a CONSTRAINT, another eason to use "index inference" by just specifying columns.
+                # of a CONSTRAINT, another reason to use "index inference" by just specifying columns.
                 constraints = {c.name: c for c in self.model._meta.constraints}
                 if isinstance(target, str):
                     if constraint := constraints.get(target):
@@ -359,14 +359,30 @@ class CopyMapping(object):
                     raise ValueError("`target` must be a string or a list.")
                 target = "({0})".format(', '.join(target))
 
-                # Convert to db_column names and set values from the `excluded` table
-                columns = ', '.join([
-                    "{0} = excluded.{0}".format(
-                        self.model._meta.get_field(col).column
-                    )
-                    for col in columns
+                # Convert to db_column names
+                db_columns = [self.model._meta.get_field(col).column for col in columns]
+
+                # Get update_values from the `excluded` table
+                update_values = ', '.join([
+                    "{0} = excluded.{0}".format(db_col)
+                    for db_col in db_columns
                 ])
-                action = "DO UPDATE SET {0}".format(columns)
+
+                # Only update the row if the values are different
+                model_table = self.model._meta.db_table
+                new_values = ', '.join([
+                    model_table + '.' + db_col
+                    for db_col in db_columns
+                ])
+                old_values = ', '.join([
+                    "excluded.{0}".format(db_col)
+                    for db_col in db_columns
+                ])
+                action = "DO UPDATE SET {0} WHERE ({1}) IS DISTINCT FROM ({2})".format(
+                    update_values,
+                    new_values,
+                    old_values,
+                )
             else:
                 raise ValueError("Action must be one of 'ignore' or 'update'.")
             return """
