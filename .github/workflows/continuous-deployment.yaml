@@ -39,7 +39,7 @@ jobs:
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     strategy:
       matrix:
-        python: ["3.8", "3.9", "3.10", "3.11", "3.12-dev"]
+        python: ["3.8", "3.9", "3.10", "3.11"]
         django: ["3.2", "4.1", "4.2"]
         exclude:
           - python: "3.8"
@@ -73,7 +73,7 @@ jobs:
   test-build:
     name: Build Python package
     runs-on: ubuntu-latest
-    needs: [test-python]
+    needs: [test-python,lint-python]
     steps:
       - name: Checkout
         uses: actions/checkout@v3
