@@ -45,7 +45,7 @@ jobs:
 
       - id: pipenv-install
         name: Install Python dependencies
-        run: pipenv install flake8 psycopg2 django==4.2 mock --python=${{ matrix.python }}
+        run: pipenv install flake8 psycopg2 django==${{ matrix.django }} mock --python=${{ matrix.python }}
 
       - name: Test
         run: make test
