@@ -6,7 +6,6 @@ name = "pypi"
 [packages]
 django = "==4.2.*"
 "psycopg2" = ">=2.8.1"
-"backports.zoneinfo" = "*"
 
 [dev-packages]
 Sphinx = "*"
@@ -14,12 +13,10 @@ sphinx-autobuild = "*"
 twine = "*"
 "flake8" = "*"
 coverage = "*"
-requests = ">=2.20.0"
 mock = "*"
-urllib3 = ">=1.24.2"
-typing-extensions = "*"
 setuptools-scm = "*"
 wheel = "*"
+pre-commit = "*"
 
 [requires]
-python_version = "3.9"
+python_version = "3.10"

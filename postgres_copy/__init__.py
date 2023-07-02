@@ -1,15 +1,15 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 from .copy_from import CopyMapping
-from .copy_to import SQLCopyToCompiler, CopyToQuery
+from .copy_to import CopyToQuery, SQLCopyToCompiler
 from .managers import CopyManager, CopyQuerySet
-__version__ = '2.6.0'
+
+__version__ = "2.6.0"
 
 
 __all__ = (
-    'CopyManager',
-    'CopyMapping',
-    'CopyQuerySet',
-    'CopyToQuery',
-    'SQLCopyToCompiler'
+    "CopyManager",
+    "CopyMapping",
+    "CopyQuerySet",
+    "CopyToQuery",
+    "SQLCopyToCompiler",
 )

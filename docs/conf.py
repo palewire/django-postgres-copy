@@ -1,24 +1,25 @@
+import typing
 from datetime import datetime
 
-extensions = []
+extensions: list[typing.Any] = []
 templates_path = ["_templates"]
 source_suffix = ".rst"
 master_doc = "index"
 
-project = u'django-postgres-copy'
+project = "django-postgres-copy"
 year = datetime.now().year
-copyright = f'{year} Ben Welsh'
+copyright = f"{year} Ben Welsh"
 
 exclude_patterns = ["_build"]
 
 html_theme = "alabaster"
 html_sidebars = {
-    '**': [
+    "**": [
         # 'about.html',
         # 'navigation.html',
-        'relations.html',
-        'searchbox.html',
-        'donate.html',
+        "relations.html",
+        "searchbox.html",
+        "donate.html",
     ]
 }
 html_theme_options = {
@@ -29,9 +30,9 @@ html_theme_options = {
     "show_powered_by": False,
 }
 
-html_static_path = ['_static']
+html_static_path = ["_static"]
 html_css_files = [
-    'css/custom.css',
+    "css/custom.css",
 ]
 
-pygments_style = 'sphinx'
+pygments_style = "sphinx"
