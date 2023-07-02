@@ -42,7 +42,7 @@ def local_version(version):
 
 
 class TestCommand(Command):
-    user_options: list[typing.Any] = []
+    user_options: typing.List[typing.Any] = []
 
     def initialize_options(self):
         pass

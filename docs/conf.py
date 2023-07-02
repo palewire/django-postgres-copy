@@ -1,7 +1,7 @@
 import typing
 from datetime import datetime
 
-extensions: list[typing.Any] = []
+extensions: typing.List[typing.Any] = []
 templates_path = ["_templates"]
 source_suffix = ".rst"
 master_doc = "index"
