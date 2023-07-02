@@ -21,7 +21,7 @@ jobs:
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     strategy:
       matrix:
-        python: ["3.8", "3.9", "3.10", "3.11"]
+        python: ["3.8", "3.9", "3.10", "3.11", "3.12-dev"]
         exclude:
           - python: "3.8"
           - python: "3.9"
@@ -42,7 +42,7 @@ jobs:
 
       - id: pipenv-install
         name: Install Python dependencies
-        run: pipenv install --dev --python ${{ matrix.python }}
+        run: pipenv install psycopg2 django==4.2 mock --python=${{ matrix.python }}
 
       - name: Test
         run: make test
