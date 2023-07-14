@@ -354,7 +354,7 @@ class CopyMapping(object):
                     if constraint := constraints.get(target):
                         # Make sure to use db column names
                         target = [
-                            self.model._meta.get_field(field_name)
+                            self.get_field(field_name).column
                             for field_name in constraint.fields
                         ]
                     else:
