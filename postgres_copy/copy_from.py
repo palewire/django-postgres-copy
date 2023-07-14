@@ -352,7 +352,11 @@ class CopyMapping(object):
                 constraints = {c.name: c for c in self.model._meta.constraints}
                 if isinstance(target, str):
                     if constraint := constraints.get(target):
-                        target = constraint.fields
+                        # Make sure to use db column names
+                        target = [
+                            self.model._meta.get_field(field_name)
+                            for field_name in constraint.fields
+                        ]
                     else:
                         target = [target]
                 elif not isinstance(target, list):
