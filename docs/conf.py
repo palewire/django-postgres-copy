@@ -8,7 +8,7 @@ from datetime import datetime
 
 sys.path.insert(0, os.path.abspath(".."))
 
-source_suffix = ".md"
+source_suffix = ".rst"
 master_doc = "index"
 
 project = "django-postgres-copy"
