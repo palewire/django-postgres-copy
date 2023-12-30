@@ -17,6 +17,8 @@ mock = "*"
 setuptools-scm = "*"
 wheel = "*"
 pre-commit = "*"
+sphinx-palewire-theme = "*"
+myst-parser = "*"
 
 [requires]
 python_version = "3.11"
