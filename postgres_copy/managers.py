@@ -223,7 +223,7 @@ class CopyQuerySet(ConstraintQuerySet):
         force_quote = kwargs.get("force_quote")
         if force_quote:
             # If it's a list of fields, pass them in with commas
-            if type(force_quote) == list:
+            if isinstance(force_quote, list):
                 query.copy_to_force_quote = "FORCE QUOTE {}".format(
                     ", ".join(column for column in force_quote)
                 )
