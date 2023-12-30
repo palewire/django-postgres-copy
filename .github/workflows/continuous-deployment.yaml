@@ -27,7 +27,7 @@ jobs:
         run: pipenv sync --dev
 
       - name: Lint
-        run: flake8 postgres_copy
+        run: pipenv run flake8 postgres_copy
 
   test-python:
     name: "Test Python"
