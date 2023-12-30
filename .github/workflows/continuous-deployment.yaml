@@ -9,16 +9,22 @@ jobs:
     name: "Lint Python"
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout the repo
-        uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.11'
+          cache: 'pipenv'
+
+      - id: install-pipenv
+        name: Install pipenv
+        run: curl https://raw.githubusercontent.com/pypa/pipenv/master/get-pipenv.py | python
+        shell: bash
 
       - id: pipenv-install
         name: Install Python dependencies
-        run: pip install flake8
+        run: pipenv sync --dev
 
       - name: Lint
         run: flake8 postgres_copy
@@ -39,27 +45,30 @@ jobs:
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     strategy:
       matrix:
-        python: ["3.8", "3.9", "3.10", "3.11"]
-        django: ["3.2", "4.1", "4.2"]
+        python: ['3.7', '3.8', '3.9', '3.10', '3.11']
+        django: ['3.2', '4.2', '5.0']
         exclude:
-          - python: "3.8"
-            django: "4.2"
-          - python: "3.9"
-            django: "4.2"
+        - python: '3.7'
+          django: '4.2'
+        - python: '3.7'
+          django: '5.0'
+        - python: '3.8'
+          django: '5.0'
+        - python: '3.9'
+          django: '5.0'
     steps:
-      - name: Checkout the repo
-        uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: psycopg2 prerequisites
-        run: sudo apt-get install libpq-dev postgresql-client
-
-      - name: Install pipenv
-        run: pipx install pipenv
-
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
           cache: 'pipenv'
+
+      - id: install-pipenv
+        name: Install pipenv
+        run: curl https://raw.githubusercontent.com/pypa/pipenv/master/get-pipenv.py | python
+        shell: bash
 
       - id: pipenv-install
         name: Install Python dependencies
@@ -76,19 +85,21 @@ jobs:
     needs: [test-python,lint-python]
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Install pipenv
-        run: pipx install pipenv
-
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.11'
           cache: 'pipenv'
+
+      - id: install-pipenv
+        name: Install pipenv
+        run: curl https://raw.githubusercontent.com/pypa/pipenv/master/get-pipenv.py | python
+        shell: bash
 
       - id: pipenv-install
         name: Install Python dependencies
-        run: pipenv install --dev
+        run: pipenv sync --dev
 
       - id: build
         name: Build release
@@ -129,4 +140,3 @@ jobs:
           user: __token__
           password: ${{ secrets.PYPI_API_TOKEN }}
           verbose: true
-          verify_metadata: false
