@@ -1,18 +1,21 @@
 from django.db import models
+
+from postgres_copy import CopyManager, CopyMapping
+
 from .fields import MyIntegerField
-from postgres_copy import CopyMapping
-from postgres_copy import CopyManager
 
 
 class MockObject(models.Model):
     name = models.CharField(max_length=500)
-    number = MyIntegerField(null=True, db_column='num')
+    number = MyIntegerField(null=True, db_column="num")
     dt = models.DateField(null=True)
-    parent = models.ForeignKey('MockObject', on_delete=models.CASCADE, null=True, default=None)
+    parent = models.ForeignKey(
+        "MockObject", on_delete=models.CASCADE, null=True, default=None
+    )
     objects = CopyManager()
 
     class Meta:
-        app_label = 'tests'
+        app_label = "tests"
         unique_together = ("name", "number")
         index_together = ("name", "number")
 
@@ -23,13 +26,15 @@ class MockObject(models.Model):
 class MockFKObject(models.Model):
     id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=500)
-    number = MyIntegerField(null=True, db_column='num')
+    number = MyIntegerField(null=True, db_column="num")
     dt = models.DateField(null=True)
-    parent = models.ForeignKey('MockFKObject', on_delete=models.CASCADE, null=True, default=None)
+    parent = models.ForeignKey(
+        "MockFKObject", on_delete=models.CASCADE, null=True, default=None
+    )
     objects = CopyManager()
 
     class Meta:
-        app_label = 'tests'
+        app_label = "tests"
 
     def copy_name_template(self):
         return 'upper("%(name)s")'
@@ -37,14 +42,16 @@ class MockFKObject(models.Model):
 
 class MockBlankObject(models.Model):
     name = models.CharField(max_length=500)
-    number = MyIntegerField(null=True, db_column='num')
+    number = MyIntegerField(null=True, db_column="num")
     dt = models.DateField(null=True)
     color = models.CharField(max_length=50, blank=True)
-    parent = models.ForeignKey('MockObject', on_delete=models.CASCADE, null=True, default=None)
+    parent = models.ForeignKey(
+        "MockObject", on_delete=models.CASCADE, null=True, default=None
+    )
     objects = CopyManager()
 
     class Meta:
-        app_label = 'tests'
+        app_label = "tests"
 
     def copy_name_template(self):
         return 'upper("%(name)s")'
@@ -53,13 +60,13 @@ class MockBlankObject(models.Model):
 class ExtendedMockObject(models.Model):
     static_val = models.IntegerField()
     name = models.CharField(max_length=500)
-    number = MyIntegerField(null=True, db_column='num')
+    number = MyIntegerField(null=True, db_column="num")
     dt = models.DateField(null=True)
     static_string = models.CharField(max_length=5)
     objects = CopyManager()
 
     class Meta:
-        app_label = 'tests'
+        app_label = "tests"
 
     def copy_name_template(self):
         return 'upper("%(name)s")'
@@ -71,7 +78,7 @@ class LimitedMockObject(models.Model):
     objects = CopyManager()
 
     class Meta:
-        app_label = 'tests'
+        app_label = "tests"
 
     def copy_name_template(self):
         return 'upper("%(name)s")'
@@ -81,12 +88,12 @@ class OverloadMockObject(models.Model):
     name = models.CharField(max_length=500)
     upper_name = models.CharField(max_length=500)
     lower_name = models.CharField(max_length=500)
-    number = MyIntegerField(null=True, db_column='num')
+    number = MyIntegerField(null=True, db_column="num")
     dt = models.DateField(null=True)
     objects = CopyManager()
 
     class Meta:
-        app_label = 'tests'
+        app_label = "tests"
 
     def copy_upper_name_template(self):
         return 'upper("%(name)s")'

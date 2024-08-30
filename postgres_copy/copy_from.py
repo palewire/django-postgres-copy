@@ -1,33 +1,34 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 Handlers for working with PostgreSQL's COPY command.
 """
 import csv
+import logging
 import os
 import sys
-import logging
 from collections import OrderedDict
 from io import TextIOWrapper
 import warnings
-from django.db import NotSupportedError
-from django.db import connections, router
-from django.core.exceptions import FieldDoesNotExist
+
 from django.contrib.humanize.templatetags.humanize import intcomma
+from django.core.exceptions import FieldDoesNotExist
+from django.db import NotSupportedError, connections, router
+
 logger = logging.getLogger(__name__)
 
 
-class CopyMapping(object):
+class CopyMapping:
     """
     Maps comma-delimited file to Django model and loads it into PostgreSQL database using COPY command.
     """
+
     def __init__(
         self,
         model,
         csv_path_or_obj,
         mapping,
         using=None,
-        delimiter=',',
+        delimiter=",",
         quote_character=None,
         null=None,
         force_not_null=None,
@@ -36,21 +37,21 @@ class CopyMapping(object):
         ignore_conflicts=False,
         on_conflict={},
         static_mapping=None,
-        temp_table_name=None
+        temp_table_name=None,
     ):
         # Set the required arguments
         self.model = model
         self.csv_path_or_obj = csv_path_or_obj
 
         # If the CSV is not a file object already ...
-        if hasattr(csv_path_or_obj, 'read'):
+        if hasattr(csv_path_or_obj, "read"):
             self.csv_file = csv_path_or_obj
         else:
             # ... verify the path exists ...
             if not os.path.exists(self.csv_path_or_obj):
                 raise ValueError("CSV path does not exist")
             # ... then open it up.
-            self.csv_file = open(self.csv_path_or_obj, 'r')
+            self.csv_file = open(self.csv_path_or_obj)
 
         # Hook in the other optional settings
         self.quote_character = quote_character
@@ -76,7 +77,7 @@ class CopyMapping(object):
         self.backend = self.conn.ops
 
         # Verify it is PostgreSQL
-        if self.conn.vendor != 'postgresql':
+        if self.conn.vendor != "postgresql":
             raise TypeError("Only PostgreSQL backends supported")
 
         # Check if it is PSQL 9.5 or greater, which determines if on_conflict is supported
@@ -122,9 +123,9 @@ class CopyMapping(object):
            using `sys.stdout`, but any object with a `write` method is
            supported.
         """
-        logger.debug("Loading CSV to {}".format(self.model.__name__))
+        logger.debug(f"Loading CSV to {self.model.__name__}")
         if not silent:
-            stream.write("Loading CSV to {}\n".format(self.model.__name__))
+            stream.write(f"Loading CSV to {self.model.__name__}\n")
 
         # Connect to the database
         with self.conn.cursor() as c:
@@ -134,7 +135,7 @@ class CopyMapping(object):
             self.drop(c)
 
         if not silent:
-            stream.write("{} records loaded\n".format(intcomma(insert_count)))
+            stream.write(f"{intcomma(insert_count)} records loaded\n")
 
         return insert_count
 
@@ -162,7 +163,7 @@ class CopyMapping(object):
         """
         Returns the column headers from the csv as a list.
         """
-        logger.debug("Retrieving headers from {}".format(self.csv_file))
+        logger.debug(f"Retrieving headers from {self.csv_file}")
         # set up a csv reader
         csv_reader = csv.reader(self.csv_file, delimiter=self.delimiter)
         try:
@@ -173,7 +174,7 @@ class CopyMapping(object):
             # first, rewind the file
             self.csv_file.seek(0)
             # take the user-defined encoding, or assume utf-8
-            encoding = self.encoding or 'utf-8'
+            encoding = self.encoding or "utf-8"
             # wrap the binary file...
             text_file = TextIOWrapper(self.csv_file, encoding=encoding)
             # ...so the csv reader can treat it as text
@@ -197,17 +198,17 @@ class CopyMapping(object):
         # Make sure all of the CSV headers in the mapping actually exist
         for map_header in self.mapping.values():
             if map_header not in self.headers:
-                raise ValueError("Header '{}' not found in CSV file".format(map_header))
+                raise ValueError(f"Header '{map_header}' not found in CSV file")
 
         # Make sure all the model fields in the mapping actually exist
         for map_field in self.mapping.keys():
             if not self.get_field(map_field):
-                raise FieldDoesNotExist("Model does not include {} field".format(map_field))
+                raise FieldDoesNotExist(f"Model does not include {map_field} field")
 
         # Make sure any static mapping columns exist
         for static_field in self.static_mapping.keys():
             if not self.get_field(static_field):
-                raise ValueError("Model does not include {} field".format(static_field))
+                raise ValueError(f"Model does not include {static_field} field")
 
     #
     # CREATE commands
@@ -225,7 +226,6 @@ class CopyMapping(object):
 
         # Loop through all the fields and CSV headers together
         for header in self.headers:
-
             # Format the SQL create statement
             string = '"%s" text' % header
 
@@ -233,7 +233,7 @@ class CopyMapping(object):
             field_list.append(string)
 
         # Join all the field strings together
-        options['field_list'] = ", ".join(field_list)
+        options["field_list"] = ", ".join(field_list)
 
         # Mash together the SQL and pass it out
         return sql % options
@@ -268,26 +268,26 @@ class CopyMapping(object):
             WITH CSV HEADER %(extra_options)s;
         """
         options = {
-            'db_table': self.temp_table_name,
-            'extra_options': '',
-            'header_list': ", ".join([
-                '"{}"'.format(h) for h in self.headers
-            ])
+            "db_table": self.temp_table_name,
+            "extra_options": "",
+            "header_list": ", ".join([f'"{h}"' for h in self.headers]),
         }
         if self.quote_character:
-            options['extra_options'] += " QUOTE '{}'".format(self.quote_character)
+            options["extra_options"] += f" QUOTE '{self.quote_character}'"
         if self.delimiter:
-            options['extra_options'] += " DELIMITER '{}'".format(self.delimiter)
+            options["extra_options"] += f" DELIMITER '{self.delimiter}'"
         if self.null is not None:
-            options['extra_options'] += " NULL '{}'".format(self.null)
+            options["extra_options"] += f" NULL '{self.null}'"
         if self.force_not_null is not None:
-            options['extra_options'] += " FORCE NOT NULL {}".format(
-                ','.join('"{}"'.format(s) for s in self.force_not_null)
+            options["extra_options"] += " FORCE NOT NULL {}".format(
+                ",".join(f'"{s}"' for s in self.force_not_null)
             )
         if self.force_null is not None:
-            options['extra_options'] += " FORCE NULL {}".format(','.join('"%s"' % s for s in self.force_null))
+            options["extra_options"] += " FORCE NULL {}".format(
+                ",".join('"%s"' % s for s in self.force_null)
+            )
         if self.encoding:
-            options['extra_options'] += " ENCODING '{}'".format(self.encoding)
+            options["extra_options"] += f" ENCODING '{self.encoding}'"
         return sql % options
 
     def pre_copy(self, cursor):
@@ -411,7 +411,7 @@ class CopyMapping(object):
         options = dict(
             model_table=self.model._meta.db_table,
             temp_table=self.temp_table_name,
-            insert_suffix=self.insert_suffix()
+            insert_suffix=self.insert_suffix(),
         )
 
         #
@@ -419,14 +419,14 @@ class CopyMapping(object):
         #
 
         model_fields = []
-        for field_name, header in self.mapping.items():
+        for field_name in self.mapping.keys():
             field = self.get_field(field_name)
             model_fields.append('"%s"' % field.get_attname_column()[1])
 
         for k in self.static_mapping.keys():
             model_fields.append('"%s"' % k)
 
-        options['model_fields'] = ", ".join(model_fields)
+        options["model_fields"] = ", ".join(model_fields)
 
         #
         # The temp fields to SELECT from
@@ -437,20 +437,18 @@ class CopyMapping(object):
             # Pull the field object from the model
             field = self.get_field(field_name)
             field_type = field.db_type(self.conn)
-            if field_type == "serial":
-                field_type = "integer"
-            elif field_type == "bigserial":
+            if field_type in ["serial", "bigserial"]:
                 field_type = "integer"
 
             # Format the SQL
-            string = 'cast("%s" as %s)' % (header, field_type)
+            string = f'cast("{header}" as {field_type})'
 
             # Apply a datatype template override, if it exists
-            if hasattr(field, 'copy_template'):
+            if hasattr(field, "copy_template"):
                 string = field.copy_template % dict(name=header)
 
             # Apply a field specific template override, if it exists
-            template_method = 'copy_%s_template' % field.name
+            template_method = "copy_%s_template" % field.name
             if hasattr(self.model, template_method):
                 template = getattr(self.model(), template_method)()
                 string = template % dict(name=header)
@@ -463,7 +461,7 @@ class CopyMapping(object):
             temp_fields.append("'%s'" % v)
 
         # Join it all together
-        options['temp_fields'] = ", ".join(temp_fields)
+        options["temp_fields"] = ", ".join(temp_fields)
 
         # Pass it out
         return sql % options
@@ -492,7 +490,7 @@ class CopyMapping(object):
         logger.debug(insert_sql)
         cursor.execute(insert_sql)
         insert_count = cursor.rowcount
-        logger.debug("{} rows inserted".format(insert_count))
+        logger.debug(f"{insert_count} rows inserted")
 
         # Post-insert hook
         self.post_insert(cursor)

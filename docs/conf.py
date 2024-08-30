@@ -1,37 +1,32 @@
+"""Configure Sphinx configuration."""
+from __future__ import annotations
+
+import os
+import sys
+from typing import Any
 from datetime import datetime
 
-extensions = []
-templates_path = ["_templates"]
+sys.path.insert(0, os.path.abspath(".."))
+
 source_suffix = ".rst"
 master_doc = "index"
 
-project = u'django-postgres-copy'
+project = "django-postgres-copy"
 year = datetime.now().year
-copyright = f'{year} Ben Welsh'
+copyright = f"{year} palewire"
 
 exclude_patterns = ["_build"]
 
-html_theme = "alabaster"
-html_sidebars = {
-    '**': [
-        # 'about.html',
-        # 'navigation.html',
-        'relations.html',
-        'searchbox.html',
-        'donate.html',
-    ]
-}
-html_theme_options = {
+html_theme = "palewire"
+html_sidebars: dict[Any, Any] = {}
+html_theme_options: dict[Any, Any] = {
     "canonical_url": f"https://palewi.re/docs/{project}/",
-    "github_user": "palewire",
-    "github_repo": project,
-    "donate_url": "https://github.com/sponsors/palewire",
-    "show_powered_by": False,
+    "nosidebar": True,
 }
 
-html_static_path = ['_static']
-html_css_files = [
-    'css/custom.css',
-]
+pygments_style = "sphinx"
 
-pygments_style = 'sphinx'
+extensions = [
+    "sphinx.ext.autodoc",
+    "sphinx.ext.napoleon",
+]
