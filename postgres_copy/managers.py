@@ -53,7 +53,7 @@ class ConstraintQuerySet(models.QuerySet):
         logger.debug(f"Dropping constraints from {self.model.__name__}")
         with connection.schema_editor() as schema_editor:
             # Remove any "unique_together" constraints
-            # NOTE: "unique_together" may be depreciated in the future
+            # NOTE: "unique_together" may be deprecated in the future
             if getattr(self.model._meta, 'unique_together', False):
                 logger.debug(
                     "Dropping unique_together of {}".format(
@@ -101,7 +101,7 @@ class ConstraintQuerySet(models.QuerySet):
         logger.debug(f"Adding constraints to {self.model.__name__}")
         with connection.schema_editor() as schema_editor:
             # Add any "unique_together" contraints from the database
-            # NOTE: "unique_together" may be depreciated in the future
+            # NOTE: "unique_together" may be deprecated in the future
             if getattr(self.model._meta, 'unique_together', False):
                 logger.debug(
                     "Adding unique_together of {}".format(
