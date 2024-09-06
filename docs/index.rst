@@ -602,7 +602,7 @@ You can reach across to related tables during an export by adding their fields t
 Open-source resources
 =====================
 
-* Code: `github.com/california-civic-data-coalition/django-postgres-copy <https://github.com/california-civic-data-coalition/django-postgres-copy>`_
-* Issues: `github.com/california-civic-data-coalition/django-postgres-copy/issues <https://github.com/california-civic-data-coalition/django-postgres-copy/issues>`_
+* Code: `github.com/palewire/django-postgres-copy <https://github.com/palewire/django-postgres-copy>`_
+* Issues: `github.com/palewire/django-postgres-copy/issues <https://github.com/palewire/django-postgres-copy/issues>`_
 * Packaging: `pypi.python.org/pypi/django-postgres-copy <https://pypi.python.org/pypi/django-postgres-copy>`_
-* Testing: `github.com/california-civic-data-coalition/django-postgres-copy/actions <https://github.com/california-civic-data-coalition/django-postgres-copy/actions/workflows/test.yaml>`_
+* Testing: `github.com/palewire/django-postgres-copy/actions <https://github.com/palewire/django-postgres-copy/actions/workflows/test.yaml>`_
