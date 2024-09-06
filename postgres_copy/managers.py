@@ -53,7 +53,8 @@ class ConstraintQuerySet(models.QuerySet):
         logger.debug(f"Dropping constraints from {self.model.__name__}")
         with connection.schema_editor() as schema_editor:
             # Remove any "unique_together" constraints
-            if self.model._meta.unique_together:
+            # NOTE: "unique_together" may be depreciated in the future
+            if getattr(self.model._meta, 'unique_together', False):
                 logger.debug(
                     "Dropping unique_together of {}".format(
                         self.model._meta.unique_together
@@ -76,11 +77,12 @@ class ConstraintQuerySet(models.QuerySet):
         """
         logger.debug(f"Dropping indexes from {self.model.__name__}")
         with connection.schema_editor() as schema_editor:
-            # Remove any "index_together" constraints
-            logger.debug(
-                f"Dropping index_together of {self.model._meta.index_together}"
-            )
-            if self.model._meta.index_together:
+            if getattr(self.model._meta, 'index_together', False):
+                # Remove any "index_together" constraints
+                # NOTE: "index_together has been removed from Django 5.1
+                logger.debug(
+                    f"Dropping index_together of {self.model._meta.index_together}"
+                )
                 args = (self.model, self.model._meta.index_together, ())
                 self.edit_schema(schema_editor, "alter_index_together", args)
 
@@ -99,7 +101,8 @@ class ConstraintQuerySet(models.QuerySet):
         logger.debug(f"Adding constraints to {self.model.__name__}")
         with connection.schema_editor() as schema_editor:
             # Add any "unique_together" contraints from the database
-            if self.model._meta.unique_together:
+            # NOTE: "unique_together" may be depreciated in the future
+            if getattr(self.model._meta, 'unique_together', False):
                 logger.debug(
                     "Adding unique_together of {}".format(
                         self.model._meta.unique_together
@@ -122,8 +125,9 @@ class ConstraintQuerySet(models.QuerySet):
         """
         logger.debug(f"Adding indexes to {self.model.__name__}")
         with connection.schema_editor() as schema_editor:
-            # Add any "index_together" contraints to the database.
-            if self.model._meta.index_together:
+            if getattr(self.model._meta, 'index_together', False):
+                # Add any "index_together" contraints to the database.
+                # NOTE: "index_together has been removed from Django 5.1
                 logger.debug(
                     "Restoring index_together of {}".format(
                         self.model._meta.index_together
