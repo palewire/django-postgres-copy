@@ -65,11 +65,19 @@ class ConstraintQuerySet(models.QuerySet):
 
             # Remove any field constraints
             for field in self.constrained_fields:
-                logger.debug(f"Dropping constraints from {field}")
+
+                logger.debug("Dropping field constraint from {}".format(field))
+
                 field_copy = field.__copy__()
                 field_copy.db_constraint = False
                 args = (self.model, field, field_copy)
                 self.edit_schema(schema_editor, "alter_field", args)
+
+            # Remove remaining constraints
+            for constraint in getattr(self.model._meta, 'constraints', []):
+                logger.debug("Dropping constraint '{}'".format(constraint.name))
+                args = (self.model, constraint)
+                self.edit_schema(schema_editor, 'remove_constraint', args)
 
     def drop_indexes(self):
         """
@@ -88,11 +96,19 @@ class ConstraintQuerySet(models.QuerySet):
 
             # Remove any field indexes
             for field in self.indexed_fields:
-                logger.debug(f"Dropping index from {field}")
+
+                logger.debug("Dropping field index from {}".format(field))
+
                 field_copy = field.__copy__()
                 field_copy.db_index = False
                 args = (self.model, field, field_copy)
                 self.edit_schema(schema_editor, "alter_field", args)
+
+            # Remove remaining indexes
+            for index in getattr(self.model._meta, 'indexes', []):
+                logger.debug("Dropping index '{}'".format(index.name))
+                args = (self.model, index)
+                self.edit_schema(schema_editor, 'remove_index', args)
 
     def restore_constraints(self):
         """
@@ -111,13 +127,21 @@ class ConstraintQuerySet(models.QuerySet):
                 args = (self.model, (), self.model._meta.unique_together)
                 self.edit_schema(schema_editor, "alter_unique_together", args)
 
-            # Add any constraints to the fields
+            # Add any field constraints
             for field in self.constrained_fields:
-                logger.debug(f"Adding constraints to {field}")
+
+                logger.debug("Adding field constraint to {}".format(field))
+
                 field_copy = field.__copy__()
                 field_copy.db_constraint = False
                 args = (self.model, field_copy, field)
                 self.edit_schema(schema_editor, "alter_field", args)
+
+            # Add remaining constraints
+            for constraint in getattr(self.model._meta, 'constraints', []):
+                logger.debug("Adding constraint '{}'".format(constraint.name))
+                args = (self.model, constraint)
+                self.edit_schema(schema_editor, 'add_constraint', args)
 
     def restore_indexes(self):
         """
@@ -138,11 +162,19 @@ class ConstraintQuerySet(models.QuerySet):
 
             # Add any indexes to the fields
             for field in self.indexed_fields:
-                logger.debug(f"Restoring index to {field}")
+
+                logger.debug("Restoring field index to {}".format(field))
+
                 field_copy = field.__copy__()
                 field_copy.db_index = False
                 args = (self.model, field_copy, field)
                 self.edit_schema(schema_editor, "alter_field", args)
+
+            # Add remaining indexes
+            for index in getattr(self.model._meta, 'indexes', []):
+                logger.debug("Adding index '{}'".format(index.name))
+                args = (self.model, index)
+                self.edit_schema(schema_editor, 'add_index', args)
 
 
 class CopyQuerySet(ConstraintQuerySet):
@@ -177,6 +209,15 @@ class CopyQuerySet(ConstraintQuerySet):
                     "anyway.  Either remove the transaction block, or set "
                     "drop_constraints=False and drop_indexes=False."
                 )
+
+        # NOTE: See GH Issue #117
+        #       We could remove this block if drop_constraints' default was False
+        if kwargs.get('on_conflict'):
+            if kwargs['on_conflict'].get('target'):
+                if kwargs['on_conflict']['target'] in [c.name for c in self.model._meta.constraints]:
+                    drop_constraints = False
+            elif kwargs['on_conflict'].get('action') == 'ignore':
+                drop_constraints = False
 
         mapping = CopyMapping(self.model, csv_path, mapping, **kwargs)
 
