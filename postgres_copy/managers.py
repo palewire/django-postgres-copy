@@ -212,11 +212,11 @@ class CopyQuerySet(ConstraintQuerySet):
 
         # NOTE: See GH Issue #117
         #       We could remove this block if drop_constraints' default was False
-        if on_conflict := kwargs.get('on_conflict'):
-            if target := on_conflict.get('target'):
-                if target in [c.name for c in self.model._meta.constraints]:
+        if kwargs.get('on_conflict'):
+            if kwargs['on_conflict'].get('target'):
+                if kwargs['on_conflict']['target'] in [c.name for c in self.model._meta.constraints]:
                     drop_constraints = False
-            elif on_conflict.get('action') == 'ignore':
+            elif kwargs['on_conflict'].get('action') == 'ignore':
                 drop_constraints = False
 
         mapping = CopyMapping(self.model, csv_path, mapping, **kwargs)

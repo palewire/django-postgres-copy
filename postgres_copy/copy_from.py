@@ -84,11 +84,11 @@ class CopyMapping:
         self.supports_on_conflict = self.is_postgresql_9_5()
         if self.ignore_conflicts:
             self.on_conflict = {
-              'action': 'ignore',
+                'action': 'ignore',
             }
             warnings.warn(
-              "The `ignore_conflicts` kwarg has been replaced with "
-              "on_conflict={'action': 'ignore'}."
+                "The `ignore_conflicts` kwarg has been replaced with "
+                "on_conflict={'action': 'ignore'}."
             )
         if self.on_conflict and not self.supports_on_conflict:
             raise NotSupportedError('This database backend does not support conflict logic.')
@@ -351,11 +351,11 @@ class CopyMapping:
                 # of a CONSTRAINT, another reason to use "index inference" by just specifying columns.
                 constraints = {c.name: c for c in self.model._meta.constraints}
                 if isinstance(target, str):
-                    if constraint := constraints.get(target):
+                    if constraints.get(target):
                         # Make sure to use db column names
                         target = [
                             self.get_field(field_name).column
-                            for field_name in constraint.fields
+                            for field_name in constraints.get(target).fields
                         ]
                     else:
                         target = [target]
