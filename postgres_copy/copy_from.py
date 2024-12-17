@@ -326,11 +326,16 @@ class CopyMapping:
         else:
             return ";"
 
-    def prep_insert(self):
+    def prep_insert(self, return_ids=False):
         """
         Creates a INSERT statement that reorders and cleans up
         the fields from the temporary table for insertion into the
         Django model.
+
+        Parameters : 
+            return_ids (bool, optional): 
+                Indicates whether the insert operation should return the IDs of the created objects. 
+                Defaults to False.
 
         Returns SQL that can be run.
         """
@@ -339,6 +344,15 @@ class CopyMapping:
             SELECT %(temp_fields)s
             FROM "%(temp_table)s")%(insert_suffix)s
         """
+
+        if return_ids :
+            sql = """
+                INSERT INTO "%(model_table)s" (%(model_fields)s) (
+                SELECT %(temp_fields)s
+                FROM "%(temp_table)s")
+                RETURNING "%(model_table)s"."id"%(insert_suffix)s
+            """
+            
         options = dict(
             model_table=self.model._meta.db_table,
             temp_table=self.temp_table_name,
