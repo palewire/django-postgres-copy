@@ -414,7 +414,7 @@ class CopyMapping:
     def pre_insert(self, cursor):
         pass
 
-    def insert(self, cursor):
+    def insert(self, cursor, return_ids=False):
         """
         Generate and run the INSERT command to move data from the temp table
         to the concrete table.
@@ -424,14 +424,18 @@ class CopyMapping:
 
         returns: the count of rows inserted
 
-        cursor:
-          A cursor object on the db
+        Parameters :
+            cursor:
+                A cursor object on the db
+            return_ids (bool, optional): 
+                Indicates whether the insert operation should return the IDs of the created objects. 
+                Defaults to False.
         """
         # Pre-insert hook
         self.pre_insert(cursor)
 
         logger.debug("Running INSERT command")
-        insert_sql = self.prep_insert()
+        insert_sql = self.prep_insert(return_ids=return_ids)
         logger.debug(insert_sql)
         cursor.execute(insert_sql)
         insert_count = cursor.rowcount
@@ -439,6 +443,11 @@ class CopyMapping:
 
         # Post-insert hook
         self.post_insert(cursor)
+
+        if return_ids:
+            # Return the ids of the created objects
+            returned_rows = cursor.fetchall()
+            return [t[0] for t in returned_rows]
 
         # Return the row count
         return insert_count
