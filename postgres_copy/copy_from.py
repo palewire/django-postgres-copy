@@ -294,13 +294,19 @@ class CopyMapping:
         cursor:
           A cursor object on the db
         """
+
         # Run pre-copy hook
         self.pre_copy(cursor)
 
         logger.debug("Running COPY command")
         copy_sql = self.prep_copy()
         logger.debug(copy_sql)
-        cursor.copy_expert(copy_sql, self.csv_file)
+        try:
+            # Try for psicopg2 first
+            cursor.copy_expert(copy_sql, self.csv_file)
+        except:
+            with cursor.copy(copy_sql) as copy:
+                copy.write(self.csv_file.read())
 
         # At this point all data has been loaded to the temp table
         self.csv_file.close()
