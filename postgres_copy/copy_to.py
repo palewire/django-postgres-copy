@@ -10,8 +10,11 @@ from django.db import connections
 from django.db.models.sql.compiler import SQLCompiler
 from django.db.models.sql.query import Query
 from psycopg2.extensions import adapt
+import django.db.backends.postgresql.base as pg_backend
 
 logger = logging.getLogger(__name__)
+
+pg_driver = pg_backend.Database.__name__
 
 
 class SQLCopyToCompiler(SQLCompiler):
@@ -70,17 +73,36 @@ class SQLCopyToCompiler(SQLCompiler):
 
             # If a file-like object was provided, write it out there.
             if hasattr(csv_path_or_obj, "write"):
-                c.cursor.copy_expert(copy_to_sql, csv_path_or_obj)
+                try:
+                    # Try for psicopg2 first
+                    c.cursor.copy_expert(copy_to_sql, csv_path_or_obj)
+                except:
+                    with c.cursor.copy(copy_to_sql) as copy:
+                        for chunk in copy:
+                            csv_path_or_obj.write(chunk)
                 return
             # If a file path was provided, write it out there.
             elif csv_path_or_obj:
                 with open(csv_path_or_obj, "wb") as stdout:
-                    c.cursor.copy_expert(copy_to_sql, stdout)
+                    logger.debug(pg_driver)
+                    try:
+                        # Try for psicopg2 first
+                        c.cursor.copy_expert(copy_to_sql, stdout)
+                    except:
+                        with c.cursor.copy(copy_to_sql) as copy:
+                            for chunk in copy:
+                                stdout.write(chunk)
                     return
             # If there's no csv_path, return the output as a string.
             else:
                 stdout = BytesIO()
-                c.cursor.copy_expert(copy_to_sql, stdout)
+                try:
+                    # Try for psicopg2 first
+                    c.cursor.copy_expert(copy_to_sql, stdout)
+                except:
+                    with c.cursor.copy(copy_to_sql) as copy:
+                        for chunk in copy:
+                            stdout.write(chunk)
                 return stdout.getvalue()
 
 
