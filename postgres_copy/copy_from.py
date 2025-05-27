@@ -2,6 +2,7 @@
 """
 Handlers for working with PostgreSQL's COPY command.
 """
+
 import csv
 import logging
 import os
@@ -12,6 +13,8 @@ from io import TextIOWrapper
 from django.contrib.humanize.templatetags.humanize import intcomma
 from django.core.exceptions import FieldDoesNotExist
 from django.db import NotSupportedError, connections, router
+
+from .psycopg_compat import copy_from
 
 logger = logging.getLogger(__name__)
 
@@ -300,7 +303,7 @@ class CopyMapping:
         logger.debug("Running COPY command")
         copy_sql = self.prep_copy()
         logger.debug(copy_sql)
-        cursor.copy_expert(copy_sql, self.csv_file)
+        copy_from(cursor, copy_sql, self.csv_file)
 
         # At this point all data has been loaded to the temp table
         self.csv_file.close()
