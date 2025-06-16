@@ -45,15 +45,9 @@ jobs:
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     strategy:
       matrix:
-        python: ['3.7', '3.8', '3.9', '3.10', '3.11']
-        django: ['3.2', '4.2', '5.1']
+        python: ['3.9', '3.10', '3.11', '3.12']
+        django: ['4.2', '5.1']
         exclude:
-        - python: '3.7'
-          django: '4.2'
-        - python: '3.7'
-          django: '5.1'
-        - python: '3.8'
-          django: '5.1'
         - python: '3.9'
           django: '5.1'
     steps:
