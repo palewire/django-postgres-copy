@@ -53,10 +53,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
-          cache: 'pip'
+
+      - name: Upgrade pip
+        run: |
+          python -m ensurepip --upgrade
+          pip install setuptools wheel --upgrade
 
       - name: Install Python dependencies
         run: pip install ${{ matrix.psycopg }} django==${{ matrix.django }} mock
