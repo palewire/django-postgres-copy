@@ -47,6 +47,7 @@ jobs:
       matrix:
         python: ['3.7', '3.8', '3.9', '3.10', '3.11']
         django: ['3.2', '4.2', '5.1']
+        psycopg: ['psycopg2', 'psycopg']
         exclude:
         - python: '3.7'
           django: '4.2'
@@ -72,7 +73,7 @@ jobs:
 
       - id: pipenv-install
         name: Install Python dependencies
-        run: pipenv install flake8 psycopg2 django==${{ matrix.django }} mock --python=${{ matrix.python }} --skip-lock
+        run: pipenv install flake8 ${{ matrix.psycopg }} django==${{ matrix.django }} mock --python=${{ matrix.python }} --skip-lock
 
       - name: Test
         run: pipenv run python setup.py test
