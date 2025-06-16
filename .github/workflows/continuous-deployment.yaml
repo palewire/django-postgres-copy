@@ -59,19 +59,13 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
-          cache: 'pipenv'
+          cache: 'pip'
 
-      - id: install-pipenv
-        name: Install pipenv
-        run: curl https://raw.githubusercontent.com/pypa/pipenv/master/get-pipenv.py | python
-        shell: bash
-
-      - id: pipenv-install
-        name: Install Python dependencies
-        run: pipenv install flake8 psycopg2 django==${{ matrix.django }} mock --python=${{ matrix.python }} --skip-lock
+      - name: Install Python dependencies
+        run: pip install flake8 psycopg2 django==${{ matrix.django }} mock --python=${{ matrix.python }} --skip-lock
 
       - name: Test
-        run: pipenv run python setup.py test
+        run: python setup.py test
         env:
           PGPASSWORD: postgres
 
