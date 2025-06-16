@@ -58,7 +58,7 @@ jobs:
           cache: 'pip'
 
       - name: Install Python dependencies
-        run: pip install flake8 psycopg2 django==${{ matrix.django }} mock --python=${{ matrix.python }} --skip-lock
+        run: pip install psycopg2 django==${{ matrix.django }} mock
 
       - name: Test
         run: python setup.py test
