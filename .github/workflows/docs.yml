@@ -38,7 +38,7 @@ jobs:
 
       - id: upload-release-candidate
         name: Upload release candidate
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: release-candidate
           path: ./docs/_build/html/
@@ -50,7 +50,7 @@ jobs:
     if: ${{ github.ref_name == 'main' }}
     steps:
       - name: Download release candidate
-        uses: actions/download-artifact@v4.1.7
+        uses: actions/download-artifact@v4
         with:
           name: release-candidate
           path: ./docs/
