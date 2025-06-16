@@ -2,6 +2,7 @@
 """
 Handlers for working with PostgreSQL's COPY command.
 """
+
 import csv
 import logging
 import os
