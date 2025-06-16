@@ -53,6 +53,8 @@ jobs:
           django: '5.1'
         - python: '3.9'
           django: '5.1'
+        - django: 3.2
+          psycopg: 'psycopg'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
