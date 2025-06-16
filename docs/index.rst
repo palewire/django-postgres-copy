@@ -23,7 +23,7 @@ That means we write a load of loaders. In the past we did this by looping throug
 
     data = csv.DictReader(open("./data.csv"))
     for row in data:
-        MyModel.objects.create(name=row['NAME'], number=row['NUMBER'])
+        MyModel.objects.create(name=row["NAME"], number=row["NUMBER"])
 
 That works, but if you have a big file Django will rack up a database query for each row. That can take a long time to finish.
 
@@ -40,7 +40,7 @@ Here's how it imports a CSV to a database table.
 
     MyModel.objects.from_csv(
         "./data.csv",  # The path to a source file (a Python file object is also acceptable)
-        dict(name='NAME', number='NUMBER')  # A crosswalk of model fields to CSV headers.
+        dict(name="NAME", number="NUMBER"),  # A crosswalk of model fields to CSV headers.
     )
 
 And here's how it exports a database table to a CSV.
@@ -116,8 +116,8 @@ Here's how to create a script to import CSV data into the model. Our favorite wa
         def handle(self, *args, **kwargs):
             # Since the CSV headers match the model fields,
             # you only need to provide the file's path (or a Python file object)
-            insert_count = Person.objects.from_csv('/path/to/my/import.csv')
-            print "{} records inserted".format(insert_count)
+            insert_count = Person.objects.from_csv("/path/to/my/import.csv")
+            print(f"{insert_count} records inserted")
 
 Run your loader.
 
@@ -141,7 +141,7 @@ How to export data
         def handle(self, *args, **kwargs):
             # All this method needs is the path to your CSV.
             # (If you don't provide one, the method will return the CSV as a string.)
-            Person.objects.to_csv('/path/to/my/export.csv')
+            Person.objects.to_csv("/path/to/my/export.csv")
 
 Run your exporter and that's it.
 
@@ -153,13 +153,13 @@ That's it. You can even export your queryset after any filters or other tricks. 
 
 .. code-block:: python
 
-    Person.objects.exclude(name='BEN').to_csv('/path/to/my/export.csv')
+    Person.objects.exclude(name="BEN").to_csv("/path/to/my/export.csv")
 
 And so will something like this:
 
 .. code-block:: python
 
-    Person.objects.annotate(name_count=Count('name')).to_csv('/path/to/my/export.csv')
+    Person.objects.annotate(name_count=Count("name")).to_csv("/path/to/my/export.csv")
 
 
 Import options
@@ -342,7 +342,7 @@ For the example above, the model might be modified to look like this.
         objects = CopyManager()
 
         def copy_value_template(self):
-          return """
+            return """
               CASE
                   WHEN "%(name)s" = 'yes' THEN 1
                   WHEN "%(name)s" = 'no' THEN 0
@@ -402,11 +402,9 @@ And your loader would look like this:
 
         def handle(self, *args, **kwargs):
             Person.objects.from_csv(
-                '/path/to/my/data.csv',
-                dict(name='NAME', number='NUMBER'),
-                static_mapping = {
-                    'source_csv': 'data.csv'
-                }
+                "/path/to/my/data.csv",
+                dict(name="NAME", number="NUMBER"),
+                static_mapping={"source_csv": "data.csv"},
             )
 
 
@@ -426,19 +424,19 @@ To try them out, subclass ``CopyMapping`` and fill in as many of the optional ho
 
     class HookedCopyMapping(CopyMapping):
         def pre_copy(self, cursor):
-            print "pre_copy!"
+            print("pre_copy!")
             # Doing whatever you'd like here
 
         def post_copy(self, cursor):
-            print "post_copy!"
+            print("post_copy!")
             # And here
 
         def pre_insert(self, cursor):
-            print "pre_insert!"
+            print("pre_insert!")
             # And here
 
         def post_insert(self, cursor):
-            print "post_insert!"
+            print("post_insert!")
             # And finally here
 
 
@@ -459,8 +457,8 @@ Now you can run that subclass directly rather than via a manager. The only diffe
             # Note that we're using HookedCopyMapping here
             c = HookedCopyMapping(
                 Person,
-                '/path/to/my/data.csv',
-                dict(name='NAME', number='NUMBER'),
+                "/path/to/my/data.csv",
+                dict(name="NAME", number="NUMBER"),
             )
             # Then save it.
             c.save()
@@ -538,10 +536,7 @@ You could export only the name field by providing it as an extra parameter.
     class Command(BaseCommand):
 
         def handle(self, *args, **kwargs):
-            Person.objects.to_csv(
-                '/path/to/my/export.csv',
-                'name'
-            )
+            Person.objects.to_csv("/path/to/my/export.csv", "name")
 
 
 Increasing the exported fields
@@ -582,10 +577,7 @@ You can reach across to related tables during an export by adding their fields t
 
         def handle(self, *args, **kwargs):
             Person.objects.to_csv(
-                '/path/to/my/export.csv',
-                'name',
-                'number',
-                'hometown__name'
+                "/path/to/my/export.csv", "name", "number", "hometown__name"
             )
 
 

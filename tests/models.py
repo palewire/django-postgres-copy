@@ -20,11 +20,11 @@ class MockObject(models.Model):
         unique_together = ("name", "number")
 
     def __init__(self, *args, **kwargs):
-      super().__init__(*args, **kwargs)
-      if django.get_version() <= '5.1':
-        self._meta.index_together = ("name", "number")
-      else:
-        self._meta.indexes = [models.Index(fields=["name", "number"])]
+        super().__init__(*args, **kwargs)
+        if django.get_version() <= "5.1":
+            self._meta.index_together = ("name", "number")
+        else:
+            self._meta.indexes = [models.Index(fields=["name", "number"])]
 
     def copy_name_template(self):
         return 'upper("%(name)s")'
