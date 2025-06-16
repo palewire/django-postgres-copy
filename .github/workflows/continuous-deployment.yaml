@@ -6,28 +6,24 @@ on:
 
 jobs:
   lint-python:
-    name: "Lint Python"
+    name: Lint Python code
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - id: checkout
+        name: Checkout
         uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - id: check-ruff
+        name: Check with Ruff
+        uses: astral-sh/ruff-action@v3
         with:
-          python-version: '3.11'
-          cache: 'pipenv'
+          args: 'check --exit-zero --verbose'
 
-      - id: install-pipenv
-        name: Install pipenv
-        run: curl https://raw.githubusercontent.com/pypa/pipenv/master/get-pipenv.py | python
-        shell: bash
-
-      - id: pipenv-install
-        name: Install Python dependencies
-        run: pipenv sync --dev
-
-      - name: Lint
-        run: pipenv run flake8 postgres_copy
+      - id: format-ruff
+        name: Format with Ruff
+        uses: astral-sh/ruff-action@v3
+        with:
+          args: 'format --check --verbose'
 
   test-python:
     name: "Test Python"
