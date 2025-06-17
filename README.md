@@ -8,4 +8,4 @@
 ### Contributing
 
 To set up a development environment, run `pipenv install` after forking and cloning the repository.
-To run tests, use `pipenv run python setup.py test`
+To run tests, use `pipenv run pytest tests`

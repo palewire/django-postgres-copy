@@ -18,6 +18,8 @@ wheel = "*"
 pre-commit = "*"
 sphinx-palewire-theme = "*"
 myst-parser = "*"
+pytest = "*"
+pytest-django = "*"
 
 [requires]
 python_version = "3.11"
