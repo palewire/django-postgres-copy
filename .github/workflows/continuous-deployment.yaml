@@ -60,10 +60,10 @@ jobs:
           pip install setuptools wheel --upgrade
 
       - name: Install Python dependencies
-        run: pip install psycopg2 django==${{ matrix.django }} mock
+        run: pip install psycopg2 django==${{ matrix.django }} mock pytest-django
 
       - name: Test
-        run: python setup.py test
+        run: pytest tests
         env:
           PGPASSWORD: postgres
 
