@@ -21,7 +21,7 @@ try:
             while data := copy.read():
                 data = decoder.decode(data)
                 destination.write(data)
-            # TODO: is this extra one needed?
+            # tell `decoder` we're done to e.g. flush buffers etc
             if data := decoder.decode(b"", final=True):
                 destination.write(data)
 
