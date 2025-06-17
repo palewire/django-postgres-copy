@@ -1,6 +1,4 @@
 import os
-import typing
-from distutils.core import Command
 
 from setuptools import setup
 
@@ -41,79 +39,6 @@ def local_version(version):
     return ""
 
 
-class TestCommand(Command):
-    user_options: typing.List[typing.Any] = []
-
-    def initialize_options(self):
-        pass
-
-    def finalize_options(self):
-        pass
-
-    def run(self):
-        import django
-        from django.conf import settings
-        from django.core.management import call_command
-
-        settings.configure(
-            DATABASES={
-                "default": {
-                    "HOST": "localhost",
-                    "PORT": 5432,
-                    "NAME": "test",
-                    "USER": "postgres",
-                    "ENGINE": "django.db.backends.postgresql_psycopg2",
-                },
-                "other": {
-                    "HOST": "localhost",
-                    "PORT": 5432,
-                    "NAME": "test_alternative",
-                    "USER": "postgres",
-                    "ENGINE": "django.db.backends.postgresql_psycopg2",
-                },
-                "sqlite": {"NAME": "sqlite", "ENGINE": "django.db.backends.sqlite3"},
-                "secondary": {
-                    "HOST": "localhost",
-                    "PORT": 5432,
-                    "NAME": "test_secondary",
-                    "USER": "postgres",
-                    "ENGINE": "django.db.backends.postgresql_psycopg2",
-                },
-            },
-            INSTALLED_APPS=("tests",),
-            DATABASE_ROUTERS=["tests.router.CustomRouter"],
-            DEFAULT_AUTO_FIELD="django.db.models.BigAutoField",
-            LOGGING={
-                "version": 1,
-                "disable_existing_loggers": False,
-                "handlers": {
-                    "file": {
-                        "level": "DEBUG",
-                        "class": "logging.FileHandler",
-                        "filename": os.path.join(
-                            os.path.dirname(__file__), "tests.log"
-                        ),
-                    },
-                },
-                "formatters": {
-                    "verbose": {
-                        "format": "%(levelname)s|%(asctime)s|%(module)s|%(message)s",
-                        "datefmt": "%d/%b/%Y %H:%M:%S",
-                    }
-                },
-                "loggers": {
-                    "postgres_copy": {
-                        "handlers": ["file"],
-                        "level": "DEBUG",
-                        "propagate": True,
-                    },
-                },
-            },
-        )
-        django.setup()
-        call_command("test", "tests")
-
-
 setup(
     name="django-postgres-copy",
     author="Ben Welsh",
@@ -124,7 +49,6 @@ setup(
     long_description_content_type="text/markdown",
     license="MIT",
     packages=("postgres_copy",),
-    cmdclass={"test": TestCommand},
     setup_requires=["setuptools_scm"],
     use_scm_version={"version_scheme": version_scheme, "local_scheme": local_version},
     classifiers=[
@@ -133,12 +57,14 @@ setup(
         "Intended Audience :: Developers",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
         "Framework :: Django",
         "Framework :: Django :: 4.2",
+        "Framework :: Django :: 5.1",
+        "Framework :: Django :: 5.2",
         "License :: OSI Approved :: MIT License",
     ],
     project_urls={
