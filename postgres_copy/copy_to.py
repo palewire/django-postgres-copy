@@ -9,7 +9,8 @@ from io import BytesIO
 from django.db import connections
 from django.db.models.sql.compiler import SQLCompiler
 from django.db.models.sql.query import Query
-from psycopg2.extensions import adapt
+
+from .psycopg_compat import copy_to
 
 logger = logging.getLogger(__name__)
 
@@ -42,14 +43,12 @@ class SQLCopyToCompiler(SQLCompiler):
         """
         logger.debug(f"Copying data to {csv_path_or_obj}")
 
-        # adapt SELECT query parameters to SQL syntax
         params = self.as_sql()[1]
-        adapted_params = tuple(adapt(p) for p in params)
 
         # use stdout to avoid file permission issues
         with connections[self.using].cursor() as c:
-            # compile the SELECT query
-            select_sql = self.as_sql()[0] % adapted_params
+            # grab the SELECT query
+            select_sql = self.as_sql()[0]
             # then the COPY TO query
             copy_to_sql = "COPY ({}) TO STDOUT {} CSV"
             copy_to_sql = copy_to_sql.format(select_sql, self.query.copy_to_delimiter)
@@ -70,17 +69,17 @@ class SQLCopyToCompiler(SQLCompiler):
 
             # If a file-like object was provided, write it out there.
             if hasattr(csv_path_or_obj, "write"):
-                c.cursor.copy_expert(copy_to_sql, csv_path_or_obj)
+                copy_to(c.cursor, copy_to_sql, params, csv_path_or_obj)
                 return
             # If a file path was provided, write it out there.
             elif csv_path_or_obj:
                 with open(csv_path_or_obj, "wb") as stdout:
-                    c.cursor.copy_expert(copy_to_sql, stdout)
+                    copy_to(c.cursor, copy_to_sql, params, stdout)
                     return
             # If there's no csv_path, return the output as a string.
             else:
                 stdout = BytesIO()
-                c.cursor.copy_expert(copy_to_sql, stdout)
+                copy_to(c.cursor, copy_to_sql, params, stdout)
                 return stdout.getvalue()
 
 

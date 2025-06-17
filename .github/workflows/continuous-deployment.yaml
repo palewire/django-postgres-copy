@@ -38,8 +38,9 @@ jobs:
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     strategy:
       matrix:
-        python: ['3.9', '3.10', '3.11', '3.12']
+        python: ['3.9', '3.10', '3.11', '3.12', '3.13']
         django: ['4.2', '5.1', '5.2']
+        psycopg: ['psycopg2', 'psycopg']
         exclude:
         - python: '3.9'
           django: '5.1'
@@ -60,7 +61,7 @@ jobs:
           pip install setuptools wheel --upgrade
 
       - name: Install Python dependencies
-        run: pip install psycopg2 django==${{ matrix.django }} mock pytest-django
+        run: pip install ${{ matrix.psycopg }} django==${{ matrix.django }} mock pytest-django
 
       - name: Test
         run: pytest tests
