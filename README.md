@@ -7,5 +7,5 @@
 
 ### Contributing
 
-To set up a development environment, run `pipenv install` after forking and cloning the repository.
-To run tests, use `pipenv run pytest tests`
+To set up a development environment, run `uv sync --all-extras` after forking and cloning the repository.
+To run tests, use `uv run pytest tests`
