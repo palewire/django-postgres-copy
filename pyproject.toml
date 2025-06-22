@@ -1,0 +1,59 @@
+[build-system]
+requires = ["setuptools>=45", "setuptools_scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "django-postgres-copy"
+description = "Quickly import and export delimited data with Django support for PostgreSQL's COPY command"
+readme = "README.md"
+authors = [
+    {name = "Ben Welsh", email = "b@palewi.re"},
+]
+license = {text = "MIT"}
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Framework :: Django",
+    "Framework :: Django :: 4.2",
+    "Framework :: Django :: 5.1",
+    "Framework :: Django :: 5.2",
+    "License :: OSI Approved :: MIT License",
+]
+requires-python = ">=3.9"
+dynamic = ["version"]
+
+[project.urls]
+Documentation = "https://palewi.re/docs/django-postgres-copy/"
+Source = "https://github.com/palewire/django-postgres-copy"
+Tracker = "https://github.com/palewire/django-postgres-copy/issues"
+Tests = "https://github.com/palewire/django-postgres-copy/actions/workflows/test.yaml"
+
+[tool.setuptools]
+packages = ["postgres_copy"]
+
+[tool.setuptools.package-data]
+postgres_copy = ["py.typed"]
+
+[tool.setuptools_scm]
+# Custom version scheme to handle the bug documented at
+# https://github.com/pypa/setuptools_scm/issues/342
+version_scheme = "version_scheme:version_scheme"
+local_scheme = "version_scheme:local_version"
+
+[tool.pytest]
+python_files = ["test*.py", "test_*.py", "*_test.py"]
+
+[tool.flake8]
+max-line-length = 119
+ignore = ["D100", "D101", "D102", "D103", "D104", "D106", "D107", "D200", "D205", "D400", "D401", "SIM115", "B006"]
+
+[tool.wheel]
+universal = 1
