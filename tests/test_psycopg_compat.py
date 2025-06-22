@@ -7,6 +7,8 @@ from postgres_copy.psycopg_compat import copy_from, copy_to
 
 # Check if psycopg3 is available
 PSYCOPG3_AVAILABLE = importlib.util.find_spec("psycopg") is not None
+# Check if psycopg2 is available
+PSYCOPG2_AVAILABLE = importlib.util.find_spec("psycopg2") is not None
 
 
 class PsycopgCompatTest(unittest.TestCase):
@@ -20,6 +22,7 @@ class PsycopgCompatTest(unittest.TestCase):
         self.source = io.StringIO("test data")
         self.destination = io.StringIO()
 
+    @unittest.skipIf(not PSYCOPG2_AVAILABLE, "psycopg2 not available")
     def test_copy_to_with_psycopg2(self):
         """Test copy_to function with psycopg2."""
         # Mock the psycopg2 import to succeed and psycopg to fail
@@ -37,6 +40,7 @@ class PsycopgCompatTest(unittest.TestCase):
                     self.destination, self.cursor.copy_expert.call_args[0][1]
                 )
 
+    @unittest.skipIf(not PSYCOPG2_AVAILABLE, "psycopg2 not available")
     def test_copy_from_with_psycopg2(self):
         """Test copy_from function with psycopg2."""
         # Mock the psycopg2 import to succeed and psycopg to fail
@@ -67,7 +71,8 @@ class PsycopgCompatTest(unittest.TestCase):
             mock_getincrementaldecoder.return_value = mock.MagicMock(
                 return_value=mock_decoder
             )
-            mock_decoder.decode = mock.MagicMock(return_value="decoded data")
+            # Make the decoder return the same data for each call
+            mock_decoder.decode.side_effect = lambda data, final=False: "decoded data"
 
             # Call the function with a text destination
             destination = io.StringIO()
