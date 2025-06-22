@@ -67,11 +67,6 @@ warn_no_return = true
 warn_unreachable = true
 
 [[tool.mypy.overrides]]
-module = "tests.*"
-disallow_untyped_defs = false
-disallow_incomplete_defs = false
-
-[[tool.mypy.overrides]]
 module = "django.*"
 ignore_missing_imports = true
 
@@ -100,4 +95,17 @@ docs = [
     "sphinx-autobuild",
     "sphinx-palewire-theme",
     "myst-parser",
+]
+
+
+[tool.pytest.ini_options]
+addopts = "-p no:warnings --cov=postgres_copy --cov-branch -cov-report=term-missing:skip-covered --cov-context=test"
+testpaths = ["tests"]
+python_files = "test_*.py"
+
+[tool.coverage.run]
+source = ["postgres_copy"]
+relative_files = true
+omit = [
+    "*/__pycache__/*",
 ]
