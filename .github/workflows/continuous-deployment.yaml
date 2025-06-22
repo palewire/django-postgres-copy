@@ -78,21 +78,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - id: install-uv
+        name: Install uv
+        uses: astral-sh/setup-uv@v6
         with:
-          python-version: ${{ matrix.python }}
+          version: "latest"
+          enable-cache: true
+          cache-dependency-glob: '**/pyproject.toml'
 
-      - name: Upgrade pip
-        run: |
-          python -m ensurepip --upgrade
-          pip install setuptools wheel --upgrade
+      - id: install-python
+        name: Install Python
+        run: uv python install ${{ matrix.python }}
 
       - name: Install Python dependencies
-        run: pip install ${{ matrix.psycopg }} django==${{ matrix.django }} mock pytest-django
+        run: |
+          uv sync --extra dev --python ${{ matrix.python }}
+          uv pip install ${{ matrix.psycopg }} django==${{ matrix.django }}
 
       - name: Test
-        run: pytest tests
+        run: uv run pytest tests
         env:
           PGPASSWORD: postgres
 

@@ -100,7 +100,7 @@ docs = [
 
 
 [tool.pytest.ini_options]
-addopts = "-p no:warnings --cov=postgres_copy --cov-branch -cov-report=term-missing:skip-covered --cov-context=test"
+addopts = "-p no:warnings --cov=postgres_copy --cov-branch -cov-report=term-missing:skip-covered --cov-context=tests"
 testpaths = ["tests"]
 python_files = "test_*.py"
 
