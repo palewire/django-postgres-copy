@@ -20,36 +20,34 @@ class PsycopgCompatTest(unittest.TestCase):
         self.source = io.StringIO("test data")
         self.destination = io.StringIO()
 
-    @mock.patch("postgres_copy.psycopg_compat.adapt")
-    def test_copy_to_with_psycopg2(self, mock_adapt):
+    def test_copy_to_with_psycopg2(self):
         """Test copy_to function with psycopg2."""
         # Mock the psycopg2 import to succeed and psycopg to fail
         with mock.patch.dict("sys.modules", {"psycopg": None}):
-            with mock.patch("psycopg2.extensions.adapt", mock_adapt):
-                with mock.patch.object(self.cursor, "copy_expert") as mock_copy_expert:
-                    # Set up the mock
-                    mock_adapt.return_value.getquoted.return_value = b"'test'"
+            with mock.patch("psycopg2.extensions.adapt") as mock_adapt:
+                mock_adapt.return_value.getquoted.return_value = b"'test'"
 
-                    # Call the function
-                    copy_to(self.cursor, self.sql, (1, 2), self.destination)
+                # Call the function
+                copy_to(self.cursor, self.sql, (1, 2), self.destination)
 
-                    # Check that the psycopg2 version was called with the right parameters
-                    mock_copy_expert.assert_called_once()
-                    # Verify that the destination was passed as the second argument
-                    self.assertEqual(self.destination, mock_copy_expert.call_args[0][1])
+                # Check that the psycopg2 version was called with the right parameters
+                self.cursor.copy_expert.assert_called_once()
+                # Verify that the destination was passed as the second argument
+                self.assertEqual(
+                    self.destination, self.cursor.copy_expert.call_args[0][1]
+                )
 
     def test_copy_from_with_psycopg2(self):
         """Test copy_from function with psycopg2."""
         # Mock the psycopg2 import to succeed and psycopg to fail
         with mock.patch.dict("sys.modules", {"psycopg": None}):
-            with mock.patch.object(self.cursor, "copy_expert") as mock_copy_expert:
-                # Call the function
-                copy_from(self.cursor, self.sql, self.source)
+            # Call the function
+            copy_from(self.cursor, self.sql, self.source)
 
-                # Check that the psycopg2 version was called with the right parameters
-                mock_copy_expert.assert_called_once()
-                # Verify that the source was passed as the second argument
-                self.assertEqual(self.source, mock_copy_expert.call_args[0][1])
+            # Check that the psycopg2 version was called with the right parameters
+            self.cursor.copy_expert.assert_called_once()
+            # Verify that the source was passed as the second argument
+            self.assertEqual(self.source, self.cursor.copy_expert.call_args[0][1])
 
     @unittest.skipIf(not PSYCOPG3_AVAILABLE, "psycopg3 not available")
     @mock.patch("postgres_copy.psycopg_compat.getincrementaldecoder")
@@ -62,7 +60,7 @@ class PsycopgCompatTest(unittest.TestCase):
             self.cursor.copy = mock.MagicMock(return_value=mock_copy)
             mock_copy.__enter__ = mock.MagicMock(return_value=mock_copy)
             mock_copy.__exit__ = mock.MagicMock(return_value=None)
-            mock_copy.read = mock.MagicMock(side_effect=["data1", "data2", None])
+            mock_copy.read = mock.MagicMock(side_effect=[b"data1", b"data2", None])
 
             # Mock the decoder
             mock_decoder = mock.MagicMock()
@@ -111,7 +109,14 @@ class PsycopgCompatTest(unittest.TestCase):
             self.cursor.copy = mock.MagicMock(return_value=mock_copy)
             mock_copy.__enter__ = mock.MagicMock(return_value=mock_copy)
             mock_copy.__exit__ = mock.MagicMock(return_value=None)
-            mock_copy.read = mock.MagicMock(side_effect=[b"data1", b"data2", None])
+
+            # Set up the read method to return binary data
+            read_data = [b"data1", b"data2", None]
+
+            def side_effect():
+                return read_data.pop(0) if read_data else None
+
+            mock_copy.read = mock.MagicMock(side_effect=side_effect)
 
             # Call the function with a binary destination
             destination = io.BytesIO()
@@ -119,10 +124,13 @@ class PsycopgCompatTest(unittest.TestCase):
 
             # Check that the psycopg3 version was called with the right parameters
             self.cursor.copy.assert_called_once_with(self.sql, (1, 2))
-            mock_copy.read.assert_called()
+            self.assertEqual(mock_copy.read.call_count, 3)
+
+            # Check the content of the destination
             destination.seek(0)
-            self.assertIn(b"data1", destination.read())
-            self.assertIn(b"data2", destination.read())
+            content = destination.read()
+            self.assertIn(b"data1", content)
+            self.assertIn(b"data2", content)
 
     @unittest.skipIf(not PSYCOPG3_AVAILABLE, "psycopg3 not available")
     def test_copy_from_with_psycopg3_binary_source(self):
