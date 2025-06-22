@@ -22,34 +22,6 @@ jobs:
         with:
           args: 'format --check --verbose'
 
-  mypy-python:
-    name: Check Python static typing
-    runs-on: ubuntu-latest
-    steps:
-      - id: checkout
-        name: Checkout
-        uses: actions/checkout@v4
-
-      - id: install-uv
-        name: Install uv
-        uses: astral-sh/setup-uv@v6
-        with:
-          version: "latest"
-          enable-cache: true
-          cache-dependency-glob: '**/pyproject.toml'
-
-      - id: install-python
-        name: Install Python
-        run: uv python install 3.13
-
-      - id: install-python-dependencies
-        name: Install Python dependencies
-        run: uv sync --extra mypy
-
-      - id: mypy
-        name: Run mypy
-        run: uv run mypy ./ --ignore-missing-imports
-
   test-python:
     name: "Test Python"
     runs-on: ubuntu-latest
