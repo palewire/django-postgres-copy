@@ -62,7 +62,9 @@ dev = [
     "pytest",
     "pytest-django",
 ]
-
+mypy = [
+    "mypy",
+]
 docs = [
     "sphinx",
     "sphinx-autobuild",
