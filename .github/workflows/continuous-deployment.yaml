@@ -76,27 +76,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - id: install-uv
+        name: Install uv
+        uses: astral-sh/setup-uv@v6
         with:
-          python-version: '3.11'
+          version: "latest"
+          enable-cache: true
+          cache-dependency-glob: '**/pyproject.toml'
 
-      - name: Install uv
-        run: pip install uv
+      - id: install-python
+        name: Install Python
+        run: uv python install 3.13
 
-      - name: Install Python dependencies
-        run: uv pip install -e ".[dev]"
+      - id: build
+        name: Build releases
+        run: uv build --sdist --wheel
+        shell: bash
 
-      - name: Build release
-        run: |
-            uv pip install build
-            python -m build
-            ls -l dist
-
-      - name: Check release
-        run: uv pip install twine && twine check dist/*
-
-      - name: Save artifact
+      - id: save
+        name: Save artifact
         uses: actions/upload-artifact@v4
         with:
           name: release-candidate
