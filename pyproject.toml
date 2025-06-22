@@ -77,14 +77,16 @@ ignore_missing_imports = true
 
 [project.optional-dependencies]
 dev = [
-    "twine",
     "coverage",
     "mock",
-    "setuptools-scm",
-    "wheel",
     "pre-commit",
-    "pytest",
+    "pytest-runner",
+    "pytest-cov",
+    "pytest-env",
     "pytest-django",
+    "setuptools-scm",
+    "twine",
+    "wheel",
 ]
 mypy = [
     "mypy",
