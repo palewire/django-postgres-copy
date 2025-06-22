@@ -53,16 +53,19 @@ ignore = ["D100", "D101", "D102", "D103", "D104", "D106", "D107", "D200", "D205"
 
 [project.optional-dependencies]
 dev = [
-    "sphinx",
-    "sphinx-autobuild",
     "twine",
     "coverage",
     "mock",
     "setuptools-scm",
     "wheel",
     "pre-commit",
-    "sphinx-palewire-theme",
-    "myst-parser",
     "pytest",
     "pytest-django",
+]
+
+docs = [
+    "sphinx",
+    "sphinx-autobuild",
+    "sphinx-palewire-theme",
+    "myst-parser",
 ]
