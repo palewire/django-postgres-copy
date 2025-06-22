@@ -7,12 +7,15 @@ import csv
 import logging
 import os
 import sys
+import typing
 from collections import OrderedDict
 from io import TextIOWrapper
 
 from django.contrib.humanize.templatetags.humanize import intcomma
 from django.core.exceptions import FieldDoesNotExist
 from django.db import NotSupportedError, connections, router
+from django.db.models import Field, Model
+from django.db.backends.utils import CursorWrapper
 
 from .psycopg_compat import copy_from
 
@@ -26,20 +29,20 @@ class CopyMapping:
 
     def __init__(
         self,
-        model,
-        csv_path_or_obj,
-        mapping,
-        using=None,
-        delimiter=",",
-        quote_character=None,
-        null=None,
-        force_not_null=None,
-        force_null=None,
-        encoding=None,
-        ignore_conflicts=False,
-        static_mapping=None,
-        temp_table_name=None,
-    ):
+        model: typing.Type[Model],
+        csv_path_or_obj: typing.Union[str, typing.BinaryIO, typing.TextIO],
+        mapping: typing.Dict[str, str],
+        using: typing.Optional[str] = None,
+        delimiter: str = ",",
+        quote_character: typing.Optional[str] = None,
+        null: typing.Optional[str] = None,
+        force_not_null: typing.Optional[typing.List[str]] = None,
+        force_null: typing.Optional[typing.List[str]] = None,
+        encoding: typing.Optional[str] = None,
+        ignore_conflicts: bool = False,
+        static_mapping: typing.Optional[typing.Dict[str, str]] = None,
+        temp_table_name: typing.Optional[str] = None,
+    ) -> None:
         # Set the required arguments
         self.model = model
         self.csv_path_or_obj = csv_path_or_obj
@@ -48,11 +51,13 @@ class CopyMapping:
         if hasattr(csv_path_or_obj, "read"):
             self.csv_file = csv_path_or_obj
         else:
+            # We know it's a string path at this point
+            csv_path = csv_path_or_obj
             # ... verify the path exists ...
-            if not os.path.exists(self.csv_path_or_obj):
+            if not os.path.exists(csv_path):
                 raise ValueError("CSV path does not exist")
             # ... then open it up.
-            self.csv_file = open(self.csv_path_or_obj)
+            self.csv_file = open(csv_path)
 
         # Hook in the other optional settings
         self.quote_character = quote_character
@@ -66,7 +71,7 @@ class CopyMapping:
         if static_mapping is not None:
             self.static_mapping = OrderedDict(static_mapping)
         else:
-            self.static_mapping = {}
+            self.static_mapping = OrderedDict()
 
         # Line up the database connection
         if using is not None:
@@ -99,7 +104,7 @@ class CopyMapping:
         # Configure the name of our temporary table to COPY into
         self.temp_table_name = temp_table_name or "temp_%s" % self.model._meta.db_table
 
-    def save(self, silent=False, stream=sys.stdout):
+    def save(self, silent: bool = False, stream: typing.TextIO = sys.stdout) -> int:
         """
         Saves the contents of the CSV file to the database.
 
@@ -133,10 +138,11 @@ class CopyMapping:
 
         return insert_count
 
-    def is_postgresql_9_5(self):
-        return self.conn.pg_version >= 90500
+    def is_postgresql_9_5(self) -> bool:
+        pg_version = getattr(self.conn, "pg_version", 0)
+        return pg_version >= 90500
 
-    def get_field(self, name):
+    def get_field(self, name: str) -> typing.Optional[Field]:
         """
         Returns any fields on the database model matching the provided name.
         """
@@ -145,7 +151,7 @@ class CopyMapping:
         except FieldDoesNotExist:
             return None
 
-    def get_mapping(self, mapping):
+    def get_mapping(self, mapping: typing.Dict[str, str]) -> typing.Dict[str, str]:
         """
         Returns a generated mapping based on the CSV header
         """
@@ -153,37 +159,55 @@ class CopyMapping:
             return OrderedDict(mapping)
         return {name: name for name in self.headers}
 
-    def get_headers(self):
+    def get_headers(self) -> typing.List[str]:
         """
         Returns the column headers from the csv as a list.
         """
         logger.debug(f"Retrieving headers from {self.csv_file}")
-        # set up a csv reader
-        csv_reader = csv.reader(self.csv_file, delimiter=self.delimiter)
-        try:
-            # Pop the headers
-            headers = next(csv_reader)
-        except csv.Error:
-            # this error is thrown in Python 3 when the file is in binary mode
-            # first, rewind the file
-            self.csv_file.seek(0)
-            # take the user-defined encoding, or assume utf-8
-            encoding = self.encoding or "utf-8"
-            # wrap the binary file...
-            text_file = TextIOWrapper(self.csv_file, encoding=encoding)
-            # ...so the csv reader can treat it as text
-            csv_reader = csv.reader(text_file, delimiter=self.delimiter)
-            # now pop the headers
-            headers = next(csv_reader)
-            # detach the open csv_file so it will stay open
-            text_file.detach()
 
-        # Move back to the top of the file
-        self.csv_file.seek(0)
+        # Check if it's a text or binary file
+        is_binary = hasattr(self.csv_file, "mode") and "b" in getattr(
+            self.csv_file, "mode", ""
+        )
+
+        if is_binary:
+            # For binary files, we need to wrap it in a TextIOWrapper
+            encoding = self.encoding or "utf-8"
+            text_file = TextIOWrapper(
+                typing.cast(typing.BinaryIO, self.csv_file), encoding=encoding
+            )
+            csv_reader = csv.reader(text_file, delimiter=self.delimiter)
+            headers = next(csv_reader)
+            # Detach the wrapper so the file stays open
+            text_file.detach()
+        else:
+            # For text files or file-like objects without a mode attribute
+            try:
+                # Try to read directly
+                csv_reader = csv.reader(
+                    typing.cast(typing.Iterable[str], self.csv_file),
+                    delimiter=self.delimiter,
+                )
+                headers = next(csv_reader)
+            except (csv.Error, TypeError, AttributeError):
+                # If that fails, try the binary approach as a fallback
+                if hasattr(self.csv_file, "seek"):
+                    self.csv_file.seek(0)
+                encoding = self.encoding or "utf-8"
+                text_file = TextIOWrapper(
+                    typing.cast(typing.BinaryIO, self.csv_file), encoding=encoding
+                )
+                csv_reader = csv.reader(text_file, delimiter=self.delimiter)
+                headers = next(csv_reader)
+                text_file.detach()
+
+        # Move back to the top of the file if possible
+        if hasattr(self.csv_file, "seek"):
+            self.csv_file.seek(0)
 
         return headers
 
-    def validate_mapping(self):
+    def validate_mapping(self) -> None:
         """
         Verify that the mapping provided by the user is acceptable.
 
@@ -208,7 +232,7 @@ class CopyMapping:
     # CREATE commands
     #
 
-    def prep_create(self):
+    def prep_create(self) -> str:
         """
         Creates a CREATE statement that makes a new temporary table.
 
@@ -232,7 +256,7 @@ class CopyMapping:
         # Mash together the SQL and pass it out
         return sql % options
 
-    def create(self, cursor):
+    def create(self, cursor: CursorWrapper) -> None:
         """
         Generate and run create sql for the temp table.
         Runs a DROP on same prior to CREATE to avoid collisions.
@@ -250,7 +274,7 @@ class CopyMapping:
     # COPY commands
     #
 
-    def prep_copy(self):
+    def prep_copy(self) -> str:
         """
         Creates a COPY statement that loads the CSV into a temporary table.
 
@@ -284,10 +308,10 @@ class CopyMapping:
             options["extra_options"] += f" ENCODING '{self.encoding}'"
         return sql % options
 
-    def pre_copy(self, cursor):
+    def pre_copy(self, cursor: CursorWrapper) -> None:
         pass
 
-    def copy(self, cursor):
+    def copy(self, cursor: CursorWrapper) -> None:
         """
         Generate and run the COPY command to copy data from csv to temp table.
 
@@ -303,22 +327,27 @@ class CopyMapping:
         logger.debug("Running COPY command")
         copy_sql = self.prep_copy()
         logger.debug(copy_sql)
-        copy_from(cursor, copy_sql, self.csv_file)
+        copy_from(
+            cursor,
+            copy_sql,
+            typing.cast(typing.Union[typing.TextIO, typing.BinaryIO], self.csv_file),
+        )
 
         # At this point all data has been loaded to the temp table
-        self.csv_file.close()
+        if hasattr(self.csv_file, "close"):
+            self.csv_file.close()
 
         # Run post-copy hook
         self.post_copy(cursor)
 
-    def post_copy(self, cursor):
+    def post_copy(self, cursor: CursorWrapper) -> None:
         pass
 
     #
     # INSERT commands
     #
 
-    def insert_suffix(self):
+    def insert_suffix(self) -> str:
         """
         Preps the suffix to the insert query.
         """
@@ -329,7 +358,7 @@ class CopyMapping:
         else:
             return ";"
 
-    def prep_insert(self):
+    def prep_insert(self) -> str:
         """
         Creates a INSERT statement that reorders and cleans up
         the fields from the temporary table for insertion into the
@@ -355,7 +384,8 @@ class CopyMapping:
         model_fields = []
         for field_name in self.mapping.keys():
             field = self.get_field(field_name)
-            model_fields.append('"%s"' % field.get_attname_column()[1])
+            if field is not None:
+                model_fields.append('"%s"' % field.get_attname_column()[1])
 
         for k in self.static_mapping.keys():
             model_fields.append('"%s"' % k)
@@ -370,22 +400,23 @@ class CopyMapping:
         for field_name, header in self.mapping.items():
             # Pull the field object from the model
             field = self.get_field(field_name)
-            field_type = field.db_type(self.conn)
-            if field_type in ["serial", "bigserial"]:
-                field_type = "integer"
+            if field is not None:
+                field_type = field.db_type(self.conn)
+                if field_type in ["serial", "bigserial"]:
+                    field_type = "integer"
 
-            # Format the SQL
-            string = f'cast("{header}" as {field_type})'
+                # Format the SQL
+                string = f'cast("{header}" as {field_type})'
 
-            # Apply a datatype template override, if it exists
-            if hasattr(field, "copy_template"):
-                string = field.copy_template % dict(name=header)
+                # Apply a datatype template override, if it exists
+                if hasattr(field, "copy_template"):
+                    string = field.copy_template % dict(name=header)
 
-            # Apply a field specific template override, if it exists
-            template_method = "copy_%s_template" % field.name
-            if hasattr(self.model, template_method):
-                template = getattr(self.model(), template_method)()
-                string = template % dict(name=header)
+                # Apply a field specific template override, if it exists
+                template_method = "copy_%s_template" % field.name
+                if hasattr(self.model, template_method):
+                    template = getattr(self.model(), template_method)()
+                    string = template % dict(name=header)
 
             # Add field to list
             temp_fields.append(string)
@@ -400,10 +431,10 @@ class CopyMapping:
         # Pass it out
         return sql % options
 
-    def pre_insert(self, cursor):
+    def pre_insert(self, cursor: CursorWrapper) -> None:
         pass
 
-    def insert(self, cursor):
+    def insert(self, cursor: CursorWrapper) -> int:
         """
         Generate and run the INSERT command to move data from the temp table
         to the concrete table.
@@ -430,16 +461,16 @@ class CopyMapping:
         self.post_insert(cursor)
 
         # Return the row count
-        return insert_count
+        return insert_count if isinstance(insert_count, int) else 0
 
-    def post_insert(self, cursor):
+    def post_insert(self, cursor: CursorWrapper) -> None:
         pass
 
     #
     # DROP commands
     #
 
-    def prep_drop(self):
+    def prep_drop(self) -> str:
         """
         Creates a DROP statement that gets rid of the temporary table.
 
@@ -447,7 +478,7 @@ class CopyMapping:
         """
         return 'DROP TABLE IF EXISTS "%s";' % self.temp_table_name
 
-    def drop(self, cursor):
+    def drop(self, cursor: CursorWrapper) -> None:
         """
         Generate and run the DROP command for the temp table.
 

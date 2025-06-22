@@ -14,30 +14,46 @@ This module abstracts away these differences, allowing code to work with either 
 without modification.
 """
 
+from __future__ import annotations
+
+import typing
+
+
+# Define a protocol for cursor objects that have the methods we need
+class CursorProtocol(typing.Protocol):
+    """Protocol for database cursor objects."""
+
+    def copy_expert(self, sql: str, file: typing.TextIO | typing.BinaryIO) -> None: ...
+    def copy(
+        self, sql: str, params: typing.Sequence[typing.Any] | None = None
+    ) -> typing.Any: ...
+
+
+# Define a protocol for file-like objects
+class FilelikeProtocol(typing.Protocol):
+    """Protocol for file-like objects."""
+
+    def read(self, size: int = -1) -> str | bytes: ...
+    def write(self, data: str | bytes) -> int: ...
+
+
 try:
     # Try to import psycopg (version 3)
     import psycopg  # noqa: F401  just detect the presence of psycopg(3)
-    from codecs import getincrementaldecoder
     from io import TextIOBase
 
     # Buffer size for reading data in chunks
     BUFFER_SIZE = 128 * 1024
 
-    class NoopDecoder:
-        """
-        A no-op decoder that simply returns the input unchanged.
+    # Type alias for text or binary file-like objects
+    FileObj = typing.Union[typing.TextIO, typing.BinaryIO]
 
-        This is used for binary destinations where no decoding is needed.
-        """
-
-        def decode(self, input, final=False):
-            """Return the input unchanged."""
-            return input
-
-    # Get the UTF-8 incremental decoder class for text destinations
-    utf8_decoder_cls = getincrementaldecoder("utf8")
-
-    def copy_to(cursor, sql, params, destination):
+    def copy_to(
+        cursor: CursorProtocol,
+        sql: str,
+        params: typing.Sequence[typing.Any],
+        destination: FileObj,
+    ) -> None:
         """
         Copy data from the database to a file-like object using psycopg3.
 
@@ -52,27 +68,27 @@ try:
         - For binary destinations, it passes the data through unchanged
         """
         # psycopg3 returns binary data that needs to be decoded for text destinations
-        if isinstance(destination, TextIOBase):
-            # For text destinations, use UTF-8 decoder
-            decoder = utf8_decoder_cls()
-        else:
-            # For binary destinations, use no-op decoder
-            decoder = NoopDecoder()
+        is_text = isinstance(destination, TextIOBase)
 
         # Use the psycopg3 copy context manager
         with cursor.copy(sql, params) as copy:
             # Read data in chunks until there's no more
-            while data := copy.read():
-                # Decode the data if necessary
-                data = decoder.decode(data)
-                # Write to the destination
-                destination.write(data)
+            while True:
+                data = copy.read()
+                if not data:
+                    break
 
-            # Finalize the decoder to handle any buffered data
-            if data := decoder.decode(b"", final=True):
-                destination.write(data)
+                # Decode the data if necessary and write to the destination
+                if is_text:
+                    # For text destinations, we need to decode to str
+                    text_dest = typing.cast(typing.TextIO, destination)
+                    text_dest.write(data.decode("utf-8"))
+                else:
+                    # For binary destinations, we keep as bytes
+                    binary_dest = typing.cast(typing.BinaryIO, destination)
+                    binary_dest.write(data)
 
-    def copy_from(cursor, sql, source):
+    def copy_from(cursor: CursorProtocol, sql: str, source: FileObj) -> None:
         """
         Copy data from a file-like object to the database using psycopg3.
 
@@ -87,14 +103,22 @@ try:
         # Use the psycopg3 copy context manager
         with cursor.copy(sql) as copy:
             # Read data in chunks and write to the database
-            while data := source.read(BUFFER_SIZE):
+            while True:
+                data = source.read(BUFFER_SIZE)
+                if not data:
+                    break
                 copy.write(data)
 
 except ImportError:
     # Fall back to psycopg2 if psycopg3 is not available
     from psycopg2.extensions import adapt
 
-    def copy_to(cursor, sql, params, destination):
+    def copy_to(
+        cursor: CursorProtocol,
+        sql: str,
+        params: typing.Sequence[typing.Any],
+        destination: typing.TextIO | typing.BinaryIO,
+    ) -> None:
         """
         Copy data from the database to a file-like object using psycopg2.
 
@@ -114,7 +138,11 @@ except ImportError:
         # Use psycopg2's copy_expert method
         cursor.copy_expert(inlined_sql, destination)
 
-    def copy_from(cursor, sql, source):
+    def copy_from(
+        cursor: CursorProtocol,
+        sql: str,
+        source: typing.TextIO | typing.BinaryIO,
+    ) -> None:
         """
         Copy data from a file-like object to the database using psycopg2.
 

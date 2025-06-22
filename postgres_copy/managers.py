@@ -1,9 +1,12 @@
 #!/usr/bin/env python
 
 import logging
+import typing
 
 from django.db import connection, models
+from django.db.models.fields import Field
 from django.db.transaction import TransactionManagementError
+from django.db.backends.base.schema import BaseDatabaseSchemaEditor
 
 from .copy_from import CopyMapping
 from .copy_to import CopyToQuery
@@ -17,7 +20,7 @@ class ConstraintQuerySet(models.QuerySet):
     """
 
     @property
-    def constrained_fields(self):
+    def constrained_fields(self) -> typing.List[Field]:
         """
         Returns list of model's fields with db_constraint set to True.
         """
@@ -28,13 +31,18 @@ class ConstraintQuerySet(models.QuerySet):
         ]
 
     @property
-    def indexed_fields(self):
+    def indexed_fields(self) -> typing.List[Field]:
         """
         Returns list of model's fields with db_index set to True.
         """
         return [f for f in self.model._meta.fields if f.db_index]
 
-    def edit_schema(self, schema_editor, method_name, args):
+    def edit_schema(
+        self,
+        schema_editor: BaseDatabaseSchemaEditor,
+        method_name: str,
+        args: typing.Tuple,
+    ) -> None:
         """
         Edits the schema without throwing errors.
 
@@ -46,7 +54,7 @@ class ConstraintQuerySet(models.QuerySet):
             logger.debug(f"Edit of {schema_editor}.{method_name} failed. Skipped")
             pass
 
-    def drop_constraints(self):
+    def drop_constraints(self) -> None:
         """
         Drop constraints on the model and its fields.
         """
@@ -71,7 +79,7 @@ class ConstraintQuerySet(models.QuerySet):
                 args = (self.model, field, field_copy)
                 self.edit_schema(schema_editor, "alter_field", args)
 
-    def drop_indexes(self):
+    def drop_indexes(self) -> None:
         """
         Drop indexes on the model and its fields.
         """
@@ -94,7 +102,7 @@ class ConstraintQuerySet(models.QuerySet):
                 args = (self.model, field, field_copy)
                 self.edit_schema(schema_editor, "alter_field", args)
 
-    def restore_constraints(self):
+    def restore_constraints(self) -> None:
         """
         Restore constraints on the model and its fields.
         """
@@ -119,7 +127,7 @@ class ConstraintQuerySet(models.QuerySet):
                 args = (self.model, field_copy, field)
                 self.edit_schema(schema_editor, "alter_field", args)
 
-    def restore_indexes(self):
+    def restore_indexes(self) -> None:
         """
         Restore indexes on the model and its fields.
         """
@@ -152,13 +160,13 @@ class CopyQuerySet(ConstraintQuerySet):
 
     def from_csv(
         self,
-        csv_path,
-        mapping=None,
-        drop_constraints=True,
-        drop_indexes=True,
-        silent=True,
-        **kwargs,
-    ):
+        csv_path: typing.Union[str, typing.BinaryIO, typing.TextIO],
+        mapping: typing.Optional[typing.Dict[str, str]] = None,
+        drop_constraints: bool = True,
+        drop_indexes: bool = True,
+        silent: bool = True,
+        **kwargs: typing.Any,
+    ) -> int:
         """
         Copy CSV file from the provided path to the current model using the provided mapping.
         """
@@ -178,14 +186,18 @@ class CopyQuerySet(ConstraintQuerySet):
                     "drop_constraints=False and drop_indexes=False."
                 )
 
-        mapping = CopyMapping(self.model, csv_path, mapping, **kwargs)
+        # Create a mapping dictionary if none was provided
+        mapping_dict = mapping if mapping is not None else {}
+
+        # Create the CopyMapping object
+        copy_mapping = CopyMapping(self.model, csv_path, mapping_dict, **kwargs)
 
         if drop_constraints:
             self.drop_constraints()
         if drop_indexes:
             self.drop_indexes()
 
-        insert_count = mapping.save(silent=silent)
+        insert_count = copy_mapping.save(silent=silent)
 
         if drop_constraints:
             self.restore_constraints()
@@ -194,7 +206,12 @@ class CopyQuerySet(ConstraintQuerySet):
 
         return insert_count
 
-    def to_csv(self, csv_path=None, *fields, **kwargs):
+    def to_csv(
+        self,
+        csv_path: typing.Optional[typing.Union[str, typing.BinaryIO]] = None,
+        *fields: str,
+        **kwargs: typing.Any,
+    ) -> typing.Optional[bytes]:
         """
         Copy current QuerySet to CSV at provided path or file-like object.
         """
@@ -252,10 +269,13 @@ class CopyQuerySet(ConstraintQuerySet):
         compiler = query.get_compiler(self.db, connection=connection)
         data = compiler.execute_sql(csv_path)
 
-        # If no csv_path is provided, then the query will come back as a string.
-        if csv_path is None:
+        # If no csv_path is provided, then the query will come back as bytes.
+        if csv_path is None and isinstance(data, bytes):
             # So return that.
             return data
+
+        # Otherwise return None
+        return None
 
 
 CopyManager = models.Manager.from_queryset(CopyQuerySet)

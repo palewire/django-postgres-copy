@@ -4,6 +4,7 @@ Handlers for working with PostgreSQL's COPY TO command.
 """
 
 import logging
+import typing
 from io import BytesIO
 
 from django.db import connections
@@ -20,7 +21,7 @@ class SQLCopyToCompiler(SQLCompiler):
     Custom SQL compiler for creating a COPY TO query (postgres backend only).
     """
 
-    def setup_query(self, **kwargs):
+    def setup_query(self, **kwargs: typing.Any) -> None:
         """
         Extend the default SQLCompiler.setup_query to add re-ordering of items in select.
         """
@@ -37,7 +38,10 @@ class SQLCopyToCompiler(SQLCompiler):
                 )
                 self.select.append(selection)
 
-    def execute_sql(self, csv_path_or_obj=None):
+    def execute_sql(
+        self,
+        csv_path_or_obj: typing.Optional[typing.Union[str, typing.BinaryIO]] = None,
+    ) -> typing.Optional[bytes]:
         """
         Run the COPY TO query.
         """
@@ -69,18 +73,23 @@ class SQLCopyToCompiler(SQLCompiler):
 
             # If a file-like object was provided, write it out there.
             if hasattr(csv_path_or_obj, "write"):
-                copy_to(c.cursor, copy_to_sql, params, csv_path_or_obj)
-                return
+                copy_to(
+                    c.cursor,
+                    copy_to_sql,
+                    params,
+                    typing.cast(typing.BinaryIO, csv_path_or_obj),
+                )
+                return None
             # If a file path was provided, write it out there.
-            elif csv_path_or_obj:
+            elif csv_path_or_obj and isinstance(csv_path_or_obj, str):
                 with open(csv_path_or_obj, "wb") as stdout:
                     copy_to(c.cursor, copy_to_sql, params, stdout)
-                    return
+                    return None
             # If there's no csv_path, return the output as a string.
             else:
-                stdout = BytesIO()
-                copy_to(c.cursor, copy_to_sql, params, stdout)
-                return stdout.getvalue()
+                stdout_buffer = BytesIO()
+                copy_to(c.cursor, copy_to_sql, params, stdout_buffer)
+                return stdout_buffer.getvalue()
 
 
 class CopyToQuery(Query):
@@ -88,7 +97,11 @@ class CopyToQuery(Query):
     Represents a "copy to" SQL query.
     """
 
-    def get_compiler(self, using=None, connection=None):
+    def get_compiler(
+        self,
+        using: typing.Optional[str] = None,
+        connection: typing.Optional[typing.Any] = None,
+    ) -> SQLCopyToCompiler:
         """
         Return a SQLCopyToCompiler object.
         """
