@@ -27,10 +27,7 @@ classifiers = [
     "Framework :: Django :: 5.2",
 ]
 requires-python = ">=3.9"
-dependencies = [
-    "django>=4.2,<4.3",
-    "psycopg2>=2.8.1",
-]
+dependencies = []
 dynamic = ["version"]
 
 [project.urls]
@@ -46,11 +43,6 @@ packages = ["postgres_copy"]
 postgres_copy = ["py.typed"]
 
 [tool.setuptools_scm]
-# Custom version scheme to handle the bug documented at
-# https://github.com/pypa/setuptools_scm/issues/342
-# Using a simpler version scheme for now
-version_scheme = "guess-next-dev"
-local_scheme = "node-and-date"
 
 [tool.pytest]
 python_files = ["test*.py", "test_*.py", "*_test.py"]
@@ -74,7 +66,3 @@ dev = [
     "pytest",
     "pytest-django",
 ]
-
-# No longer needed as Python 2 is end-of-life
-# [tool.wheel]
-# universal = 1
