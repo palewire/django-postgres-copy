@@ -13,7 +13,7 @@ from django.test import TestCase
 
 from postgres_copy import CopyMapping
 
-from .models import (
+from .test_models import (
     ExtendedMockObject,
     HookedCopyMapping,
     LimitedMockObject,
