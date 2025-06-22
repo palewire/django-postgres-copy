@@ -13,35 +13,32 @@ jobs:
         name: Checkout
         uses: actions/checkout@v4
 
-      - id: setup-python
-        name: Setup Python
-        uses: actions/setup-python@v5
+      - id: install-uv
+        name: Install uv
+        uses: astral-sh/setup-uv@v6
         with:
-          python-version: '3.11'
-          cache: 'pipenv'
+          version: "latest"
+          enable-cache: true
+          cache-dependency-glob: '**/pyproject.toml'
 
-      - id: install-pipenv
-        name: Install pipenv
-        run: curl https://raw.githubusercontent.com/pypa/pipenv/master/get-pipenv.py | python
-        shell: bash
+      - id: install-python
+        name: Install Python
+        run: uv python install 3.13
 
       - id: install-python-dependencies
         name: Install Python dependencies
-        run: pipenv sync --dev
-        shell: bash
+        run: uv sync --extra docs
 
       - id: build-sphinx-documentation
         name: Build Sphinx documentation
-        run: pipenv run make html
-        shell: bash
-        working-directory: docs
+        run: uv run sphinx-build -M html ./docs ./_build/
 
       - id: upload-release-candidate
         name: Upload release candidate
         uses: actions/upload-artifact@v4
         with:
           name: release-candidate
-          path: ./docs/_build/html/
+          path: ./_build/html/
 
   deploy:
     name: Deploy
