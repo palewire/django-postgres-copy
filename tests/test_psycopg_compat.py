@@ -54,8 +54,7 @@ class PsycopgCompatTest(unittest.TestCase):
             self.assertEqual(self.source, self.cursor.copy_expert.call_args[0][1])
 
     @unittest.skipIf(not PSYCOPG3_AVAILABLE, "psycopg3 not available")
-    @mock.patch("postgres_copy.psycopg_compat.getincrementaldecoder")
-    def test_copy_to_with_psycopg3(self, mock_getincrementaldecoder):
+    def test_copy_to_with_psycopg3(self):
         """Test copy_to function with psycopg3."""
         # Mock the psycopg import to succeed
         with mock.patch.dict("sys.modules", {"psycopg": mock.MagicMock()}):
@@ -65,14 +64,6 @@ class PsycopgCompatTest(unittest.TestCase):
             mock_copy.__enter__ = mock.MagicMock(return_value=mock_copy)
             mock_copy.__exit__ = mock.MagicMock(return_value=None)
             mock_copy.read = mock.MagicMock(side_effect=[b"data1", b"data2", None])
-
-            # Mock the decoder
-            mock_decoder = mock.MagicMock()
-            mock_getincrementaldecoder.return_value = mock.MagicMock(
-                return_value=mock_decoder
-            )
-            # Set up the decoder to return specific values for each call
-            mock_decoder.decode.side_effect = ["decoded1", "decoded2", ""]
 
             # Call the function with a text destination
             destination = io.StringIO()
@@ -85,7 +76,7 @@ class PsycopgCompatTest(unittest.TestCase):
             # Check the content of the destination
             destination.seek(0)
             content = destination.read()
-            self.assertEqual("decoded1decoded2", content)
+            self.assertEqual("data1data2", content)
 
     @unittest.skipIf(not PSYCOPG3_AVAILABLE, "psycopg3 not available")
     def test_copy_from_with_psycopg3(self):
