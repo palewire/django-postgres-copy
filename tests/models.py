@@ -128,6 +128,35 @@ class SecondaryMockObject(models.Model):
     objects = CopyManager()
 
 
-class UniqueMockObject(models.Model):
+class UniqueFieldConstraintMockObject(models.Model):
     name = models.CharField(max_length=500, unique=True)
     objects = CopyManager()
+
+
+class UniqueModelConstraintMockObject(models.Model):
+    name = models.CharField(max_length=500)
+    number = MyIntegerField(null=True, db_column='num')
+    objects = CopyManager()
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                name='constraint',
+                fields=['name'],
+            ),
+        ]
+
+
+class UniqueModelConstraintAsIndexMockObject(models.Model):
+    name = models.CharField(max_length=500)
+    number = MyIntegerField(null=True, db_column='num')
+    objects = CopyManager()
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                name='constraint_as_index',
+                fields=['name'],
+                include=['number'],  # Converts Constraint to Index
+            ),
+        ]
