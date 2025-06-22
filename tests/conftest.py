@@ -33,7 +33,7 @@ def pytest_configure():
             },
         },
         INSTALLED_APPS=("tests",),
-        DATABASE_ROUTERS=["tests.router.CustomRouter"],
+        DATABASE_ROUTERS=["tests.test_router.CustomRouter"],
         DEFAULT_AUTO_FIELD="django.db.models.BigAutoField",
         LOGGING={
             "version": 1,

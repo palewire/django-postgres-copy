@@ -111,4 +111,5 @@ source = ["postgres_copy"]
 relative_files = true
 omit = [
     "*/__pycache__/*",
+    "tests",
 ]
