@@ -10,6 +10,7 @@ from io import BytesIO
 from django.db import connections
 from django.db.models.sql.compiler import SQLCompiler
 from django.db.models.sql.query import Query
+from django.db.backends.base.base import BaseDatabaseWrapper
 
 from .psycopg_compat import copy_to
 
@@ -97,10 +98,22 @@ class CopyToQuery(Query):
     Represents a "copy to" SQL query.
     """
 
+    # Define attributes that will be set by the manager
+    copy_to_fields: typing.Optional[typing.Tuple[str, ...]] = None
+    copy_to_delimiter: str = ""
+    copy_to_header: str = ""
+    copy_to_null_string: str = ""
+    copy_to_quote_char: str = ""
+    copy_to_force_quote: str = ""
+    copy_to_encoding: str = ""
+    copy_to_escape: str = ""
+    csv_path_or_obj: typing.Optional[typing.Union[str, typing.BinaryIO]] = None
+
     def get_compiler(
         self,
         using: typing.Optional[str] = None,
-        connection: typing.Optional[typing.Any] = None,
+        connection: typing.Optional[BaseDatabaseWrapper] = None,
+        elide_empty: bool = False,
     ) -> SQLCopyToCompiler:
         """
         Return a SQLCopyToCompiler object.

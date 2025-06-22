@@ -147,7 +147,10 @@ class CopyMapping:
         Returns any fields on the database model matching the provided name.
         """
         try:
-            return self.model._meta.get_field(name)
+            field = self.model._meta.get_field(name)
+            if isinstance(field, Field):
+                return field
+            return None
         except FieldDoesNotExist:
             return None
 

@@ -74,8 +74,27 @@ class ConstraintQuerySet(models.QuerySet):
             # Remove any field constraints
             for field in self.constrained_fields:
                 logger.debug(f"Dropping constraints from {field}")
-                field_copy = field.__copy__()
-                field_copy.db_constraint = False
+                # Create a copy of the field with db_constraint=False
+                field_copy = type(field)(
+                    name=field.name,
+                    verbose_name=field.verbose_name,
+                    primary_key=field.primary_key,
+                    max_length=getattr(field, "max_length", None),
+                    unique=field.unique,
+                    blank=field.blank,
+                    null=field.null,
+                    db_index=field.db_index,
+                    rel=getattr(field, "rel", None),
+                    default=field.default,
+                    editable=field.editable,
+                    serialize=field.serialize,
+                    choices=field.choices,
+                    help_text=field.help_text,
+                    db_column=field.db_column,
+                    db_tablespace=field.db_tablespace,
+                    auto_created=field.auto_created,
+                    db_constraint=False,
+                )
                 args = (self.model, field, field_copy)
                 self.edit_schema(schema_editor, "alter_field", args)
 
@@ -97,8 +116,27 @@ class ConstraintQuerySet(models.QuerySet):
             # Remove any field indexes
             for field in self.indexed_fields:
                 logger.debug(f"Dropping index from {field}")
-                field_copy = field.__copy__()
-                field_copy.db_index = False
+                # Create a copy of the field with db_index=False
+                field_copy = type(field)(
+                    name=field.name,
+                    verbose_name=field.verbose_name,
+                    primary_key=field.primary_key,
+                    max_length=getattr(field, "max_length", None),
+                    unique=field.unique,
+                    blank=field.blank,
+                    null=field.null,
+                    db_index=False,
+                    rel=getattr(field, "rel", None),
+                    default=field.default,
+                    editable=field.editable,
+                    serialize=field.serialize,
+                    choices=field.choices,
+                    help_text=field.help_text,
+                    db_column=field.db_column,
+                    db_tablespace=field.db_tablespace,
+                    auto_created=field.auto_created,
+                    db_constraint=getattr(field, "db_constraint", True),
+                )
                 args = (self.model, field, field_copy)
                 self.edit_schema(schema_editor, "alter_field", args)
 
@@ -122,8 +160,27 @@ class ConstraintQuerySet(models.QuerySet):
             # Add any constraints to the fields
             for field in self.constrained_fields:
                 logger.debug(f"Adding constraints to {field}")
-                field_copy = field.__copy__()
-                field_copy.db_constraint = False
+                # Create a copy of the field with db_constraint=False
+                field_copy = type(field)(
+                    name=field.name,
+                    verbose_name=field.verbose_name,
+                    primary_key=field.primary_key,
+                    max_length=getattr(field, "max_length", None),
+                    unique=field.unique,
+                    blank=field.blank,
+                    null=field.null,
+                    db_index=field.db_index,
+                    rel=getattr(field, "rel", None),
+                    default=field.default,
+                    editable=field.editable,
+                    serialize=field.serialize,
+                    choices=field.choices,
+                    help_text=field.help_text,
+                    db_column=field.db_column,
+                    db_tablespace=field.db_tablespace,
+                    auto_created=field.auto_created,
+                    db_constraint=False,
+                )
                 args = (self.model, field_copy, field)
                 self.edit_schema(schema_editor, "alter_field", args)
 
@@ -147,8 +204,27 @@ class ConstraintQuerySet(models.QuerySet):
             # Add any indexes to the fields
             for field in self.indexed_fields:
                 logger.debug(f"Restoring index to {field}")
-                field_copy = field.__copy__()
-                field_copy.db_index = False
+                # Create a copy of the field with db_index=False
+                field_copy = type(field)(
+                    name=field.name,
+                    verbose_name=field.verbose_name,
+                    primary_key=field.primary_key,
+                    max_length=getattr(field, "max_length", None),
+                    unique=field.unique,
+                    blank=field.blank,
+                    null=field.null,
+                    db_index=False,
+                    rel=getattr(field, "rel", None),
+                    default=field.default,
+                    editable=field.editable,
+                    serialize=field.serialize,
+                    choices=field.choices,
+                    help_text=field.help_text,
+                    db_column=field.db_column,
+                    db_tablespace=field.db_tablespace,
+                    auto_created=field.auto_created,
+                    db_constraint=getattr(field, "db_constraint", True),
+                )
                 args = (self.model, field_copy, field)
                 self.edit_schema(schema_editor, "alter_field", args)
 
@@ -220,7 +296,8 @@ class CopyQuerySet(ConstraintQuerySet):
             query = self.query.chain(CopyToQuery)
         except AttributeError:
             # For Django 1.11 backward
-            query = self.query.clone(CopyToQuery)
+            query = typing.cast(CopyToQuery, self.query.clone())
+            query.__class__ = CopyToQuery
 
         # Get fields
         query.copy_to_fields = fields

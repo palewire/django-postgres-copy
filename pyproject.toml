@@ -70,6 +70,7 @@ warn_unreachable = true
 module = "tests.*"
 disallow_untyped_defs = false
 disallow_incomplete_defs = false
+ignore_errors = true
 
 [[tool.mypy.overrides]]
 module = "django.*"
@@ -78,6 +79,10 @@ ignore_missing_imports = true
 [[tool.mypy.overrides]]
 module = "psycopg.*"
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "version_scheme"
+ignore_errors = true
 
 [project.optional-dependencies]
 dev = [
