@@ -71,8 +71,8 @@ class PsycopgCompatTest(unittest.TestCase):
             mock_getincrementaldecoder.return_value = mock.MagicMock(
                 return_value=mock_decoder
             )
-            # Make the decoder return the same data for each call
-            mock_decoder.decode.side_effect = lambda data, final=False: "decoded data"
+            # Set up the decoder to return specific values for each call
+            mock_decoder.decode.side_effect = ["decoded1", "decoded2", ""]
 
             # Call the function with a text destination
             destination = io.StringIO()
@@ -81,8 +81,11 @@ class PsycopgCompatTest(unittest.TestCase):
             # Check that the psycopg3 version was called with the right parameters
             self.cursor.copy.assert_called_once_with(self.sql, (1, 2))
             mock_copy.read.assert_called()
+
+            # Check the content of the destination
             destination.seek(0)
-            self.assertIn("decoded data", destination.read())
+            content = destination.read()
+            self.assertEqual("decoded1decoded2", content)
 
     @unittest.skipIf(not PSYCOPG3_AVAILABLE, "psycopg3 not available")
     def test_copy_from_with_psycopg3(self):
