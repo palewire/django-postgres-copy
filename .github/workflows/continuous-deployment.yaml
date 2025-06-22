@@ -80,22 +80,21 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          cache: 'pipenv'
 
-      - name: Install pipenv
-        run: curl https://raw.githubusercontent.com/pypa/pipenv/master/get-pipenv.py | python
+      - name: Install uv
+        run: pip install uv
 
       - name: Install Python dependencies
-        run: pipenv sync --dev
+        run: uv pip install -e ".[dev]"
 
       - name: Build release
         run: |
-            pipenv run python setup.py sdist
-            pipenv run python setup.py bdist_wheel
+            uv pip install build
+            python -m build
             ls -l dist
 
       - name: Check release
-        run: pipenv run twine check dist/*
+        run: uv pip install twine && twine check dist/*
 
       - name: Save artifact
         uses: actions/upload-artifact@v4
