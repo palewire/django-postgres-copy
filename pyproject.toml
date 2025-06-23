@@ -102,10 +102,9 @@ docs = [
 
 
 [tool.pytest.ini_options]
-addopts = "-p no:warnings --cov=postgres_copy --cov-branch -cov-report=term-missing:skip-covered --cov-context=test"
+addopts = "-p no:warnings --cov=postgres_copy --cov-branch -cov-report=term-missing:skip-covered --cov-context=test --reuse-db --nomigrations"
 testpaths = ["tests"]
 python_files = "test_*.py"
-DJANGO_SETTINGS_MODULE = "tests.settings"
 
 [tool.coverage.run]
 source = ["postgres_copy"]

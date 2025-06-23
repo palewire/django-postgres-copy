@@ -3,7 +3,7 @@ from django.db import models
 
 from postgres_copy import CopyManager, CopyMapping
 
-from .test_fields import MyIntegerField
+from .fields import MyIntegerField
 
 
 class MockObject(models.Model):

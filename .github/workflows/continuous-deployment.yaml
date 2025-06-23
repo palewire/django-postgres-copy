@@ -68,7 +68,7 @@ jobs:
           uv pip install ${{ matrix.psycopg }} django==${{ matrix.django }}
 
       - name: Test
-        run: uv run pytest tests
+        run: uv run pytest tests --reuse-db --nomigrations
         env:
           PGPASSWORD: postgres
 
