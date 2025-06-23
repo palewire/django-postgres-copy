@@ -27,11 +27,18 @@ class PsycopgCompatTest(unittest.TestCase):
         """Test copy_to function with psycopg2."""
         # Mock the psycopg2 import to succeed and psycopg to fail
         with mock.patch.dict("sys.modules", {"psycopg": None}):
+            # Reload the module to ensure it uses the psycopg2 implementation
+            import importlib
+            import postgres_copy.psycopg_compat
+
+            importlib.reload(postgres_copy.psycopg_compat)
+            from postgres_copy.psycopg_compat import copy_to as reloaded_copy_to
+
             with mock.patch("psycopg2.extensions.adapt") as mock_adapt:
                 mock_adapt.return_value.getquoted.return_value = b"'test'"
 
                 # Call the function
-                copy_to(self.cursor, self.sql, (1, 2), self.destination)
+                reloaded_copy_to(self.cursor, self.sql, (1, 2), self.destination)
 
                 # Check that the psycopg2 version was called with the right parameters
                 self.cursor.copy_expert.assert_called_once()
@@ -45,8 +52,15 @@ class PsycopgCompatTest(unittest.TestCase):
         """Test copy_from function with psycopg2."""
         # Mock the psycopg2 import to succeed and psycopg to fail
         with mock.patch.dict("sys.modules", {"psycopg": None}):
+            # Reload the module to ensure it uses the psycopg2 implementation
+            import importlib
+            import postgres_copy.psycopg_compat
+
+            importlib.reload(postgres_copy.psycopg_compat)
+            from postgres_copy.psycopg_compat import copy_from as reloaded_copy_from
+
             # Call the function
-            copy_from(self.cursor, self.sql, self.source)
+            reloaded_copy_from(self.cursor, self.sql, self.source)
 
             # Check that the psycopg2 version was called with the right parameters
             self.cursor.copy_expert.assert_called_once()

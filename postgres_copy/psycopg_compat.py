@@ -82,10 +82,16 @@ try:
                 if is_text:
                     # For text destinations, we need to decode to str
                     text_dest = typing.cast(typing.TextIO, destination)
+                    # Handle both bytes and memoryview objects
+                    if isinstance(data, memoryview):
+                        data = data.tobytes()
                     text_dest.write(data.decode("utf-8"))
                 else:
                     # For binary destinations, we keep as bytes
                     binary_dest = typing.cast(typing.BinaryIO, destination)
+                    # Handle both bytes and memoryview objects
+                    if isinstance(data, memoryview):
+                        data = data.tobytes()
                     binary_dest.write(data)
 
     def copy_from(cursor: CursorProtocol, sql: str, source: FileObj) -> None:

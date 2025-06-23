@@ -1,71 +1,10 @@
 import os
-from pathlib import Path
+import sys
 import pytest
-from django.conf import settings
 from django.db import connections
-import django
 
-ROOT_DIR = Path(__file__).parent.parent
-PG_USER = os.environ.get("PG_USER", "postgres")
-
-
-def pytest_configure():
-    settings.configure(
-        DATABASES={
-            "default": {
-                "HOST": "localhost",
-                "PORT": 5432,
-                "NAME": "postgres",
-                "USER": PG_USER,
-                "ENGINE": "django.db.backends.postgresql_psycopg2",
-            },
-            "other": {
-                "HOST": "localhost",
-                "PORT": 5432,
-                "NAME": "postgres",
-                "USER": PG_USER,
-                "ENGINE": "django.db.backends.postgresql_psycopg2",
-            },
-            "sqlite": {"NAME": "sqlite", "ENGINE": "django.db.backends.sqlite3"},
-            "secondary": {
-                "HOST": "localhost",
-                "PORT": 5432,
-                "NAME": "postgres",
-                "USER": PG_USER,
-                "ENGINE": "django.db.backends.postgresql_psycopg2",
-            },
-        },
-        INSTALLED_APPS=("tests",),
-        DATABASE_ROUTERS=["tests.test_router.CustomRouter"],
-        DEFAULT_AUTO_FIELD="django.db.models.BigAutoField",
-        LOGGING={
-            "version": 1,
-            "disable_existing_loggers": False,
-            "handlers": {
-                "file": {
-                    "level": "DEBUG",
-                    "class": "logging.FileHandler",
-                    "filename": ROOT_DIR / "tests.log",
-                },
-            },
-            "formatters": {
-                "verbose": {
-                    "format": "%(levelname)s|%(asctime)s|%(module)s|%(message)s",
-                    "datefmt": "%d/%b/%Y %H:%M:%S",
-                }
-            },
-            "loggers": {
-                "postgres_copy": {
-                    "handlers": ["file"],
-                    "level": "DEBUG",
-                    "propagate": True,
-                },
-            },
-        },
-    )
-
-    # Initialize Django
-    django.setup()
+# Add the parent directory to sys.path
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
 @pytest.fixture(scope="session")
@@ -74,7 +13,6 @@ def django_db_setup(django_db_setup, django_db_blocker):
     Fixture to set up the test database with the required tables.
     This extends the built-in django_db_setup fixture.
     """
-
     # Import all test models
     from tests.test_models import (
         MockObject,
