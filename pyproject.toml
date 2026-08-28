@@ -96,7 +96,7 @@ mypy = [
 docs = [
     "sphinx",
     "sphinx-autobuild",
-    "sphinx-palewire-theme",
+    "sphinx-palewire-theme>=0.1.10",
     "myst-parser",
 ]
 
