@@ -6,6 +6,17 @@ from postgres_copy import CopyManager, CopyMapping
 from .fields import MyIntegerField
 
 
+class MockObjectMeta:
+    app_label = "tests"
+    unique_together = ("name", "number")
+
+
+if django.get_version() <= "5.1":
+    MockObjectMeta.index_together = ("name", "number")
+else:
+    MockObjectMeta.indexes = [models.Index(fields=["name", "number"])]
+
+
 class MockObject(models.Model):
     name = models.CharField(max_length=500)
     number = MyIntegerField(null=True, db_column="num")
@@ -15,16 +26,8 @@ class MockObject(models.Model):
     )
     objects = CopyManager()
 
-    class Meta:
-        app_label = "tests"
-        unique_together = ("name", "number")
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if django.get_version() <= "5.1":
-            self._meta.index_together = ("name", "number")
-        else:
-            self._meta.indexes = [models.Index(fields=["name", "number"])]
+    class Meta(MockObjectMeta):
+        pass
 
     def copy_name_template(self):
         return 'upper("%(name)s")'
@@ -128,6 +131,35 @@ class SecondaryMockObject(models.Model):
     objects = CopyManager()
 
 
-class UniqueMockObject(models.Model):
+class UniqueFieldConstraintMockObject(models.Model):
     name = models.CharField(max_length=500, unique=True)
     objects = CopyManager()
+
+
+class UniqueModelConstraintMockObject(models.Model):
+    name = models.CharField(max_length=500)
+    number = MyIntegerField(null=True, db_column="num")
+    objects = CopyManager()
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                name="constraint",
+                fields=["name"],
+            ),
+        ]
+
+
+class UniqueModelConstraintAsIndexMockObject(models.Model):
+    name = models.CharField(max_length=500)
+    number = MyIntegerField(null=True, db_column="num")
+    objects = CopyManager()
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                name="constraint_as_index",
+                fields=["name"],
+                include=["number"],  # Converts Constraint to Index
+            ),
+        ]

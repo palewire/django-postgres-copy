@@ -22,7 +22,9 @@ from .models import (
     MockObject,
     OverloadMockObject,
     SecondaryMockObject,
-    UniqueMockObject,
+    UniqueFieldConstraintMockObject,
+    UniqueModelConstraintMockObject,
+    UniqueModelConstraintAsIndexMockObject,
 )
 
 try:
@@ -536,11 +538,74 @@ class PostgresCopyFromTest(BaseTest):
 
     @mock.patch("django.db.connection.validate_no_atomic_block")
     def test_ignore_conflicts(self, _):
-        UniqueMockObject.objects.from_csv(
+        UniqueFieldConstraintMockObject.objects.from_csv(
             self.name_path, dict(name="NAME"), ignore_conflicts=True
         )
-        UniqueMockObject.objects.from_csv(
+        UniqueFieldConstraintMockObject.objects.from_csv(
             self.name_path, dict(name="NAME"), ignore_conflicts=True
+        )
+
+    @mock.patch("django.db.connection.validate_no_atomic_block")
+    def test_update_conflicts_target_field_update(self, _):
+        UniqueFieldConstraintMockObject.objects.from_csv(
+            self.name_path,
+            dict(name="NAME"),
+            drop_constraints=False,
+            drop_indexes=False,
+            update_conflicts=True,
+            update_fields=["name"],
+            unique_fields=["name"],
+        )
+        UniqueFieldConstraintMockObject.objects.from_csv(
+            self.name_path,
+            dict(name="NAME"),
+            drop_constraints=False,
+            drop_indexes=False,
+            update_conflicts=True,
+            update_fields=["name"],
+            unique_fields=["name"],
+        )
+
+    @mock.patch("django.db.connection.validate_no_atomic_block")
+    def test_update_conflicts_target_constraint_update(self, _):
+        UniqueModelConstraintMockObject.objects.from_csv(
+            self.name_path,
+            dict(name="NAME", number="NUMBER"),
+            drop_constraints=False,
+            drop_indexes=False,
+            update_conflicts=True,
+            update_fields=["name", "number"],
+            unique_fields=["name"],
+        )
+        UniqueModelConstraintMockObject.objects.from_csv(
+            self.name_path,
+            dict(name="NAME", number="NUMBER"),
+            drop_constraints=False,
+            drop_indexes=False,
+            update_conflicts=True,
+            update_fields=["name", "number"],
+            unique_fields=["name"],
+        )
+
+    @mock.patch("django.db.connection.validate_no_atomic_block")
+    def test_update_conflicts_target_constraint_as_index_update(self, _):
+        UniqueModelConstraintAsIndexMockObject.objects.from_csv(
+            self.name_path,
+            dict(name="NAME", number="NUMBER"),
+            drop_constraints=False,
+            drop_indexes=False,
+            update_conflicts=True,
+            update_fields=["name", "number"],
+            unique_fields=["name"],
+        )
+        UniqueModelConstraintAsIndexMockObject.objects.from_csv(
+            self.name_path,
+            dict(name="NAME", number="NUMBER"),
+            drop_constraints=False,
+            drop_indexes=False,
+            update_conflicts=True,
+            update_fields=["name", "number"],
+            unique_fields=["name"],
         )
 
     @mock.patch("django.db.connection.validate_no_atomic_block")
@@ -553,6 +618,28 @@ class PostgresCopyFromTest(BaseTest):
         self.assertEqual(ExtendedMockObject.objects.filter(static_val=1).count(), 3)
         self.assertEqual(
             ExtendedMockObject.objects.filter(static_string="test").count(), 3
+        )
+
+    @mock.patch("django.db.connection.validate_no_atomic_block")
+    def test_static_none_value(self, _):
+        ExtendedMockObject.objects.from_csv(
+            self.name_path,
+            dict(name="NAME", dt="DATE"),
+            static_mapping=dict(static_val=1, static_string="test", number=None),
+        )
+        self.assertEqual(
+            ExtendedMockObject.objects.filter(number__isnull=True).count(), 3
+        )
+
+    @mock.patch("django.db.connection.validate_no_atomic_block")
+    def test_static_value_with_quote(self, _):
+        ExtendedMockObject.objects.from_csv(
+            self.name_path,
+            dict(name="NAME", number="NUMBER", dt="DATE"),
+            static_mapping=dict(static_val=1, static_string="O'B"),
+        )
+        self.assertEqual(
+            ExtendedMockObject.objects.filter(static_string="O'B").count(), 3
         )
 
     @mock.patch("django.db.connection.validate_no_atomic_block")

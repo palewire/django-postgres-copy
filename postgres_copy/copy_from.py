@@ -13,8 +13,9 @@ from io import TextIOWrapper
 
 from django.contrib.humanize.templatetags.humanize import intcomma
 from django.core.exceptions import FieldDoesNotExist
-from django.db import NotSupportedError, connections, router
+from django.db import connections, router
 from django.db.models import Field, Model
+from django.db.models.constants import OnConflict
 from django.db.backends.utils import CursorWrapper
 
 from .psycopg_compat import copy_from
@@ -40,6 +41,9 @@ class CopyMapping:
         force_null: typing.Optional[typing.List[str]] = None,
         encoding: typing.Optional[str] = None,
         ignore_conflicts: bool = False,
+        update_conflicts: bool = False,
+        update_fields: typing.Optional[typing.Collection[str]] = None,
+        unique_fields: typing.Optional[typing.Collection[str]] = None,
         static_mapping: typing.Optional[typing.Dict[str, str]] = None,
         temp_table_name: typing.Optional[str] = None,
     ) -> None:
@@ -66,12 +70,27 @@ class CopyMapping:
         self.force_not_null = force_not_null
         self.force_null = force_null
         self.encoding = encoding
-        self.supports_ignore_conflicts = True
         self.ignore_conflicts = ignore_conflicts
+        self.update_conflicts = update_conflicts
         if static_mapping is not None:
             self.static_mapping = OrderedDict(static_mapping)
         else:
             self.static_mapping = OrderedDict()
+
+        # Convert field names to fields
+        opts = self.model._meta
+        if update_fields:
+            self.update_fields = [opts.get_field(name) for name in update_fields]
+        else:
+            self.update_fields = update_fields
+        if unique_fields:
+            # Primary key is allowed in unique_fields
+            self.unique_fields = [
+                opts.get_field(opts.pk.name if name == "pk" else name)
+                for name in unique_fields
+            ]
+        else:
+            self.unique_fields = unique_fields
 
         # Line up the database connection
         if using is not None:
@@ -85,12 +104,13 @@ class CopyMapping:
         if self.conn.vendor != "postgresql":
             raise TypeError("Only PostgreSQL backends supported")
 
-        # Check if it is PSQL 9.5 or greater, which determines if ignore_conflicts is supported
-        self.supports_ignore_conflicts = self.is_postgresql_9_5()
-        if self.ignore_conflicts and not self.supports_ignore_conflicts:
-            raise NotSupportedError(
-                "This database backend does not support ignoring conflicts."
-            )
+        # Use Django to validate ON CONFLICT related kwargs
+        self.on_conflict = self.model.objects.none()._check_bulk_create_options(
+            ignore_conflicts=self.ignore_conflicts,
+            update_conflicts=self.update_conflicts,
+            update_fields=self.update_fields,
+            unique_fields=self.unique_fields,
+        )
 
         # Pull the CSV headers
         self.headers = self.get_headers()
@@ -351,12 +371,27 @@ class CopyMapping:
         """
         Preps the suffix to the insert query.
         """
-        if self.ignore_conflicts:
-            return """
+        if self.on_conflict == OnConflict.IGNORE:
+            suffix = """
                 ON CONFLICT DO NOTHING;
             """
+        elif self.on_conflict == OnConflict.UPDATE:
+            update_columns = [field.column for field in self.update_fields]
+            model_table = self.model._meta.db_table
+
+            suffix = """
+                ON CONFLICT ({target}) DO UPDATE
+                    SET {values}
+                    WHERE ({new}) IS DISTINCT FROM ({old});
+            """.format(
+                target=", ".join(f'"{f.column}"' for f in self.unique_fields),
+                values=", ".join(f'"{c}"=EXCLUDED."{c}"' for c in update_columns),
+                new=", ".join(f'"{model_table}"."{c}"' for c in update_columns),
+                old=", ".join(f'EXCLUDED."{c}"' for c in update_columns),
+            )
         else:
-            return ";"
+            suffix = ";"
+        return suffix
 
     def prep_insert(self) -> str:
         """
@@ -387,8 +422,10 @@ class CopyMapping:
             if field is not None:
                 model_fields.append('"%s"' % field.get_attname_column()[1])
 
-        for k in self.static_mapping.keys():
-            model_fields.append('"%s"' % k)
+        for field_name in self.static_mapping.keys():
+            field = self.get_field(field_name)
+            if field is not None:
+                model_fields.append('"%s"' % field.get_attname_column()[1])
 
         options["model_fields"] = ", ".join(model_fields)
 
@@ -423,7 +460,10 @@ class CopyMapping:
 
         # Tack on static fields
         for v in self.static_mapping.values():
-            temp_fields.append("'%s'" % v)
+            if v is None:
+                temp_fields.append("NULL")
+            else:
+                temp_fields.append("'%s'" % str(v).replace("'", "''"))
 
         # Join it all together
         options["temp_fields"] = ", ".join(temp_fields)

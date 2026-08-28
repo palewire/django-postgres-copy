@@ -8,4 +8,10 @@
 ### Contributing
 
 To set up a development environment, run `uv sync --all-extras` after forking and cloning the repository.
-To run tests, use `uv run pytest tests`
+To run tests, use `uv run pytest tests`.
+
+Depending on your setup, you might need to run the following:
+```
+> uv pip install psycopg
+> PG_USER='<username>' PGPASSWORD='<password>' uv run pytest tests
+```

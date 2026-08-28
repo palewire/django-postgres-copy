@@ -229,6 +229,18 @@ Keyword Argument       Description
 ``ignore_conflicts``   Specify True to ignore unique constraint or exclusion
                        constraint violation errors. The default is False.
 
+``update_conflicts``   Specify True to update rows that fail insertion due
+                       to conflicts. Requires both ``update_fields`` and
+                       ``unique_fields`` to be specified. The default is False.
+
+``update_fields``      When ``update_conflicts`` is ``True``, this specifies
+                       which model fields should be updated. If passed, this
+                       must be a list of field names. The default is None.
+
+``unique_fields``      When ``update_conflicts`` is ``True``, this specifies
+                       which fields might be in conflict. If passed, this must
+                       be a list of field names. The default is None.
+
 ``using``              Sets the database to use when importing data.
                        Default is None, which will use the ``'default'``
                        database.
@@ -462,6 +474,48 @@ Now you can run that subclass directly rather than via a manager. The only diffe
             )
             # Then save it.
             c.save()
+
+
+For example, if you wish to return a QuerySet of the models imported into the database, you could do the following:
+
+.. code-block:: python
+    :emphasize-lines: 9,14,25
+
+
+    from django.db import models
+    from postgres_copy import CopyMapping, CopyQuerySet
+
+
+    class ResultsCopyMapping(CopyMapping):
+        def insert_suffix(self) -> str:
+            """Add `RETURNING` sql clause to get newly created/updated ids."""
+            suffix = super().insert_suffix()
+            suffix = suffix.split(';')[0] + ' RETURNING id;'
+            return suffix
+
+      def post_insert(self, cursor) -> None:
+            """Extend to store results from `RETURNING` clause."""
+            self.obj_ids = [r[0] for r in cursor.fetchall()]
+
+    class ResultsCopyQuerySet(CopyQuerySet):
+        def from_csv(self, csv_path_or_obj, mapping=None, **kwargs):
+            mapping = ResultsCopyMapping(
+                self.model,
+                csv_path_or_obj,
+                mapping=None,
+                **kwargs
+            )
+            count = mapping.save(silent=True)
+            objs = self.model.objects.filter(id__in=mapping.obj_ids)
+            return objs, count
+
+
+    class Person(models.Model):
+        name = models.CharField(max_length=500)
+        number = models.IntegerField()
+        source_csv = models.CharField(max_length=500)
+
+        objects = ResultsCopyQuerySet.as_manager()
 
 
 Export options

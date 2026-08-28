@@ -4,6 +4,7 @@ import logging
 import typing
 
 from django.db import connection, models
+from django.db.models.constraints import BaseConstraint
 from django.db.models.fields import Field
 from django.db.transaction import TransactionManagementError
 from django.db.backends.base.schema import BaseDatabaseSchemaEditor
@@ -31,11 +32,25 @@ class ConstraintQuerySet(models.QuerySet):
         ]
 
     @property
+    def model_constraints(self) -> typing.List[BaseConstraint]:
+        """
+        Returns list of model-level constraints.
+        """
+        return getattr(self.model._meta, "constraints", [])
+
+    @property
     def indexed_fields(self) -> typing.List[Field]:
         """
         Returns list of model's fields with db_index set to True.
         """
         return [f for f in self.model._meta.fields if f.db_index]
+
+    @property
+    def model_indexes(self) -> typing.List[models.Index]:
+        """
+        Returns list of model-level indexes.
+        """
+        return getattr(self.model._meta, "indexes", [])
 
     def edit_schema(
         self,
@@ -79,6 +94,14 @@ class ConstraintQuerySet(models.QuerySet):
                 args = (self.model, field, field_copy)
                 self.edit_schema(schema_editor, "alter_field", args)
 
+            # Remove any model constraints
+            for constraint in self.model_constraints:
+                logger.debug(
+                    f"Dropping constraint '{constraint.name}' from {self.model.__name__}"
+                )
+                args = (self.model, constraint)
+                self.edit_schema(schema_editor, "remove_constraint", args)
+
     def drop_indexes(self) -> None:
         """
         Drop indexes on the model and its fields.
@@ -101,6 +124,14 @@ class ConstraintQuerySet(models.QuerySet):
                 field_copy.db_index = False
                 args = (self.model, field, field_copy)
                 self.edit_schema(schema_editor, "alter_field", args)
+
+            # Remove any model indexes
+            for index in self.model_indexes:
+                logger.debug(
+                    f"Dropping index '{index.name}' from {self.model.__name__}"
+                )
+                args = (self.model, index)
+                self.edit_schema(schema_editor, "remove_index", args)
 
     def restore_constraints(self) -> None:
         """
@@ -127,6 +158,14 @@ class ConstraintQuerySet(models.QuerySet):
                 args = (self.model, field_copy, field)
                 self.edit_schema(schema_editor, "alter_field", args)
 
+            # Add any constraints to the model
+            for constraint in self.model_constraints:
+                logger.debug(
+                    f"Adding constraint '{constraint.name}' to {self.model.__name__}"
+                )
+                args = (self.model, constraint)
+                self.edit_schema(schema_editor, "add_constraint", args)
+
     def restore_indexes(self) -> None:
         """
         Restore indexes on the model and its fields.
@@ -151,6 +190,12 @@ class ConstraintQuerySet(models.QuerySet):
                 field_copy.db_index = False
                 args = (self.model, field_copy, field)
                 self.edit_schema(schema_editor, "alter_field", args)
+
+            # Add any indexes to the model
+            for index in self.model_indexes:
+                logger.debug(f"Adding index '{index.name}' to {self.model.__name__}")
+                args = (self.model, index)
+                self.edit_schema(schema_editor, "add_index", args)
 
 
 class CopyQuerySet(ConstraintQuerySet):
@@ -184,6 +229,12 @@ class CopyQuerySet(ConstraintQuerySet):
                     "wouldn't gain any significant benefit from it "
                     "anyway.  Either remove the transaction block, or set "
                     "drop_constraints=False and drop_indexes=False."
+                )
+
+            if kwargs.get("update_conflicts"):
+                raise ValueError(
+                    "update_conflicts is mutually exclusive with "
+                    "drop_constraints or drop_indexes."
                 )
 
         # Create a mapping dictionary if none was provided
