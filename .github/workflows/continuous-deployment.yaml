@@ -38,14 +38,20 @@ jobs:
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     strategy:
       matrix:
-        python: ['3.9', '3.10', '3.11', '3.12', '3.13']
-        django: ['4.2', '5.1', '5.2']
+        python: ['3.9', '3.10', '3.11', '3.12', '3.13', '3.14']
+        django: ['4.2', '5.1', '5.2', '6.0']
         psycopg: ['psycopg2', 'psycopg']
         exclude:
         - python: '3.9'
           django: '5.1'
         - python: '3.9'
           django: '5.2'
+        - python: '3.9'
+          django: '6.0'
+        - python: '3.10'
+          django: '6.0'
+        - python: '3.11'
+          django: '6.0'
     steps:
       - name: Checkout
         uses: actions/checkout@v4

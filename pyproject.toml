@@ -21,10 +21,12 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Framework :: Django",
     "Framework :: Django :: 4.2",
     "Framework :: Django :: 5.1",
     "Framework :: Django :: 5.2",
+    "Framework :: Django :: 6.0",
 ]
 requires-python = ">=3.9"
 dependencies = []
@@ -46,6 +48,9 @@ postgres_copy = ["py.typed"]
 
 [tool.pytest]
 python_files = ["test*.py", "test_*.py", "*_test.py"]
+addopts = ["-p", "no:warnings", "--cov=postgres_copy", "--cov-branch", "-cov-report=term-missing:skip-covered", "--cov-context=test", "--reuse-db", "--nomigrations"]
+testpaths = ["tests"]
+
 
 [tool.flake8]
 max-line-length = 119
@@ -99,12 +104,6 @@ docs = [
     "sphinx-palewire-theme>=0.1.10",
     "myst-parser",
 ]
-
-
-[tool.pytest.ini_options]
-addopts = "-p no:warnings --cov=postgres_copy --cov-branch -cov-report=term-missing:skip-covered --cov-context=test --reuse-db --nomigrations"
-testpaths = ["tests"]
-python_files = "test_*.py"
 
 [tool.coverage.run]
 source = ["postgres_copy"]
